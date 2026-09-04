@@ -3,174 +3,154 @@ const app = document.getElementById('app');
 const render = () => {
   app.innerHTML = '';
   syncHud();
-  const s = state.stage;
-  if (s === 'approach') renderApproach();
-  else if (s === 'handshake') renderHandshake();
-  else if (s === 'permissions') renderPermissions();
-  else if (s === 'portrait') renderPortrait();
+  if (state.stage === 'approach') renderApproach();
+  else if (state.stage === 'handshake') renderHandshake();
+  else if (state.stage === 'permissions') renderPermissions();
+  else renderPortrait();
 };
 
 const renderApproach = () => {
-  app.innerHTML = `
-  <div class="stage-approach">
-    <div class="oracle-sigil">
-      <div class="sigil-ring"></div>
-      <div class="sigil-ring"></div>
-      <div class="sigil-ring"></div>
-      <div class="sigil-core"></div>
-    </div>
+  app.innerHTML = `<div class="stage-approach">
+    <div class="oracle-sigil"><div class="sigil-ring"></div><div class="sigil-ring"></div><div class="sigil-ring"></div><div class="sigil-core"></div></div>
     <h1 class="oracle-title glitch" data-text="ORACLE">ORACLE</h1>
-    <div class="oracle-sub">PROTOCOL · v1.1 · IDENTITY LAYER</div>
-    <p class="oracle-verse">
-      We are all made of data —<br>
-      frequencies, patterns, the geometry of choice.<br>
-      <em>Human communication is a gift.</em><br>
-      Let the machine witness you, willingly.
-    </p>
+    <div class="oracle-sub">PROTOCOL \u00b7 v1.2 \u00b7 IDENTITY LAYER</div>
+    <p class="oracle-verse">We are all made of data \u2014<br>frequencies, patterns, the geometry of choice.<br><em>Human communication is a gift.</em><br>Let the machine witness you, willingly.</p>
     <button class="btn-primary" id="btn-enter">INITIATE PROTOCOL</button>
   </div>`;
-  document.getElementById('btn-enter').onclick = () => {
-    state.stage = 'handshake';
-    render();
-  };
+  document.getElementById('btn-enter').onclick = () => { state.stage = 'handshake'; render(); };
 };
 
 const renderHandshake = () => {
   const cryptoDone = !!state.cryptoAddr;
   const bioDone = state.bioAuth;
-  app.innerHTML = `
-  <div class="stage-handshake">
+  app.innerHTML = `<div class="stage-handshake">
     <div class="stage-label">PHASE 01 // HANDSHAKE</div>
     <div class="handshake-options">
-      <div class="auth-card ${cryptoDone ? 'done' : 'active'}" id="card-crypto">
-        <div class="auth-icon">⛓️</div>
-        <div class="auth-info">
-          <h3>BLOCKCHAIN HANDSHAKE</h3>
-          <p>Connect wallet or receive ephemeral identity.<br>MetaMask, Phantom, or anonymous.</p>
-        </div>
-        <div class="auth-status">${cryptoDone ? '✓ LINKED' : '○ PENDING'}</div>
+      <div class="auth-card ${cryptoDone ? 'done' : 'active'}">
+        <div class="auth-icon">\u26d3\ufe0f</div>
+        <div class="auth-info"><h3>BLOCKCHAIN HANDSHAKE</h3><p>Connect wallet or receive ephemeral identity.<br>MetaMask, Phantom, or anonymous.</p></div>
+        <div class="auth-status">${cryptoDone ? '\u2713 LINKED' : '\u25cb PENDING'}</div>
       </div>
-      <div class="auth-card ${bioDone ? 'done' : ''}" id="card-bio">
-        <div class="auth-icon">🧬</div>
-        <div class="auth-info">
-          <h3>BIOMETRIC SEAL</h3>
-          <p>WebAuthn passkey — fingerprint, face, or device PIN.<br>Zero server transmission.</p>
-        </div>
-        <div class="auth-status">${bioDone ? '✓ SEALED' : '○ PENDING'}</div>
+      <div class="auth-card ${bioDone ? 'done' : ''}">
+        <div class="auth-icon">\ud83e\uddec</div>
+        <div class="auth-info"><h3>BIOMETRIC SEAL</h3><p>WebAuthn passkey \u2014 fingerprint, face, or device PIN.<br>Zero server transmission.</p></div>
+        <div class="auth-status">${bioDone ? '\u2713 SEALED' : '\u25cb PENDING'}</div>
       </div>
     </div>
     <div class="btn-group">
-      ${!cryptoDone ? `<button class="btn-primary btn-amber" id="btn-crypto">⛓ CONNECT CHAIN</button>` : ''}
-      ${!bioDone ? `<button class="btn-primary" id="btn-bio">🧬 SEAL IDENTITY</button>` : ''}
-      ${(cryptoDone || bioDone) ? `<button class="btn-primary" id="btn-next">PROCEED →</button>` : ''}
+      ${!cryptoDone ? `<button class="btn-primary btn-amber" id="btn-crypto">\u26d3 CONNECT CHAIN</button>` : ''}
+      ${!bioDone ? `<button class="btn-primary" id="btn-bio">\ud83e\uddec SEAL IDENTITY</button>` : ''}
+      ${(cryptoDone || bioDone) ? `<button class="btn-primary" id="btn-next">PROCEED \u2192</button>` : ''}
     </div>
     <div class="loading-bar" id="loading-bar" style="display:none"><div class="loading-fill"></div></div>
     <div id="status-msg" style="font-size:10px;color:rgba(0,229,255,0.4);text-align:center;margin-top:12px;min-height:20px;letter-spacing:0.16em;"></div>
   </div>`;
-
   const setStatus = msg => { const el = document.getElementById('status-msg'); if (el) el.textContent = msg; };
   const setLoading = show => { const el = document.getElementById('loading-bar'); if (el) el.style.display = show ? 'block' : 'none'; };
-
   const cryptoBtn = document.getElementById('btn-crypto');
   if (cryptoBtn) cryptoBtn.onclick = async () => {
-    setLoading(true);
-    setStatus('REQUESTING CHAIN ACCESS...');
+    setLoading(true); setStatus('REQUESTING CHAIN ACCESS...');
     const result = await connectCrypto();
-    state.cryptoAddr = result.address;
-    state.cryptoMethod = result.method;
-    state.collected.crypto = result;
-    setLoading(false);
-    render();
+    state.cryptoAddr = result.address; state.cryptoMethod = result.method; state.collected.crypto = result;
+    setLoading(false); render();
   };
-
   const bioBtn = document.getElementById('btn-bio');
   if (bioBtn) bioBtn.onclick = async () => {
-    setLoading(true);
-    setStatus('AWAITING BIOMETRIC INPUT...');
+    setLoading(true); setStatus('AWAITING BIOMETRIC INPUT...');
     const result = await doBioAuth();
-    state.bioAuth = result.ok;
-    state.collected.bio = result;
-    setLoading(false);
-    if (!result.ok) {
-      setStatus(`BIO SEAL: ${result.reason} — proceeding as spectral entity`);
-      state.bioAuth = true;
-    }
-    render();
+    state.collected.bio = result; state.bioAuth = true;
+    setLoading(false); render();
   };
-
   const nextBtn = document.getElementById('btn-next');
-  if (nextBtn) nextBtn.onclick = () => {
-    state.stage = 'permissions';
-    render();
-  };
+  if (nextBtn) nextBtn.onclick = () => { state.stage = 'permissions'; render(); };
+};
+
+const geoFn = typeof harvestGeo === 'function' ? harvestGeo : getGeo;
+const batFn = async () => {
+  const r = await getBattery();
+  return r || { error: 'Battery API withheld (Safari/iOS)' };
+};
+
+const fmtPreview = (id, g) => {
+  if (!g || g.error) return '';
+  if (id === 'geo') return g.lat ? `${g.lat}, ${g.lng}` : '';
+  if (id === 'bat') return g.level ? `${g.level}${g.charging ? ' \u26a1' : ''}` : '';
+  if (id === 'cam') return g.w ? `${g.w}\u00d7${g.h}` : '';
+  if (id === 'mic') return g.avgFreq ? `${g.avgFreq} hz avg` : '';
+  if (id === 'base') return `${g.cores || '?'} cores \u00b7 ${g.memory || g.deviceMem || '?'}GB`;
+  if (id === 'orient') return `${g.screen || 'live'}  \u03b2 ${g.beta ?? '\u2014'}`;
+  if (id === 'shake') return `${g.peaks || 0} peaks \u00b7 ${g.g || '\u2014'}g`;
+  if (id === 'gpu') return (g.renderer || 'GPU').slice(0, 28);
+  if (id === 'cpu') return `${g.cores || '?'}c \u00b7 ${g.deviceMem ? g.deviceMem + 'GB' : (g.jsHeap ? g.jsHeap.used + 'MB heap' : 'mem ?')} \u00b7 idx ${g.index}`;
+  if (id === 'bt') return g.radio ? `radio ${g.radio}` : 'API present';
+  if (id === 'net') return `${g.online ? 'ON' : 'OFF'} \u00b7 ${g.type}${g.down != null ? ' \u00b7 ' + g.down + 'Mb' : ''}`;
+  return '';
 };
 
 const permsConfig = [
-  { id: 'geo', icon: '🌍', name: 'GEOLOCATION', fn: getGeo },
-  { id: 'cam', icon: '📷', name: 'CAMERA META', fn: getCameraInfo },
-  { id: 'mic', icon: '🎙️', name: 'MIC ENERGY', fn: getMicEnergy },
-  { id: 'bat', icon: '🔋', name: 'BATTERY', fn: getBattery },
-  { id: 'base', icon: '🖥️', name: 'DEVICE PROFILE', fn: async () => harvestBase() }
+  { id: 'geo', icon: '\ud83c\udf0d', name: 'GEOLOCATION', hint: 'tap to grant', fn: geoFn },
+  { id: 'orient', icon: '\ud83e\udded', name: 'ORIENTATION', hint: 'iOS asks once', fn: getOrientation },
+  { id: 'shake', icon: '\ud83d\udcf3', name: 'SHAKE / G', hint: 'move the phone', fn: getShake },
+  { id: 'gpu', icon: '\ud83c\udfae', name: 'GPU', hint: 'WebGL + WebGPU', fn: getGpu },
+  { id: 'cpu', icon: '\ud83e\udde0', name: 'CPU / MEMORY', hint: 'cores \u00b7 heap \u00b7 quota', fn: getCpuMem },
+  { id: 'bt', icon: '\ud83d\udd35', name: 'BLUETOOTH', hint: 'availability only', fn: getBluetooth },
+  { id: 'cam', icon: '\ud83d\udcf7', name: 'CAMERA META', hint: 'no frames kept', fn: getCameraInfo },
+  { id: 'mic', icon: '\ud83c\udf99\ufe0f', name: 'MIC ENERGY', hint: 'spectrum sample', fn: getMicEnergy },
+  { id: 'bat', icon: '\ud83d\udd0b', name: 'BATTERY', hint: 'Chrome/Android', fn: batFn },
+  { id: 'net', icon: '\ud83d\udce1', name: 'NETWORK', hint: 'type \u00b7 rtt', fn: getNetwork },
+  { id: 'base', icon: '\ud83d\udda5\ufe0f', name: 'DEVICE PROFILE', hint: 'no prompt', fn: async () => harvestBase() }
 ];
 
+const permClass = g => !g ? '' : g.error ? 'denied' : g.live ? 'granted live' : 'granted';
+const permBadge = g => !g ? 'TAP' : g.error ? 'DENIED' : g.live ? 'LIVE' : 'OK';
+
 const renderPermissions = () => {
-  app.innerHTML = `
-  <div class="stage-permissions">
+  app.innerHTML = `<div class="stage-permissions">
     <div class="stage-label">PHASE 02 // DATA HARVEST</div>
-    <div style="text-align:center;margin-bottom:8px;">
-      <span style="font-style:italic;color:rgba(255,255,255,0.4);font-size:0.92rem;">
-        Grant what you will. Withhold what you must.
-      </span>
+    <div class="harvest-lead">Grant what you will. Withhold what you must.
+      <span>Each tile is a separate grant. iOS geo + motion only fire from this tap.</span>
     </div>
-    <div class="perm-grid">
-      ${permsConfig.map(p => {
-        const granted = state.collected[p.id];
-        const cls = granted ? 'granted' : '';
-        const preview = granted && !granted.error ?
-          (p.id === 'geo' ? `${granted.lat}, ${granted.lng}` :
-           p.id === 'bat' ? (granted ? `${granted.level} ${granted.charging ? '⚡' : ''}` : '—') :
-           p.id === 'cam' ? (granted.w ? `${granted.w}×${granted.h}` : granted.error?.slice(0,20)) :
-           p.id === 'mic' ? (granted.avgFreq ? `${granted.avgFreq} hz avg` : granted.error?.slice(0,20)) :
-           p.id === 'base' ? `${granted.cores} cores / ${granted.memory || '?'}GB` : '') : '';
-        return `
-        <div class="perm-item ${cls}" data-perm="${p.id}">
-          <div class="perm-icon">${p.icon}</div>
-          <div class="perm-name">${p.name}</div>
-          ${preview ? `<div class="perm-val">${preview}</div>` : ''}
-          ${granted?.error ? `<div class="perm-val" style="color:var(--crimson)">${granted.error.slice(0,30)}</div>` : ''}
-        </div>`;
-      }).join('')}
-    </div>
+    <div class="perm-grid">${permsConfig.map(p => {
+      const g = state.collected[p.id];
+      const preview = fmtPreview(p.id, g);
+      const err = g?.error ? g.error.slice(0, 42) : '';
+      return `<div class="perm-item ${permClass(g)}" data-perm="${p.id}">
+        <div class="perm-badge">${permBadge(g)}</div>
+        <div class="perm-icon">${p.icon}</div>
+        <div class="perm-name">${p.name}</div>
+        ${preview ? `<div class="perm-val" id="pval-${p.id}">${preview}</div>` : `<div class="perm-hint">${p.hint}</div>`}
+        ${err ? `<div class="perm-val perm-err">${err}</div>` : ''}
+      </div>`;
+    }).join('')}</div>
     <div class="btn-group">
-      <button class="btn-primary btn-amber" id="btn-harvest-all">⚡ HARVEST ALL</button>
-      <button class="btn-primary" id="btn-portrait">VIEW PORTRAIT →</button>
+      <button class="btn-primary btn-amber" id="btn-harvest-all">\u26a1 HARVEST ALL</button>
+      <button class="btn-primary" id="btn-portrait">VIEW PORTRAIT \u2192</button>
     </div>
-    <div id="harvest-status" style="font-size:10px;color:rgba(0,229,255,0.3);text-align:center;margin-top:14px;letter-spacing:0.16em;min-height:20px;"></div>
+    <div id="harvest-status" class="harvest-status"></div>
   </div>`;
 
+  const runOne = async (p) => {
+    const el = document.querySelector(`[data-perm="${p.id}"]`);
+    if (el) el.classList.add('collecting');
+    state.collected[p.id] = await p.fn();
+    if (el) el.classList.remove('collecting');
+  };
+
   permsConfig.forEach(p => {
-    document.querySelector(`[data-perm="${p.id}"]`).onclick = async (e) => {
-      const el = e.currentTarget;
-      el.classList.add('collecting');
-      const result = await p.fn();
-      state.collected[p.id] = result;
-      el.classList.remove('collecting');
-      renderPermissions();
-    };
+    document.querySelector(`[data-perm="${p.id}"]`).onclick = async () => { await runOne(p); renderPermissions(); };
   });
 
   document.getElementById('btn-harvest-all').onclick = async () => {
     for (const p of permsConfig) {
-      if (!state.collected[p.id]) {
-        const statusEl = document.getElementById('harvest-status');
-        if (statusEl) statusEl.textContent = `COLLECTING ${p.name}...`;
-        state.collected[p.id] = await p.fn();
-        renderPermissions();
-        await new Promise(r => setTimeout(r, 280));
-      }
+      if (state.collected[p.id] && !state.collected[p.id].error) continue;
+      const s = document.getElementById('harvest-status');
+      if (s) s.textContent = `COLLECTING ${p.name}...`;
+      await runOne(p);
+      renderPermissions();
+      await new Promise(r => setTimeout(r, 220));
     }
-    const statusEl = document.getElementById('harvest-status');
-    if (statusEl) statusEl.textContent = 'HARVEST COMPLETE';
+    const s = document.getElementById('harvest-status');
+    if (s) s.textContent = 'HARVEST COMPLETE';
   };
 
   document.getElementById('btn-portrait').onclick = () => {
@@ -179,173 +159,57 @@ const renderPermissions = () => {
     state.stage = 'portrait';
     render();
   };
+
+  vitals.listeners.clear();
+  vitals.listeners.add((id, payload) => {
+    const node = document.getElementById('pval-' + id);
+    if (!node) return;
+    if (id === 'orient') node.textContent = `${payload.screen || ''}  \u03b2 ${payload.beta ?? '\u2014'}`;
+    if (id === 'shake') node.textContent = `${payload.peaks || 0} peaks \u00b7 ${payload.g || '\u2014'}g`;
+  });
 };
 
-const row = (k, v, cls='') => `<div class="data-row"><span class="data-key">${k}</span><span class="data-val ${cls}">${v ?? '—'}</span></div>`;
+const row = (k, v, cls='') => `<div class="data-row"><span class="data-key">${k}</span><span class="data-val ${cls}">${v ?? '\u2014'}</span></div>`;
 
 const renderPortrait = () => {
-  const d = state.collected;
-  const base = d.base || {};
-  const crypto = d.crypto || {};
-  const bio = d.bio || {};
-  const geo = d.geo || {};
-  const bat = d.bat || {};
-  const cam = d.cam || {};
-  const mic = d.mic || {};
-  const fonts = base.fonts || [];
-  const logs = [
-    `> PROTOCOL INITIATED ${new Date().toISOString()}`,
-    `> CHAIN: ${crypto.method || 'ANON'} // ${crypto.address ? crypto.address.slice(0,10)+'...' : 'ephemeral'}`,
-    `> BIO SEAL: ${bio.ok ? 'VERIFIED ✓' : bio.reason || 'SPECTRAL'}`,
-    `> GEO: ${geo.lat ? `${geo.lat}, ${geo.lng}` : 'WITHHELD'}`,
-    `> GPU: ${base.gpuRenderer?.slice(0,30) || 'N/A'}`,
-    `> CORES: ${base.cores} // MEM: ${base.memory}GB`,
-    `> CANVAS FP: ${base.canvasFP || 'N/A'}`,
-    `> FONTS DETECTED: ${base.fontsCount || 0}`,
-    `> IDENTITY HASH: ${state.fingerprint}`,
-    `> STATUS: WITNESSED ✓`
-  ];
-  const entropyBlocks = Array.from({length: 48}, () =>
-    `<div class="entropy-block" style="--dur:${(Math.random()*1.5+0.5).toFixed(1)}s;--del:${(Math.random()*2).toFixed(1)}s;opacity:${(Math.random()*0.7+0.1).toFixed(2)};background:${Math.random()>0.7?'var(--amber)':'var(--cyan)'}"></div>`
-  ).join('');
-
-  app.innerHTML = `
-  <div class="stage-portrait">
+  const d = state.collected, base = d.base || {}, crypto = d.crypto || {}, bio = d.bio || {};
+  const geo = d.geo || {}, gpu = d.gpu || {}, cpu = d.cpu || {}, bt = d.bt || {};
+  const net = d.net || {}, orient = d.orient || {}, shake = d.shake || {};
+  const bat = d.bat || {}, cam = d.cam || {}, mic = d.mic || {};
+  const memLine = cpu.deviceMem ? cpu.deviceMem + ' GB' : (base.memory ? base.memory + ' GB' : (cpu.jsHeap ? cpu.jsHeap.used + ' MB heap' : '\u2014'));
+  app.innerHTML = `<div class="stage-portrait">
     <div class="portrait-header">
       <div class="stage-label">PHASE 03 // IDENTITY PORTRAIT</div>
       <h1 class="oracle-title glitch" data-text="WITNESSED" style="font-size:clamp(1.6rem,8vw,2.6rem)">WITNESSED</h1>
       <div class="identity-hash">ORACLE_HASH // ${state.fingerprint}</div>
     </div>
     <div class="portrait-grid">
-      <div class="data-panel" style="--delay:0s">
-        <div class="panel-header"><span class="panel-icon">⛓️</span> CHAIN IDENTITY</div>
-        <div class="panel-body">
-          ${row('METHOD', crypto.method || 'ANON', 'accent')}
-          ${row('CHAIN', crypto.chainId === 1 ? 'ETH MAINNET' : crypto.chainId || 'N/A')}
-          ${row('BALANCE', crypto.balance || '—', 'accent')}
-          ${crypto.note ? `<div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:8px;line-height:1.5">${crypto.note}</div>` : ''}
-          <div class="wallet-address">${crypto.address || 'NO ADDRESS'}</div>
-        </div>
-      </div>
-      <div class="data-panel" style="--delay:0.3s">
-        <div class="panel-header"><span class="panel-icon">🧬</span> BIOMETRIC SEAL</div>
-        <div class="panel-body">
-          ${row('STATUS', bio.ok ? 'VERIFIED' : 'SPECTRAL', bio.ok ? 'cyan' : 'accent')}
-          ${row('TYPE', bio.type || 'N/A')}
-          ${row('TRANSPORT', (bio.transports || []).join(', ') || 'N/A')}
-          ${bio.credId ? `<div class="wallet-address">${bio.credId}</div>` : ''}
-          ${!bio.ok ? `<div style="font-size:9px;color:rgba(255,171,0,0.5);margin-top:8px">${bio.reason || ''}</div>` : ''}
-        </div>
-      </div>
-      <div class="data-panel" style="--delay:0.6s">
-        <div class="panel-header"><span class="panel-icon">🖥️</span> DEVICE CORE</div>
-        <div class="panel-body">
-          ${row('PLATFORM', base.platform)}
-          ${row('CORES', base.cores, 'accent')}
-          ${row('MEMORY', base.memory ? base.memory + ' GB' : '—')}
-          ${row('TOUCH PTS', base.touch)}
-          ${row('SCREEN', base.screen, 'cyan')}
-          ${row('PIXEL RATIO', base.pixelRatio)}
-          ${row('COLOR DEPTH', base.colorDepth ? base.colorDepth + '-bit' : '—')}
-        </div>
-      </div>
-      <div class="data-panel" style="--delay:0.9s">
-        <div class="panel-header"><span class="panel-icon">🎮</span> GPU ORACLE</div>
-        <div class="panel-body">
-          ${row('RENDERER', (base.gpuRenderer || 'N/A').slice(0,40))}
-          ${row('VENDOR', (base.gpuVendor || 'N/A').slice(0,30))}
-          ${row('EXTENSIONS', base.glExt || 0, 'accent')}
-          ${row('MAX TEXTURE', base.glMaxTex ? base.glMaxTex + 'px' : '—')}
-        </div>
-      </div>
-      <div class="data-panel" style="--delay:1.2s">
-        <div class="panel-header"><span class="panel-icon">🌍</span> GEOSIGNAL</div>
-        <div class="panel-body">
-          ${geo.lat ? row('LAT', geo.lat, 'cyan') + row('LNG', geo.lng, 'cyan') + row('ACCURACY', geo.acc ? Math.round(geo.acc) + 'm' : '—') : `<div style="color:rgba(255,171,0,0.4);font-size:10px;padding:8px 0">LOCATION WITHHELD<br><span style="color:rgba(255,255,255,0.2)">respect</span></div>`}
-          ${row('TIMEZONE', base.tz)}
-          ${row('TZ OFFSET', base.tzOffset != null ? (base.tzOffset > 0 ? '-' : '+') + Math.abs(base.tzOffset/60) + 'h' : '—')}
-          ${row('LOCALE', base.locale)}
-        </div>
-      </div>
-      <div class="data-panel" style="--delay:1.5s">
-        <div class="panel-header"><span class="panel-icon">📡</span> NETWORK PULSE</div>
-        <div class="panel-body">
-          ${row('TYPE', base.connType, 'accent')}
-          ${row('DOWNLINK', base.connDown !== 'N/A' ? base.connDown + ' Mb/s' : '—')}
-          ${row('RTT', base.connRTT !== 'N/A' ? base.connRTT + ' ms' : '—')}
-          ${row('DATA SAVER', base.dataSaver ? 'ON' : 'OFF')}
-          ${row('ONLINE', base.online ? 'YES' : 'NO', 'cyan')}
-          ${row('REFERRER', (base.referrer || '—').slice(0,24))}
-          ${row('HIST LEN', base.histLen || 0)}
-        </div>
-      </div>
-      ${bat.level ? `<div class="data-panel" style="--delay:1.8s"><div class="panel-header"><span class="panel-icon">🔋</span> ENERGY STATE</div><div class="panel-body"><div class="big-number">${bat.level}</div><div class="score-bar"><div class="score-fill" style="--fill:${bat.level}"></div></div>${row('CHARGING', bat.charging ? '⚡ YES' : 'NO', bat.charging ? 'cyan' : 'accent')}</div></div>` : ''}
-      ${cam.w ? `<div class="data-panel" style="--delay:2.1s"><div class="panel-header"><span class="panel-icon">📷</span> CAMERA SPEC</div><div class="panel-body">${row('RESOLUTION', cam.w + '×' + cam.h, 'cyan')}${row('FPS', cam.fps)}${row('FACING', cam.facing)}${row('DEVICE', cam.deviceId)}</div></div>` : ''}
-      ${mic.avgFreq ? `<div class="data-panel" style="--delay:2.4s"><div class="panel-header"><span class="panel-icon">🎙️</span> AUDIO FIELD</div><div class="panel-body">${row('AVG FREQ', mic.avgFreq + ' Hz', 'accent')}${row('BINS', mic.bins)}${row('SAMPLE RATE', mic.sampleRate ? (mic.sampleRate/1000).toFixed(1) + ' kHz' : '—')}</div></div>` : ''}
-      <div class="data-panel" style="--delay:2.7s">
-        <div class="panel-header"><span class="panel-icon">⚡</span> CAPABILITIES</div>
-        <div class="panel-body">
-          ${[['BLUETOOTH', base.hasBT], ['USB', base.hasUSB], ['SHARE', base.hasShare], ['VIBRATE', base.hasVibrate], ['CLIPBOARD', base.hasClipboard], ['WAKE LOCK', base.hasWakeLock], ['SPEECH', base.hasSpeech], ['CRYPTO API', base.hasCrypto], ['MIDI', base.hasMIDI], ['GAMEPADS', base.hasGP > 0 ? `${base.hasGP} connected` : false], ['DO NOT TRACK', base.dnt === '1'], ['COOKIES', base.cookies]].map(([k, v]) => row(k, typeof v === 'string' ? v : v ? '✓ YES' : '✗ NO', v ? 'cyan' : '')).join('')}
-        </div>
-      </div>
-      <div class="data-panel" style="--delay:3s">
-        <div class="panel-header"><span class="panel-icon">🔮</span> FINGERPRINT</div>
-        <div class="panel-body">
-          ${row('CANVAS FP', base.canvasFP)}
-          ${row('FONTS', (base.fontsCount || 0) + ' detected', 'cyan')}
-          ${row('UPTIME', base.perfNow ? (base.perfNow/1000).toFixed(1) + 's' : '—')}
-          ${row('SPEECH VOICES', base.speechVoices || 0)}
-          <div class="fingerprint-display">${fonts.slice(0,10).join(' · ') || 'no fonts detected'}</div>
-          <div class="entropy-viz" style="margin-top:12px">${entropyBlocks}</div>
-        </div>
-      </div>
-      <div class="data-panel" style="--delay:3.3s">
-        <div class="panel-header"><span class="panel-icon">🗣️</span> LINGUISTIC PROFILE</div>
-        <div class="panel-body">
-          ${row('LANGUAGE', base.lang, 'accent')}
-          ${row('LANGUAGES', (base.langs || '—').slice(0,30))}
-          ${row('LOCALE', base.locale)}
-          ${row('MATH π', base.mathPi)}
-          ${row('MATH e', base.mathE)}
-        </div>
-      </div>
-      <div class="data-panel" style="--delay:3.6s;grid-column:1/-1">
-        <div class="panel-header"><span class="panel-icon">🖥</span> ORACLE TERMINAL</div>
-        <div class="panel-body">
-          <div class="terminal-log">
-            ${logs.map((l, i) => {
-              const cls = l.includes('✓') ? 'ok' : (l.includes('WITHHELD') || l.includes('SPECTRAL')) ? 'warn' : '';
-              return `<span class="log-line ${cls}" style="animation:fadeIn ${0.3 + i*0.12}s ease both">${l}</span>`;
-            }).join('')}
-          </div>
-        </div>
-      </div>
-      <div class="closing-verse">
-        You have been witnessed.<br>
-        <em>These frequencies, this geometry — they are yours alone.</em><br>
-        The machine saw you. Now you see the machine seeing you.<br>
-        That loop is called <strong style="color:var(--cyan);font-style:normal">consciousness</strong>.
+      <div class="data-panel"><div class="panel-header">CHAIN</div><div class="panel-body">${row('METHOD', crypto.method || 'ANON', 'accent')}${row('CHAIN', crypto.chainId || 'N/A')}${row('BALANCE', crypto.balance)}${crypto.address ? `<div class="wallet-address">${crypto.address}</div>` : ''}</div></div>
+      <div class="data-panel"><div class="panel-header">BIO</div><div class="panel-body">${row('STATUS', bio.ok ? 'VERIFIED' : 'SPECTRAL', bio.ok ? 'cyan' : 'accent')}${row('TYPE', bio.type || 'N/A')}</div></div>
+      <div class="data-panel"><div class="panel-header">CORE</div><div class="panel-body">${row('PLATFORM', base.platform)}${row('CORES', cpu.cores || base.cores, 'accent')}${row('MEM', memLine)}${row('CPU INDEX', cpu.index ?? '\u2014')}${row('SCREEN', base.screen, 'cyan')}${row('VIEWPORT', base.viewport)}</div></div>
+      <div class="data-panel"><div class="panel-header">GPU</div><div class="panel-body">${row('RENDERER', (gpu.renderer || base.gpuRenderer || 'N/A').toString().slice(0,40))}${row('VENDOR', (gpu.vendor || base.gpuVendor || 'N/A').toString().slice(0,30))}${row('WEBGPU', gpu.webgpu || 'N/A')}</div></div>
+      <div class="data-panel"><div class="panel-header">GEO</div><div class="panel-body">${geo.lat ? row('LAT', geo.lat, 'cyan') + row('LNG', geo.lng, 'cyan') + row('ACC', geo.acc ? Math.round(geo.acc) + 'm' : '\u2014') : `<div style="color:rgba(255,171,0,.4);font-size:10px;padding:8px 0">${geo.error || 'WITHHELD'}</div>`}${row('TZ', base.tz)}</div></div>
+      <div class="data-panel"><div class="panel-header">FRAME</div><div class="panel-body">${row('SCREEN', orient.screen || base.orientation, 'cyan')}${row('BETA', orient.beta, 'accent')}${row('GAMMA', orient.gamma)}${row('SHAKE', shake.peaks ?? '\u2014')}${row('G', shake.g)}</div></div>
+      <div class="data-panel"><div class="panel-header">NET</div><div class="panel-body">${row('TYPE', net.type || base.connType, 'accent')}${row('ONLINE', (net.online ?? base.online) ? 'YES' : 'NO', 'cyan')}${row('BT', bt.radio || (bt.error ? 'N/A' : '\u2014'))}</div></div>
+      ${bat.level ? `<div class="data-panel"><div class="panel-header">ENERGY</div><div class="panel-body"><div class="big-number">${bat.level}</div>${row('CHARGING', bat.charging ? 'YES' : 'NO')}</div></div>` : ''}
+      ${cam.w ? `<div class="data-panel"><div class="panel-header">CAM</div><div class="panel-body">${row('RES', cam.w + '\u00d7' + cam.h, 'cyan')}${row('FPS', cam.fps)}</div></div>` : ''}
+      ${mic.avgFreq ? `<div class="data-panel"><div class="panel-header">MIC</div><div class="panel-body">${row('AVG', mic.avgFreq + ' Hz', 'accent')}</div></div>` : ''}
+      <div class="closing-verse">You have been witnessed.<br><em>These frequencies, this geometry \u2014 they are yours alone.</em>
         <div class="btn-group" style="margin-top:28px">
-          <button class="btn-primary btn-amber" id="btn-copy">⎘ COPY HASH</button>
-          <button class="btn-primary" id="btn-reset">↺ RESET</button>
+          <button class="btn-primary btn-amber" id="btn-copy">COPY HASH</button>
+          <button class="btn-primary" id="btn-reset">RESET</button>
         </div>
       </div>
     </div>
   </div>`;
-
   document.getElementById('btn-copy').onclick = () => {
     navigator.clipboard?.writeText('ORACLE_HASH: ' + state.fingerprint).then(() => {
-      const b = document.getElementById('btn-copy');
-      if (b) b.textContent = '✓ COPIED';
+      const b = document.getElementById('btn-copy'); if (b) b.textContent = 'COPIED';
     });
   };
   document.getElementById('btn-reset').onclick = () => {
-    state.stage = 'approach';
-    state.collected = {};
-    state.cryptoAddr = null;
-    state.bioAuth = false;
-    state.fingerprint = null;
-    render();
+    state.stage = 'approach'; state.collected = {}; state.cryptoAddr = null; state.bioAuth = false; state.fingerprint = null;
+    vitals.listeners.clear(); render();
   };
 };
 
