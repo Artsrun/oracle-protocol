@@ -59,7 +59,7 @@ const renderHandshake = () => {
       ${(cryptoDone || bioDone) ? `<button class="btn-primary" id="btn-next">PROCEED \u2192</button>` : ''}
     </div>
     <div class="loading-bar" id="loading-bar" style="display:none"><div class="loading-fill"></div></div>
-    <div id="status-msg" role="status" aria-live="polite" style="font-size:10px;color:rgba(0,229,255,0.75);text-align:center;margin-top:12px;min-height:20px;letter-spacing:0.16em;"></div>
+    <div id="status-msg" role="status" aria-live="polite" style="font-size:10px;color:var(--ink-2);text-align:center;margin-top:12px;min-height:20px;letter-spacing:0.16em;"></div>
   </div>`;
   const setStatus = msg => { const el = document.getElementById('status-msg'); if (el) el.textContent = msg; };
   const setLoading = show => { const el = document.getElementById('loading-bar'); if (el) el.style.display = show ? 'block' : 'none'; };
@@ -226,7 +226,7 @@ const renderPortrait = () => {
       <div class="data-panel"><div class="panel-header">BIO</div><div class="panel-body">${row('STATUS', bio.ok ? 'VERIFIED' : 'SPECTRAL', bio.ok ? 'cyan' : 'accent')}${row('TYPE', bio.type || 'N/A')}</div></div>
       <div class="data-panel"><div class="panel-header">CORE</div><div class="panel-body">${row('PLATFORM', base.platform)}${row('CORES', cpu.cores || base.cores, 'accent')}${row('MEM', memLine)}${row('CPU INDEX', cpu.index ?? '\u2014')}${row('SCREEN', base.screen, 'cyan')}${row('VIEWPORT', base.viewport)}</div></div>
       <div class="data-panel"><div class="panel-header">GPU</div><div class="panel-body">${row('RENDERER', (gpu.renderer || base.gpuRenderer || 'N/A').toString().slice(0,40))}${row('VENDOR', (gpu.vendor || base.gpuVendor || 'N/A').toString().slice(0,30))}${row('WEBGPU', gpu.webgpu || 'N/A')}</div></div>
-      <div class="data-panel"><div class="panel-header">GEO</div><div class="panel-body">${geo.lat ? row('LAT', geo.lat, 'cyan') + row('LNG', geo.lng, 'cyan') + row('ACC', geo.acc ? Math.round(geo.acc) + 'm' : '\u2014') : `<div style="color:rgba(255,171,0,.4);font-size:10px;padding:8px 0">${geo.error || 'WITHHELD'}</div>`}${row('TZ', base.tz)}</div></div>
+      <div class="data-panel"><div class="panel-header">GEO</div><div class="panel-body">${geo.lat ? row('LAT', geo.lat, 'cyan') + row('LNG', geo.lng, 'cyan') + row('ACC', geo.acc ? Math.round(geo.acc) + 'm' : '\u2014') : `<div style="color:var(--trace);font-size:10px;padding:8px 0">${geo.error || 'WITHHELD'}</div>`}${row('TZ', base.tz)}</div></div>
       <div class="data-panel"><div class="panel-header">FRAME</div><div class="panel-body">${row('SCREEN', orient.screen || base.orientation, 'cyan')}${row('BETA', orient.beta, 'accent')}${row('GAMMA', orient.gamma)}${row('SHAKE', shake.peaks ?? '\u2014')}${row('G', shake.g)}</div></div>
       <div class="data-panel"><div class="panel-header">NET</div><div class="panel-body">${row('TYPE', net.type || base.connType, 'accent')}${row('ONLINE', (net.online ?? base.online) ? 'YES' : 'NO', 'cyan')}${row('BT', bt.radio || (bt.error ? 'N/A' : '\u2014'))}</div></div>
       ${bat.level ? `<div class="data-panel"><div class="panel-header">ENERGY</div><div class="panel-body"><div class="big-number">${bat.level}</div>${row('CHARGING', bat.charging ? 'YES' : 'NO')}</div></div>` : ''}

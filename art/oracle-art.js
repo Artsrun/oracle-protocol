@@ -103,8 +103,20 @@
   }
   const pcos = (x) => psin(x + Math.PI / 2);
 
-  const COLORS = ['#e8f6ff', '#00e5ff', '#ffab00', '#ff1744', '#7f8ea3'];
-  // 0 bone · 1 cyan · 2 amber · 3 crimson · 4 slate
+  // Scene items carry a colour *role* index; the palette is applied only at render time, so the
+  // composition (and its Composition ID) is identical across themes. Roles: 0 ink · 1 signal · 2 trace · 3 alert · 4 slate.
+  // Values mirror theme.css (QA asserts equality). 'observatory-dark' is the legacy v2.0 palette, so older links render identically.
+  const PALETTES = {
+    'observatory-dark': { bg: '#020408', roles: ['#e8f6ff', '#00e5ff', '#ffab00', '#ff1744', '#7f8ea3'] },
+    'observatory-light': { bg: '#eef1f0', roles: ['#0b1a22', '#005c6b', '#7d4900', '#b01030', '#56636e'] },
+    'sodium-dark': { bg: '#0b0a09', roles: ['#f1e9dc', '#ffb54a', '#9cc3d3', '#ff6a55', '#8d8578'] },
+    'sodium-light': { bg: '#f3eee4', roles: ['#1e1a14', '#7a4600', '#1d4f63', '#a8261b', '#6b6456'] },
+    'spectral-dark': { bg: '#07060d', roles: ['#ebe8f7', '#b0a4ff', '#74e3c4', '#ff7a95', '#8a86a3'] },
+    'spectral-light': { bg: '#f2f1f7', roles: ['#15122a', '#4231b8', '#00634f', '#ad1748', '#5c5873'] }
+  };
+  const DEFAULT_PALETTE = 'observatory-dark';
+  const paletteOf = (key) => PALETTES[key] || PALETTES[DEFAULT_PALETTE];
+  const COLORS = PALETTES[DEFAULT_PALETTE].roles;
 
   const BANDS = {
     disclosure: ['A sparse', 'A measured', 'A dense'],
@@ -328,10 +340,13 @@
     const k = w / scene.W; // px per unit (scene.W/H match w/h aspect)
     const unit = Math.min(w, h); // line widths scale with the short side
     const prog = opts.progress == null ? 1 : clamp01(opts.progress);
+    const pal = paletteOf(opts.palette), ROLE = pal.roles;
+    // Light palettes draw dark ink on paper: low-alpha hairlines need a little more weight to read.
+    const light = /-light$/.test(opts.palette || ''), aBoost = light ? 1.35 : 1;
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = 1;
-    ctx.fillStyle = scene.bg;
+    ctx.fillStyle = pal.bg;
     ctx.fillRect(0, 0, w, h);
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     scene.layers.forEach((L, li) => {
@@ -339,21 +354,21 @@
       const limit = li === 1 ? Math.floor(total * prog) : li === 0 ? Math.floor(total * Math.min(1, prog * 1.5)) : (prog >= 0.6 ? total : Math.floor(total * prog / 0.6));
       for (let i = 0; i < limit; i++) {
         const it = L.items[i];
-        const col = COLORS[it.c] || COLORS[0];
+        const col = ROLE[it.c] || ROLE[0], al = Math.min(1, it.a * aBoost);
         const pts = it.pts;
         ctx.beginPath();
         ctx.moveTo(pts[0] * k, pts[1] * k);
         for (let j = 2; j < pts.length; j += 2) ctx.lineTo(pts[j] * k, pts[j + 1] * k);
         if (L.kind === 'polys') {
           ctx.closePath();
-          if (it.fill || !it.stroke) { ctx.fillStyle = hexA(col, it.a); ctx.fill(); }
-          if (it.stroke) { ctx.strokeStyle = hexA(col, it.a); ctx.lineWidth = Math.max(1, it.w * unit); ctx.stroke(); }
+          if (it.fill || !it.stroke) { ctx.fillStyle = hexA(col, al); ctx.fill(); }
+          if (it.stroke) { ctx.strokeStyle = hexA(col, al); ctx.lineWidth = Math.max(1, it.w * unit); ctx.stroke(); }
         } else {
-          ctx.strokeStyle = hexA(col, it.a); ctx.lineWidth = Math.max(0.6, it.w * unit); ctx.stroke();
+          ctx.strokeStyle = hexA(col, al); ctx.lineWidth = Math.max(0.6, it.w * unit); ctx.stroke();
         }
       }
     });
-    if (opts.overlay) drawOverlay(ctx, w, h, opts.overlay, opts.fonts || {});
+    if (opts.overlay) drawOverlay(ctx, w, h, opts.overlay, opts.fonts || {}, pal);
     ctx.restore();
   }
 
@@ -368,23 +383,26 @@
     return out;
   }
 
-  function drawOverlay(ctx, w, h, o, fonts) {
+  function drawOverlay(ctx, w, h, o, fonts, pal) {
+    pal = pal || paletteOf();
+    const [ink, signal, trace] = pal.roles, plate = hexA(pal.bg, 0.72);
+    const dw = fonts.weight || 800;
     const u = Math.min(w, h) / 1080; // design at 1080
     const pad = 64 * u;
     const display = fonts.display || 'Syne, sans-serif', mono = fonts.mono || '"IBM Plex Mono", monospace';
     ctx.textBaseline = 'alphabetic';
     if (o.title) {
       // quiet backing plate for legibility (solid, no gradient)
-      ctx.fillStyle = 'rgba(2,4,8,0.72)';
+      ctx.fillStyle = plate;
       ctx.fillRect(0, 0, w, pad + 118 * u);
       let size = 58 * u;
-      ctx.font = `800 ${Math.round(size)}px ${display}`;
+      ctx.font = `${dw} ${Math.round(size)}px ${display}`;
       const maxW = w - pad * 2, tw = ctx.measureText(o.title).width;
-      if (tw > maxW) { size = size * maxW / tw; ctx.font = `800 ${Math.floor(size)}px ${display}`; }
-      ctx.fillStyle = 'rgba(232,246,255,0.96)';
+      if (tw > maxW) { size = size * maxW / tw; ctx.font = `${dw} ${Math.floor(size)}px ${display}`; }
+      ctx.fillStyle = hexA(ink, 0.96);
       ctx.fillText(o.title, pad, pad + 52 * u);
       if (o.subtitle) {
-        ctx.fillStyle = 'rgba(0,229,255,0.9)';
+        ctx.fillStyle = hexA(signal, 0.9);
         ctx.font = `500 ${Math.round(20 * u)}px ${mono}`;
         ctx.fillText(o.subtitle, pad, pad + 92 * u);
       }
@@ -393,15 +411,15 @@
     ctx.font = `400 ${Math.round(22 * u)}px ${mono}`;
     const lines = o.text ? wrap(ctx, o.text, w - pad * 2) : [];
     let y = h - pad - 36 * u - lines.length * 32 * u;
-    ctx.fillStyle = 'rgba(2,4,8,0.72)';
+    ctx.fillStyle = plate;
     ctx.fillRect(0, y - 44 * u, w, h - y + 44 * u);
-    ctx.fillStyle = 'rgba(232,246,255,0.86)';
+    ctx.fillStyle = hexA(ink, 0.86);
     for (const ln of lines) { ctx.fillText(ln, pad, y); y += 32 * u; }
-    ctx.fillStyle = 'rgba(255,171,0,0.95)';
+    ctx.fillStyle = hexA(trace, 0.95);
     ctx.font = `500 ${Math.round(18 * u)}px ${mono}`;
     ctx.fillText(`${o.seed || ''}  \u00b7  ${o.id || ''}`, pad, h - pad);
     ctx.textAlign = 'right';
-    ctx.fillStyle = 'rgba(0,229,255,0.9)';
+    ctx.fillStyle = hexA(signal, 0.9);
     ctx.fillText(o.signature || 'ORACLE PROTOCOL', w - pad, h - pad);
     ctx.textAlign = 'left';
   }
@@ -413,7 +431,7 @@
   }
 
   const api = { VERSION, DEFAULTS, RANGES, KEY_ORDER, FORMATS, normalize, canonical, encode, decode, newSeed, compose, sceneHash,
-    compositionId, render, interpret, caption, factors, _rng: rngFor };
+    compositionId, render, interpret, caption, factors, PALETTES, DEFAULT_PALETTE, _rng: rngFor };
   root.OracleArt = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

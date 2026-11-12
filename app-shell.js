@@ -40,6 +40,13 @@ window.OracleChapters = (() => {
       state.v2.offers = p.o; state.v2.footprint = p.f; state.v2.seed = p.s; state.v2.fromUrl = true;
       const fm = /(?:^|&)fmt=(portrait|story|square|hires)/.exec(query);
       if (fm) state.v2.format = fm[1];
+      // Artwork look carried by the link (palette-mode-type). Links without one predate theming: legacy look.
+      const g = (k, list) => { const m = new RegExp('(?:^|&)' + k + '=([a-z]+)').exec(query); return m && list.includes(m[1]) ? m[1] : null; };
+      const T = window.OracleTheme || { PALETTES: ['observatory'], TYPES: ['signal'] };
+      const pal = g('pal', T.PALETTES), th = g('th', ['dark', 'light']), ty = g('ty', T.TYPES);
+      if (pal || th || ty) state.v2.look = { pal: pal || 'observatory', th: th || 'dark', ty: ty || 'signal' };
+      else if (route === 'art') state.v2.look = { pal: 'observatory', th: 'dark', ty: 'signal' };
+      else state.v2.look = null; // plain #revelation?… follows the site theme
       return route;
     }
     if (route === 'protocol') return 'handshake';
@@ -47,13 +54,51 @@ window.OracleChapters = (() => {
     return 'approach';
   }
 
+  // ── colour theme: Auto (device) / Night / Day, persisted by theme-boot.js ──
+  function buildThemeSwitch() {
+    const T = window.OracleTheme; if (!T) return;
+    const wrap = document.createElement('span');
+    wrap.className = 'theme-switch';
+    wrap.innerHTML = `<label for="theme-select" class="vh">Colour theme</label>
+      <select id="theme-select" title="Colour theme">
+        <option value="auto">Auto</option><option value="dark">Night</option><option value="light">Day</option>
+      </select><span class="vh" id="theme-now" aria-live="polite"></span>`;
+    const sel = wrap.querySelector('select'), now = wrap.querySelector('#theme-now');
+    const sync = () => {
+      const c = T.current();
+      sel.value = T.pref();
+      sel.options[0].textContent = 'Auto \u00b7 ' + (c.mode === 'light' ? 'Day' : 'Night');
+      now.textContent = 'Theme: ' + (c.mode === 'light' ? 'Day' : 'Night') + (T.pref() === 'auto' ? ', following this device' : '');
+    };
+    sel.onchange = () => { if (typeof state !== 'undefined' && state.v2) state.v2.look = null; T.setPref(sel.value); };
+    T.onChange(sync); sync();
+    document.querySelector('.hud-bar').appendChild(wrap);
+  }
+  // Hidden dev switch (?themelab): compare palettes and type pairings; writes ?palette=&type= and keeps the hash.
+  function buildThemeLab() {
+    const T = window.OracleTheme;
+    if (!T || !/[?&]themelab\b/.test(location.search)) return;
+    const c = T.current(), lab = document.createElement('div');
+    lab.className = 'theme-lab'; lab.setAttribute('role', 'group'); lab.setAttribute('aria-label', 'Theme lab');
+    const opt = (list, v) => list.map(x => `<option value="${x}" ${x === v ? 'selected' : ''}>${x}</option>`).join('');
+    lab.innerHTML = `<label>palette <select data-k="palette">${opt(T.PALETTES, c.palette)}</select></label>
+      <label>type <select data-k="type">${opt(T.TYPES, c.type)}</select></label>`;
+    lab.addEventListener('change', (e) => {
+      const q = new URLSearchParams(location.search); q.set(e.target.dataset.k, e.target.value);
+      location.search = q.toString();
+    });
+    document.body.appendChild(lab);
+  }
+
   function boot() {
+    buildThemeSwitch();
     buildDrawer();
+    buildThemeLab();
     document.getElementById('phase-rail').addEventListener('click', (e) => {
       const b = e.target.closest('[data-go]');
       if (b) go(b.dataset.go);
     });
-    window.addEventListener('popstate', () => { state.stage = fromLocation(); render(); });
+    window.addEventListener('popstate', () => { const d = document.getElementById('sources-drawer'); if (d && !d.hidden) closeDrawer(); state.stage = fromLocation(); render(); });
     document.addEventListener('click', (e) => {
       const c = e.target.closest('.cite');
       if (c) { e.preventDefault(); openDrawer(c.dataset.source, c); }

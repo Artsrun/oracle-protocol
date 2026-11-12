@@ -64,3 +64,20 @@ test('interpretation uses only abstract parameters', () => {
   assert.match(t, /lattice of disclosure/);
   assert.doesNotMatch(t, /\d+\.\d{3,}/); // no raw readings
 });
+
+test('palettes: every palette × mode is complete and theme.css mirrors the values', () => {
+  const fs = require('node:fs'), css = fs.readFileSync(require('node:path').join(__dirname, '..', 'theme.css'), 'utf8');
+  for (const pal of ['observatory', 'sodium', 'spectral']) for (const mode of ['dark', 'light']) {
+    const P2 = A.PALETTES[`${pal}-${mode}`];
+    assert.ok(P2, `${pal}-${mode}`);
+    assert.equal(P2.roles.length, 5);
+    for (const hex of [P2.bg, ...P2.roles]) { assert.match(hex, /^#[0-9a-f]{6}$/); assert.ok(css.includes(hex), `${pal}-${mode} ${hex} missing from theme.css`); }
+  }
+  assert.deepEqual(A.PALETTES[A.DEFAULT_PALETTE].roles, ['#e8f6ff', '#00e5ff', '#ffab00', '#ff1744', '#7f8ea3']); // legacy look kept
+});
+
+test('palette is a render-time concern: composition and its id do not depend on theme', () => {
+  const s1 = A.compose(P, aspects.portrait), s2 = A.compose(P, aspects.portrait);
+  assert.equal(A.sceneHash(s1), A.sceneHash(s2));
+  assert.ok(!JSON.stringify(s1.layers).includes('#'), 'scene stores colour roles, not colours');
+});

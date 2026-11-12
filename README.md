@@ -48,19 +48,29 @@ scene quantized and hashed into a composition id. Identity → recursive triangl
 relationships → hub network; attention → vector-field flow lines; feedback → recursion and echoes;
 influence → swirl distortion; each surrendered exchange → a crimson shard.
 
+## Theme
+
+Colour mode follows the device (`prefers-color-scheme`) — **Night** (dark) or **Day** (light) — and the
+**Auto / Night / Day** switch in the top bar overrides it (stored in `localStorage` as `oracle.theme`, nothing else).
+Tokens live in `theme.css`; `theme-boot.js` applies them before first paint. Default look: **Observatory** palette +
+**Instrument** type (Space Grotesk / IBM Plex Sans / IBM Plex Mono). Alternatives for comparison:
+`?palette=observatory|sodium|spectral`, `?type=instrument|signal|almanac`, `?theme=dark|light` (one view, not stored),
+`?themelab` shows a small switcher. The artwork uses the same palette at render time; the composition id never changes
+with the theme, and shared links carry `pal/th/ty` so the PNG reproduces exactly.
+
 ## Stack
 
 Vanilla HTML / CSS / JS. No build. Classic scripts, load order in `index.html`.
 
 ```
-index.html  styles.css  chapters.css  fonts/
+index.html  theme.css  theme-boot.js  styles.css  chapters.css  fonts/
 app-core.js  app-vitals.js  app-ui.js        v1.2 core (kept) + small v2 hooks
 app-shell.js                                 router, nav, sources drawer
 data/evidence.js  data/content.js            sources + labelled claims
 chapters/{offer,extraction,machine,loop,revelation}.js
 art/oracle-art.js                            generative module
 tests/art.test.cjs                           node --test tests/*.test.cjs
-qa/                                          Playwright + axe end-to-end harness (dev only)
+qa/                                          Playwright + axe harness: qa.mjs (COLOR_SCHEME=dark|light), contrast.mjs, theme.mjs (dev only)
 docs/AUDIT.md  docs/PLAN.md  docs/QA.md  docs/SOURCES.md
 ```
 

@@ -8,13 +8,29 @@
   const ensureSeed = () => { if (!state.v2.seed) state.v2.seed = A.newSeed(); };
   const params = () => A.normalize(OracleChapters.artParams());
   const baseUrl = () => location.origin + location.pathname;
-  const shareLink = (p, fmt) => `${baseUrl()}#art?${A.encode(p)}&fmt=${fmt}`;
+  // ── look = palette × mode × type used to paint the artwork. Follows the site theme unless a link pinned one. ──
+  const TYPEFACES = {
+    signal: { display: 'Syne, sans-serif', weight: 800, mono: '"IBM Plex Mono", monospace', load: ['800 58px Syne'] },
+    instrument: { display: '"Space Grotesk", sans-serif', weight: 700, mono: '"IBM Plex Mono", monospace', load: ['700 58px "Space Grotesk"'] },
+    almanac: { display: 'Fraunces, serif', weight: 600, mono: '"IBM Plex Mono", monospace', load: ['600 58px Fraunces'] }
+  };
+  const LABEL = { observatory: 'Observatory', sodium: 'Sodium', spectral: 'Spectral', dark: 'Night', light: 'Day', signal: 'Signal', instrument: 'Instrument', almanac: 'Almanac' };
+  const lookNow = () => {
+    if (state.v2.look) return state.v2.look;
+    const c = window.OracleTheme ? OracleTheme.current() : { palette: 'observatory', mode: 'dark', type: 'signal' };
+    return { pal: c.palette, th: c.mode, ty: c.type };
+  };
+  const lookQuery = (L) => `&pal=${L.pal}&th=${L.th}&ty=${L.ty}`;
+  const lookLabel = (L) => `${LABEL[L.pal]} \u00b7 ${LABEL[L.th]} \u00b7 ${LABEL[L.ty]}`;
+  const renderOpts = (L) => ({ palette: L.pal + '-' + L.th, fonts: TYPEFACES[L.ty] || TYPEFACES.signal });
+  const shareLink = (p, fmt) => `${baseUrl()}#art?${A.encode(p)}&fmt=${fmt}${lookQuery(lookNow())}`;
   const fmtOf = () => A.FORMATS[state.v2.format] ? state.v2.format : 'portrait';
   const fileName = (p, fmt) => `oracle-${p.s.replace(/^ORACLE-/, "").toLowerCase()}-${A.FORMATS[fmt].w}x${A.FORMATS[fmt].h}.png`;
 
   async function fontsReady() {
     if (!document.fonts || !document.fonts.load) return;
-    try { await Promise.all(['800 58px Syne', '400 22px "IBM Plex Mono"', '500 18px "IBM Plex Mono"'].map(f => document.fonts.load(f))); } catch (e) { /* fall back to system fonts */ }
+    const T = TYPEFACES[lookNow().ty] || TYPEFACES.signal;
+    try { await Promise.all([...T.load, '400 22px "IBM Plex Mono"', '500 18px "IBM Plex Mono"'].map(f => document.fonts.load(f))); } catch (e) { /* fall back to system fonts */ }
   }
   const overlay = (p, id) => ({
     title: state.v2.title ? 'ORACLE // DIGITAL REMAINS' : '', subtitle: state.v2.title ? 'THE ANATOMY OF ATTENTION' : '',
@@ -24,13 +40,13 @@
   function draw(canvas, p, fmt, animate) {
     const F = A.FORMATS[fmt], scene = A.compose(p, F.w / F.h), id = A.compositionId(p);
     canvas.width = F.w; canvas.height = F.h;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d'), RO = renderOpts(lookNow());
     cancelAnimationFrame(raf);
-    if (!animate || OracleChapters.reduceMotion()) { A.render(ctx, scene, F.w, F.h, { overlay: overlay(p, id) }); return id; }
+    if (!animate || OracleChapters.reduceMotion()) { A.render(ctx, scene, F.w, F.h, { ...RO, overlay: overlay(p, id) }); return id; }
     const t0 = performance.now(), dur = 1400;
     const frame = (t) => {
       const k = Math.min(1, (t - t0) / dur);
-      A.render(ctx, scene, F.w, F.h, { progress: 1 - Math.pow(1 - k, 3), overlay: k >= 1 ? overlay(p, id) : null });
+      A.render(ctx, scene, F.w, F.h, { ...RO, progress: 1 - Math.pow(1 - k, 3), overlay: k >= 1 ? overlay(p, id) : null });
       if (k < 1 && document.contains(canvas)) raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
@@ -52,7 +68,7 @@
   async function withMetadata(blob, p, id) {
     const buf = new Uint8Array(await blob.arrayBuffer());
     const iend = buf.length - 12; // IEND is always the final 12-byte chunk
-    const chunks = [textChunk('Software', 'Oracle Protocol v2 / ORACLE // DIGITAL REMAINS v' + A.VERSION), textChunk('Comment', `oracle:${A.encode(p)};id=${id}`)];
+    const chunks = [textChunk('Software', 'Oracle Protocol v2 / ORACLE // DIGITAL REMAINS v' + A.VERSION), textChunk('Comment', `oracle:${A.encode(p)};id=${id};look=${lookNow().pal}-${lookNow().th}-${lookNow().ty}`)];
     const total = chunks.reduce((a, c) => a + c.length, 0);
     const out = new Uint8Array(buf.length + total);
     out.set(buf.subarray(0, iend), 0);
@@ -136,6 +152,9 @@
           <h2>FORMAT</h2>
           <div class="seg" role="group" aria-label="Export format">${Object.entries(A.FORMATS).map(([k, f]) => `<button type="button" data-fmt="${k}" aria-pressed="${k === fmt}">${f.label}</button>`).join('')}</div>
           <label class="check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}> Editorial title on artwork</label>
+          <h2>LOOK</h2>
+          <p class="param-sum" id="rv-look">${esc(lookLabel(lookNow()))} \u2014 ${state.v2.look ? 'pinned by the link you opened' : 'follows the site theme (Auto/Night/Day switch, top right)'}. Same seed + same look = identical PNG.
+          ${state.v2.look ? '<button type="button" class="cite" id="rv-unpin">use site theme</button>' : ''}</p>
 
           <h2>EXPORT &amp; SHARE</h2>
           <div class="btn-row">
@@ -198,7 +217,9 @@
     };
     document.getElementById('rv-copy').onclick = async () => status((await copy(A.caption(p, id, shareLink(p, fmt)))) ? 'Caption copied.' : 'Copy blocked \u2014 select the caption text below.');
     document.getElementById('rv-link').onclick = async () => status((await copy(shareLink(p, fmt))) ? 'Link copied.' : 'Copy blocked.');
-    document.getElementById('rv-clean').onclick = () => OracleChapters.go('art', { hash: '#art?' + A.encode(p) + '&fmt=' + fmt });
+    document.getElementById('rv-clean').onclick = () => OracleChapters.go('art', { hash: '#art?' + A.encode(p) + '&fmt=' + fmt + lookQuery(lookNow()) });
+    const unpin = document.getElementById('rv-unpin');
+    if (unpin) unpin.onclick = () => { state.v2.look = null; rerender(); };
     const doRestore = (q) => {
       if (!q) { status('Not a seed or Oracle link.'); return; }
       apply(q); status('Restored ' + q.s + '.'); rerender();
@@ -223,9 +244,14 @@
       </div></div>`;
     fontsReady().then(() => draw(document.getElementById('art-clean'), p, fmt === 'hires' ? 'portrait' : fmt, false));
     document.getElementById('ac-back').onclick = () => OracleChapters.go('revelation');
-    app.querySelectorAll('[data-afmt]').forEach(b => b.onclick = () => { state.v2.format = b.dataset.afmt; OracleChapters.go('art', { hash: '#art?' + A.encode(p) + '&fmt=' + b.dataset.afmt, focus: false }); });
+    app.querySelectorAll('[data-afmt]').forEach(b => b.onclick = () => { state.v2.format = b.dataset.afmt; OracleChapters.go('art', { hash: '#art?' + A.encode(p) + '&fmt=' + b.dataset.afmt + lookQuery(lookNow()), focus: false }); });
     document.getElementById('ac-dl').onclick = async () => { const { blob } = await exportBlob(p, fmt); download(blob, fileName(p, fmt)); };
   });
 
-  window.OracleExport = { exportBlob, withMetadata, crc32, parseRestore }; // exposed for QA
+  // Repaint the artwork when the site theme changes (only while it is not pinned by a link).
+  if (window.OracleTheme) OracleTheme.onChange(() => {
+    if (state.v2.look || !['revelation', 'art'].includes(state.stage)) return;
+    skipRemember = true; OracleChapters.go(state.stage, { push: false, focus: false });
+  });
+  window.OracleExport = { exportBlob, withMetadata, crc32, parseRestore, lookNow, renderOpts }; // exposed for QA
 })();

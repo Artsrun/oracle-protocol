@@ -43,12 +43,22 @@ const drawParticle = (p) => {
   }
 };
 
+// Starfield colours come from the theme tokens (--bg / --signal), re-read when the theme changes.
+const cosmosCol = { bg: '#020408', star: '#00e5ff' };
+function readCosmosColours() {
+  const cs = getComputedStyle(document.documentElement);
+  cosmosCol.bg = cs.getPropertyValue('--bg').trim() || '#020408';
+  cosmosCol.star = cs.getPropertyValue('--signal').trim() || '#00e5ff';
+}
+readCosmosColours();
+if (window.OracleTheme) OracleTheme.onChange(() => { readCosmosColours(); if (reduceMotionMq.matches) drawCosmosStatic(); });
+
 // Reduced motion: one static frame, no rAF loop.
 function drawCosmosStatic() {
   ctx.globalAlpha = 1;
-  ctx.fillStyle = '#020408';
+  ctx.fillStyle = cosmosCol.bg;
   ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-  ctx.fillStyle = '#00e5ff';
+  ctx.fillStyle = cosmosCol.star;
   for (const p of particles) drawParticle(p);
   ctx.globalAlpha = 1;
 }
@@ -56,10 +66,11 @@ function drawCosmosStatic() {
 let cosmosRaf = 0;
 resize();
 const animCosmos = () => {
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = 'rgba(2,4,8,0.18)';
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = cosmosCol.bg;
   ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-  ctx.fillStyle = '#00e5ff';
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = cosmosCol.star;
   for (const p of particles) {
     p.z -= p.v;
     if (p.z <= 0) {
