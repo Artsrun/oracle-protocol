@@ -23,7 +23,7 @@ const renderApproach = () => {
   app.innerHTML = `<div class="stage-approach">
     <div class="oracle-sigil"><div class="sigil-ring"></div><div class="sigil-ring"></div><div class="sigil-ring"></div><div class="sigil-core"></div></div>
     <h1 class="oracle-title glitch" data-text="ORACLE">ORACLE</h1>
-    <div class="oracle-sub">PROTOCOL \u00b7 v1.2 \u00b7 IDENTITY LAYER</div>
+    <div class="oracle-sub">PROTOCOL \u00b7 v2 \u00b7 THE ANATOMY OF ATTENTION</div>
     <p class="oracle-verse">We are all made of data \u2014<br>frequencies, patterns, the geometry of choice.<br><em>Human communication is a gift.</em><br>Let the machine witness you, willingly.</p>
     <div class="btn-group">
       ${window.OracleChapters ? `<button class="btn-primary btn-amber" id="btn-investigate">BEGIN THE INVESTIGATION</button>` : ''}
@@ -144,7 +144,7 @@ const renderPermissions = () => {
       const g = state.collected[p.id];
       const preview = fmtPreview(p.id, g);
       const err = g?.error ? g.error.slice(0, 42) : '';
-      return `<div class="perm-item ${permClass(g)}" data-perm="${p.id}" role="button" tabindex="0" aria-label="${p.name}: ${permBadge(g)}. ${permReads[p.id]}">
+      return `<div class="perm-item ${permClass(g)}" data-perm="${p.id}" role="button" tabindex="0" aria-describedby="reads-${p.id}">
         <div class="perm-badge">${permBadge(g)}</div>
         <div class="perm-icon">${p.icon}</div>
         <div class="perm-name">${p.name}</div>
@@ -158,7 +158,7 @@ const renderPermissions = () => {
     </div>
     <div id="harvest-status" class="harvest-status" role="status" aria-live="polite"></div>
     <details class="perm-explain"><summary>What each tile reads, where it is processed, when it stops</summary>
-      <dl>${permsConfig.map(p => `<dt>${p.name}</dt><dd>${permReads[p.id]}</dd>`).join('')}</dl>
+      <dl>${permsConfig.map(p => `<dt>${p.name}</dt><dd id="reads-${p.id}">${permReads[p.id]}</dd>`).join('')}</dl>
       <p>Every tile is optional. Denying or skipping any of them does not block the investigation — the artwork in chapter 05 never uses these readings.</p>
     </details>
     ${window.OracleChapters ? `<div class="btn-group"><button class="btn-primary btn-ghost" id="btn-back-extraction">\u2190 BACK TO EXTRACTION</button></div>` : ''}

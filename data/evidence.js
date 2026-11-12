@@ -65,7 +65,7 @@
   const cite = (ids) => (ids || []).map(id => {
     const s = byId[id];
     if (!s) throw new Error('Unknown source id ' + id);
-    return `<button type="button" class="cite" data-source="${id}" aria-label="Source: ${esc(s.title)}">[${esc(s.short)}]</button>`;
+    return `<button type="button" class="cite" data-source="${id}">[${esc(s.short)}]<span class="vh"> \u2014 open source: ${esc(s.title)}</span></button>`;
   }).join(' ');
   /** claim(label, html, sourceIds) — the only way chapters render factual statements. */
   const claim = (label, html, ids) => {

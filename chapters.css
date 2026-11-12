@@ -189,3 +189,6 @@ body[data-stage=art] #app{padding:0;align-items:center;min-height:100dvh}
 .src-supports{color:var(--ink-2);margin-top:4px}
 body.drawer-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){.chapter{animation:none}.bar i{transition:none}}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.phase-pip{min-height:28px}
+@media(max-width:480px){#hud-clock{display:none}.hud-bar{font-size:8px;letter-spacing:.14em}}

@@ -10,7 +10,7 @@
   const baseUrl = () => location.origin + location.pathname;
   const shareLink = (p, fmt) => `${baseUrl()}#art?${A.encode(p)}&fmt=${fmt}`;
   const fmtOf = () => A.FORMATS[state.v2.format] ? state.v2.format : 'portrait';
-  const fileName = (p, fmt) => `oracle-${p.s.toLowerCase()}-${A.FORMATS[fmt].w}x${A.FORMATS[fmt].h}.png`;
+  const fileName = (p, fmt) => `oracle-${p.s.replace(/^ORACLE-/, "").toLowerCase()}-${A.FORMATS[fmt].w}x${A.FORMATS[fmt].h}.png`;
 
   async function fontsReady() {
     if (!document.fonts || !document.fonts.load) return;
