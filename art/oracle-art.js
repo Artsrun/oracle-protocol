@@ -374,8 +374,14 @@
     const display = fonts.display || 'Syne, sans-serif', mono = fonts.mono || '"IBM Plex Mono", monospace';
     ctx.textBaseline = 'alphabetic';
     if (o.title) {
+      // quiet backing plate for legibility (solid, no gradient)
+      ctx.fillStyle = 'rgba(2,4,8,0.72)';
+      ctx.fillRect(0, 0, w, pad + 118 * u);
+      let size = 58 * u;
+      ctx.font = `800 ${Math.round(size)}px ${display}`;
+      const maxW = w - pad * 2, tw = ctx.measureText(o.title).width;
+      if (tw > maxW) { size = size * maxW / tw; ctx.font = `800 ${Math.floor(size)}px ${display}`; }
       ctx.fillStyle = 'rgba(232,246,255,0.96)';
-      ctx.font = `800 ${Math.round(58 * u)}px ${display}`;
       ctx.fillText(o.title, pad, pad + 52 * u);
       if (o.subtitle) {
         ctx.fillStyle = 'rgba(0,229,255,0.9)';
@@ -387,7 +393,9 @@
     ctx.font = `400 ${Math.round(22 * u)}px ${mono}`;
     const lines = o.text ? wrap(ctx, o.text, w - pad * 2) : [];
     let y = h - pad - 36 * u - lines.length * 32 * u;
-    ctx.fillStyle = 'rgba(232,246,255,0.82)';
+    ctx.fillStyle = 'rgba(2,4,8,0.72)';
+    ctx.fillRect(0, y - 44 * u, w, h - y + 44 * u);
+    ctx.fillStyle = 'rgba(232,246,255,0.86)';
     for (const ln of lines) { ctx.fillText(ln, pad, y); y += 32 * u; }
     ctx.fillStyle = 'rgba(255,171,0,0.95)';
     ctx.font = `500 ${Math.round(18 * u)}px ${mono}`;
