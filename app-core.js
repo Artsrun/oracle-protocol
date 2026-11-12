@@ -120,10 +120,10 @@ const PHASES = [
 const LEGACY_PARENT = { handshake: 'extraction', permissions: 'extraction', portrait: 'extraction', art: 'revelation' };
 
 const syncHud = () => {
-  const names = { approach: 'APPROACH', handshake: 'HANDSHAKE', permissions: 'HARVEST', portrait: 'WITNESS', offer: 'THE OFFER',
-    extraction: 'THE EXTRACTION', machine: 'THE MACHINE', loop: 'THE FEEDBACK LOOP', revelation: 'THE REVELATION', art: 'ARTWORK' };
+  // One naming scheme everywhere: "NN LABEL" (HUD, rail, chapter kicker). The v1.2 demo is part of 02.
+  const P = PHASES.find(p => p.id === (LEGACY_PARENT[state.stage] || state.stage));
   const el = document.getElementById('hud-phase');
-  if (el) el.textContent = names[state.stage] || state.stage;
+  if (el) el.textContent = state.stage === 'art' ? 'ARTWORK' : P ? (P.id === 'approach' ? P.label : `${P.n} ${P.label}`) + (LEGACY_PARENT[state.stage] === 'extraction' ? ' \u00b7 LIVE DEMO' : '') : state.stage;
   const rail = document.getElementById('phase-rail');
   if (!rail) return;
   const cur = LEGACY_PARENT[state.stage] || state.stage;

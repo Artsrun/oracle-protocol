@@ -50,6 +50,7 @@ window.OracleChapters = (() => {
       return route;
     }
     if (route === 'protocol') return 'handshake';
+    if (route === 'sensors') return 'permissions';
     if (ROUTES.includes(route)) return route;
     return 'approach';
   }
@@ -100,7 +101,7 @@ window.OracleChapters = (() => {
     });
     window.addEventListener('popstate', () => { const d = document.getElementById('sources-drawer'); if (d && !d.hidden) closeDrawer(); state.stage = fromLocation(); render(); });
     document.addEventListener('click', (e) => {
-      const c = e.target.closest('.cite');
+      const c = e.target.closest('.cite[data-source]');
       if (c) { e.preventDefault(); openDrawer(c.dataset.source, c); }
       const g = e.target.closest('[data-goto]');
       if (g) { e.preventDefault(); go(g.dataset.goto); }
@@ -111,26 +112,26 @@ window.OracleChapters = (() => {
 
   // ── shared templates ────────────────────────────────────────────────────
   const esc = E.esc;
-  const chapterHead = (n, title, lead) => `
+  const chapterHead = (id, title, lead) => `
     <header class="ch-head">
-      <div class="stage-label">CHAPTER ${n}</div>
+      <div class="stage-label">${(PHASES.find(p => p.id === id) || { n: '', label: id }).n} \u00b7 ${(PHASES.find(p => p.id === id) || { label: id }).label}</div>
       <h1 class="ch-title">${title}</h1>
       ${lead ? `<p class="ch-lead">${lead}</p>` : ''}
     </header>`;
-  const chapterNav = (prev, next) => {
-    const P = PHASES.find(p => p.id === prev), N = PHASES.find(p => p.id === next);
-    return `<nav class="ch-nav" aria-label="Chapter navigation">
-      ${P ? `<button type="button" class="btn-primary btn-ghost" data-goto="${P.id}">\u2190 ${P.n} ${P.label}</button>` : '<span></span>'}
-      ${N ? `<button type="button" class="btn-primary btn-amber" data-goto="${N.id}">${N.n} ${N.label} \u2192</button>` : ''}
-    </nav>`;
+  // Forward only: going back is the phase rail (one navigation pattern, not two).
+  const chapterNav = (next) => {
+    const N = PHASES.find(p => p.id === next);
+    return N ? `<nav class="ch-nav" aria-label="Next chapter"><button type="button" class="btn-primary" data-goto="${N.id}">Next \u00b7 ${N.n} ${N.label} \u2192</button></nav>` : '';
   };
   const slider = (id, name, value, hint, extra) => `
     <div class="slider">
-      <label for="sl-${id}"><span>${name}</span><output id="out-${id}" for="sl-${id}">${value}</output></label>
+      <div class="slider-head"><label for="sl-${id}">${name}</label><output id="out-${id}" for="sl-${id}">${value}</output></div>
       <input type="range" id="sl-${id}" data-key="${id}" min="0" max="100" step="1" value="${value}" ${extra || ''}>
       ${hint ? `<small>${hint}</small>` : ''}
     </div>`;
-  const simNote = (text) => `<p class="sim-note">${E.badge('SIMULATED')} ${text || 'Illustrative model \u2014 not a measurement of you, not a real privacy-risk score, not any company\u2019s algorithm.'}</p>`;
+  const simNote = (text) => `<p class="sim-note">${E.badge('SIMULATED')} ${text || 'Illustrative model \u2014 not a measurement of you or any company\u2019s system.'}</p>`;
+  // Progressive disclosure: detail lives in <details>; the summary shows the evidence labels inside.
+  const more = (summary, body, id, labels) => `<details class="more"${id ? ` id="${id}"` : ''}><summary>${summary}${labels ? ' ' + [...new Set(labels)].map(l => E.badge(l)).join(' ') : ''}</summary><div class="more-body">${body}</div></details>`;
 
   // ── sources drawer ──────────────────────────────────────────────────────
   let lastFocus = null;
@@ -147,7 +148,7 @@ window.OracleChapters = (() => {
     d.innerHTML = `<div class="drawer-panel">
       <div class="drawer-top"><h2 id="drawer-title">Sources &amp; provenance</h2><button type="button" class="drawer-close" aria-label="Close sources">\u00d7</button></div>
       <dl class="legend">${Object.entries(E.LABELS).map(([k, v]) => `<div><dt>${E.badge(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
-      <p class="drawer-meta">All ${E.SOURCES.length} sources were opened while building this release (accessed ${E.ACCESSED}). Where a publisher blocks automated access, the canonical link is shown and the copy actually read is listed as \u201cread via\u201d. Court complaints are allegations, not findings.</p>
+      <p class="drawer-meta">${E.SOURCES.length} sources, each opened on ${E.ACCESSED}. \u201cRead via\u201d = the copy actually read when the publisher blocked access. Complaints are allegations, not findings.</p>
       <ol class="source-list">${E.SOURCES.map(s => `<li id="src-${s.id}" tabindex="-1">
         <div class="src-title">${esc(s.title)}</div>
         <div class="src-meta">${esc(s.publisher)} \u00b7 ${esc(s.date)} \u00b7 ${esc(s.type)}</div>
@@ -193,6 +194,6 @@ window.OracleChapters = (() => {
     handles: (stage) => !!registry[stage],
     renderStage: (stage, app) => registry[stage](app),
     go, boot, openDrawer, closeDrawer, artParams, reduceMotion,
-    ui: { chapterHead, chapterNav, slider, simNote, esc }
+    ui: { chapterHead, chapterNav, slider, simNote, more, esc }
   };
 })();
