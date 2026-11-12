@@ -49,12 +49,14 @@ for (const pal of PALETTES) for (const mode of MODES) {
   const page = await ctx.newPage();
   const B = `${BASE}?palette=${pal}`;
   const key = `${pal}-${mode}`; out[key] = {};
-  for (const [label, url, clicks] of [['approach', B, []], ['offer', B + '#offer', []], ['extraction', B + '#extraction', []], ['machine', B + '#machine', []], ['loop', B + '#loop', []], ['revelation', B + '#revelation', []], ['sources', B + '#offer', ['#btn-sources']], ['harvest', B + '#protocol', ['#btn-crypto', '#btn-next', '.perm-explain summary']]]) {
+  for (const [label, url, clicks] of [['approach', B, []], ['offer', B + '#offer', []], ['extraction', B + '#extraction', []], ['machine', B + '#machine', []], ['loop', B + '#loop', []], ['revelation', B + '#revelation', []], ['sources', B + '#offer', ['#btn-sources']], ['harvest', B + '#sensors', []], ['identity', B + '#protocol', ['#btn-crypto']]]) {
     await page.goto(url); await page.waitForTimeout(label === 'approach' ? 1000 : 450);
     for (const c of clicks) { await page.click(c); await page.waitForTimeout(300); }
+    if (clicks.length) { await page.mouse.move(0, 0); await page.waitForTimeout(700); } // no hover state, finished fade-in
+    await page.evaluate(() => document.querySelectorAll('#app details').forEach(d => { d.open = true; })); await page.waitForTimeout(150); // measure text inside expanders too
     const r = await run(page, label === 'sources' ? '#sources-drawer' : '#app');
-    const fails = r.filter(x => x.ratio < x.need && !(x.sel === 'h1.oracle-title'));
-    out[key][label] = { elements: r.length, min: Math.min(...r.filter(x => x.sel !== 'h1.oracle-title').map(x => x.ratio)), failing: fails.length, samples: fails.slice(0, 6) };
+    const fails = r.filter(x => x.ratio < x.need);
+    out[key][label] = { elements: r.length, min: Math.min(...r.map(x => x.ratio)), failing: fails.length, samples: fails.slice(0, 6) };
   }
   await ctx.close();
 }

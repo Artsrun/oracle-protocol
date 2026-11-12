@@ -27,6 +27,7 @@ function instrument(page, tag) {
 }
 const setRange = (page, sel, v) => page.$eval(sel, (el, v) => { el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
 const settle = (page, ms = 350) => page.waitForTimeout(ms);
+const openMore = (page, id) => page.evaluate(i => { const d = document.getElementById(i); if (d && !d.open) d.open = true; }, id);
 async function axe(page, label) {
   await page.evaluate(AXE); // CDP evaluate is not subject to the page CSP (addScriptTag is blocked by script-src 'self' — as intended)
   const res = await page.evaluate(async () => {
@@ -55,20 +56,21 @@ async function exportFmt(page, fmt, dir) {
   const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 800 }, acceptDownloads: true });
   const page = await ctx.newPage(); instrument(page, 'regression-denied');
   await page.goto(BASE); await settle(page, 700);
-  check('approach renders v1.2 entry + new investigation entry', await page.isVisible('#btn-enter') && await page.isVisible('#btn-investigate'));
+  check('approach: exactly one entry action (BEGIN); v1.2 demo lives in 02', await page.isVisible('#btn-investigate') && (await page.$$('#app button')).length === 1);
   await page.screenshot({ path: `${QA}/shots/denied/00-approach.png` });
   await axe(page, 'approach');
-  await page.click('#btn-enter'); await page.click('#btn-crypto'); await settle(page, 500);
+  await page.goto(BASE + '#protocol'); await settle(page, 400); await page.click('#btn-crypto'); await settle(page, 500);
   check('handshake: anonymous ephemeral identity without wallet', (await page.textContent('.auth-card')).includes('LINKED'));
   await page.click('#btn-bio'); await settle(page, 600);
   await page.screenshot({ path: `${QA}/shots/denied/01-handshake.png` });
   await page.click('#btn-next'); await settle(page);
-  for (const id of ['geo', 'cam', 'mic', 'gpu', 'cpu', 'net', 'base', 'bt', 'bat', 'orient', 'shake']) { await page.click(`[data-perm="${id}"]`); await settle(page, 700); }
+  for (const id of ['geo', 'cam', 'mic', 'gpu', 'cpu', 'net', 'base', 'bt', 'bat', 'orient', 'shake']) { await page.click(`[data-perm="${id}"]`); await settle(page, ['orient', 'shake'].includes(id) ? 1600 : 700); }
   const badges = await page.$$eval('.perm-item', els => els.map(e => [e.dataset.perm, e.querySelector('.perm-badge').textContent]));
-  check('harvest: denied sensors show DENIED (geo, cam, mic)', ['geo', 'cam', 'mic'].every(id => badges.find(b => b[0] === id)?.[1] === 'DENIED'), badges);
+  check('harvest: refused sensors show DENIED (geo, mic); camera DENIED or UNAVAILABLE (headless has no camera device)', ['geo', 'mic'].every(id => badges.find(b => b[0] === id)?.[1] === 'DENIED') && ['DENIED', 'UNAVAILABLE'].includes(badges.find(b => b[0] === 'cam')?.[1]), badges);
   check('harvest: no-prompt tiles show OK (gpu, cpu, net, base)', ['gpu', 'cpu', 'net', 'base'].every(id => badges.find(b => b[0] === id)?.[1] === 'OK'));
+  check('harvest: sensors this device lacks show UNAVAILABLE, never LIVE (orient, shake)', ['orient', 'shake'].every(id => badges.find(b => b[0] === id)?.[1] === 'UNAVAILABLE') && !badges.some(b => b[1] === 'LIVE'), badges);
   await page.focus('[data-perm="gpu"]'); await page.keyboard.press('Enter'); await settle(page, 400);
-  check('harvest: tiles keyboard-activatable (role=button + Enter)', await page.$eval('[data-perm="gpu"]', e => e.getAttribute('role') === 'button' && e.tabIndex === 0));
+  check('harvest: tiles are native buttons, keyboard-activatable (Enter)', await page.$eval('[data-perm="gpu"]', e => e.tagName === 'BUTTON' && e.tabIndex === 0));
   await page.click('.perm-explain summary');
   await axe(page, 'v1.2-harvest');
   await page.screenshot({ path: `${QA}/shots/denied/02-harvest-denied.png`, fullPage: true });
@@ -80,7 +82,7 @@ async function exportFmt(page, fmt, dir) {
   await axe(page, 'v1.2-witness');
   check('witness: continue-to-machine button present', await page.isVisible('#btn-continue-machine'));
   await page.click('#btn-reset'); await settle(page);
-  check('reset returns to approach and clears collected', await page.isVisible('#btn-enter') && await page.evaluate(() => Object.keys(state.collected).length === 0));
+  check('reset returns to approach and clears collected', await page.isVisible('#btn-investigate') && await page.evaluate(() => Object.keys(state.collected).length === 0));
   await ctx.close();
 }
 
@@ -114,12 +116,14 @@ let seed1, id1, params1;
   for (const i of [0, 2, 5]) await page.click(`[data-offer="${i}"]`);
   await setRange(page, '#sl-d', 82); await setRange(page, '#sl-i', 70);
   const model = await page.textContent('#model-wrap');
-  check('offer: toggles + exchange simulator respond', await page.evaluate(() => state.v2.offers === 0b100101 && state.v2.ex.d === 82) && model.includes('Exposure surface'), model.replace(/\s+/g, ' ').slice(0, 140));
+  check('offer: toggles + exchange simulator respond', await page.evaluate(() => state.v2.offers === 0b100101 && state.v2.ex.d === 82) && model.includes('Exposure'), model.replace(/\s+/g, ' ').slice(0, 140));
   check('offer: simulator labelled SIMULATED', (await page.textContent('.sim')).includes('SIMULATED'));
   await page.screenshot({ path: `${QA}/shots/desktop/01-offer.png`, fullPage: true });
   await axe(page, 'offer');
   // sources drawer via a citation
-  const cite = page.locator('.cite').first();
+  await page.locator('#app details.more > summary').first().click();
+  check('offer: evidence sits in a collapsed expander whose summary still shows its labels', await page.locator('#app details.more > summary .prov').count() > 0);
+  const cite = page.locator('.cite:visible').first();
   await cite.click(); await settle(page);
   check('sources drawer opens from a citation and highlights the source', await page.isVisible('#sources-drawer') && (await page.$$('.src-hit')).length === 1);
   await page.screenshot({ path: `${QA}/shots/desktop/01b-sources-drawer.png` });
@@ -134,13 +138,13 @@ let seed1, id1, params1;
   await axe(page, 'extraction');
   // enter the live harvest with everything denied, come back
   await page.click('#btn-live'); await settle(page);
-  await page.click('#btn-crypto'); await settle(page, 300); await page.click('#btn-next'); await settle(page);
+  check('extraction: sensor demo opens straight on the sensor tiles (identity step optional)', await page.isVisible('[data-perm="geo"]') && await page.evaluate(() => location.hash === '#sensors'));
   await page.click('[data-perm="cam"]'); await settle(page, 600);
   await page.click('#btn-back-extraction'); await settle(page);
   check('extraction ↔ live harvest round trip (denied camera recorded)', (await page.textContent('.live-box')).includes('denied'));
   await page.click('[data-goto="machine"]'); await settle(page);
-  await page.click('[data-node="4"]'); await page.click('#m-next');
-  await page.click('[data-filter="ownership"]');
+  await page.click('[data-node="5"]');
+  await openMore(page, 'm-rel'); await page.click('[data-filter="ownership"]');
   const rows = await page.$$eval('#rel-body tr', t => t.length);
   check('machine: node stepping + relation filter', (await page.textContent('#node-detail')).includes('Attention allocation') && rows === 5, { rows });
   await page.screenshot({ path: `${QA}/shots/desktop/03-machine.png`, fullPage: true });
@@ -148,7 +152,8 @@ let seed1, id1, params1;
   await page.click('[data-goto="loop"]'); await settle(page);
   const before = await page.textContent('.metric b');
   await setRange(page, '#sl-a', 85); await setRange(page, '#sl-e', 80);
-  await page.click('#lab-step5'); await settle(page);
+  for (let i = 0; i < 5; i++) await page.click('#lab-step');
+  await settle(page);
   const after = await page.textContent('.metric b');
   check('loop: amplification + feedback rounds raise top-3 concentration', parseFloat(after) > parseFloat(before), { before, after });
   await page.click('#lab-chrono'); await settle(page);
@@ -190,13 +195,13 @@ let seed1, id1, params1;
   await axe(page, 'clean-view');
   await page.click('#ac-back'); await settle(page, 600);
   // regenerate + restore
-  await page.click('#rv-new'); await settle(page, 600);
+  await openMore(page, 'rv-more'); await page.click('#rv-new'); await settle(page, 600);
   const seed2 = (await page.textContent('#seed-line')).match(/ORACLE-[0-9A-Z]{4}-[0-9A-Z]{4}/)[0];
-  await page.fill('#rv-restore', seed1); await page.click('#rv-restore-btn'); await settle(page, 600);
+  await openMore(page, 'rv-more'); await page.fill('#rv-restore', seed1); await page.click('#rv-restore-btn'); await settle(page, 600);
   const restored = (await page.textContent('#seed-line'));
   check('new seed differs; restore by seed returns the original composition id', seed2 !== seed1 && restored.includes(seed1) && restored.includes(id1), { seed1, seed2, restored: restored.trim() });
   const hist = await page.evaluate(() => JSON.parse(localStorage.getItem('oracle.v2.history')));
-  await page.click('#rv-clear'); await settle(page, 400);
+  await openMore(page, 'rv-more'); await page.click('#rv-clear'); await settle(page, 400);
   const cleared = await page.evaluate(() => localStorage.getItem('oracle.v2.history'));
   check('history can be cleared (revocable)', cleared === null, { cleared });
   check('history stored locally, parameters only', hist.length >= 2 && hist.every(h => Object.keys(h).join() === 'enc,s,id'), hist.slice(0, 2));
@@ -223,7 +228,7 @@ let seed1, id1, params1;
   await page.goto(BASE + '#revelation?' + FIXED); await settle(page, 900);
   for (const fmt of ['portrait', 'story', 'square', 'hires']) R.exports['fixed-desktop-' + fmt] = await exportFmt(page, fmt, `${QA}/exports/fixed`);
   // different seed → different image
-  await page.fill('#rv-restore', 'ORACLE-0000-0001'); await page.click('#rv-restore-btn'); await settle(page, 600);
+  await openMore(page, 'rv-more'); await page.fill('#rv-restore', 'ORACLE-0000-0001'); await page.click('#rv-restore-btn'); await settle(page, 600);
   const other = await exportFmt(page, 'portrait', `${QA}/exports/run2`);
   check('different seed → different PNG', other.sha256 !== R.exports['run1-portrait'].sha256, other.sha256.slice(0, 16));
   await ctx.close();
@@ -285,6 +290,23 @@ let seed1, id1, params1;
   const a = await p2.evaluate(() => cosmosRaf); await settle(p2, 300); const b = await p2.evaluate(() => cosmosRaf);
   check('control: without reduced motion the starfield animates', b > a, { a, b });
   await ctx2.close();
+}
+
+// ── cognitive load: one filled action per screen, one navigation pattern, consistent names ──
+{
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage(); instrument(page, 'consistency');
+  const per = {};
+  for (const r of ['', '#offer', '#extraction', '#machine', '#loop', '#revelation', '#sensors', '#protocol']) {
+    await page.goto(BASE + r); await settle(page, 500);
+    per[r || '#approach'] = await page.evaluate(() => ({ filled: [...document.querySelectorAll('#app .btn-fill, #app .btn-sm.primary')].filter(b => b.getClientRects().length).length,
+      backNav: document.querySelectorAll('#app .ch-nav button').length, kicker: document.querySelector('#app .stage-label')?.textContent || '', hud: document.getElementById('hud-phase').textContent }));
+  }
+  check('one filled (primary) action per screen at most', Object.values(per).every(v => v.filled <= 1), per);
+  check('chapters: forward-only chapter nav (back = phase rail)', ['#offer', '#extraction', '#machine', '#loop'].every(k => per[k].backNav === 1) && per['#revelation'].backNav === 0, Object.fromEntries(Object.entries(per).map(([k, v]) => [k, v.backNav])));
+  check('names match: chapter kicker "NN · LABEL" equals HUD "NN LABEL"', ['#offer', '#extraction', '#machine', '#loop', '#revelation'].every(k => per[k].kicker.replace(' \u00b7 ', ' ') === per[k].hud), Object.fromEntries(Object.entries(per).map(([k, v]) => [k, [v.kicker, v.hud]])));
+  check('v1.2 demo screens are labelled as part of 02 (no competing PHASE numbering)', per['#sensors'].kicker.startsWith('02') && per['#protocol'].kicker.startsWith('02') && per['#sensors'].hud.includes('02 EXTRACTION'), [per['#sensors'], per['#protocol']]);
+  await ctx.close();
 }
 
 // ── theme: auto follows prefers-color-scheme, manual override persists, artwork repaints with same composition ──
