@@ -3,7 +3,7 @@
 (() => {
   const A = OracleArt, U = OracleChapters.ui, esc = U.esc;
   const HKEY = 'oracle.v2.history';
-  let raf = 0;
+  let raf = 0, skipRemember = false;
 
   const ensureSeed = () => { if (!state.v2.seed) state.v2.seed = A.newSeed(); };
   const params = () => A.normalize(OracleChapters.artParams());
@@ -118,7 +118,8 @@
     ensureSeed();
     const p = params(), fmt = fmtOf(), id = A.compositionId(p);
     history.replaceState(null, '', '#revelation?' + A.encode(p) + '&fmt=' + fmt);
-    remember(p, id);
+    if (!skipRemember) remember(p, id);
+    skipRemember = false;
     const hist = readHist();
     const canNative = typeof navigator.share === 'function';
     app.innerHTML = `<article class="chapter ch-revelation">
@@ -151,6 +152,7 @@
           <h2>RESTORE A COMPOSITION</h2>
           <div class="restore"><input id="rv-restore" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="ORACLE-XXXX-XXXX or a shared link" aria-label="Seed or link to restore"><button type="button" class="btn-sm" id="rv-restore-btn">RESTORE</button></div>
           <ul class="history" aria-label="Recent compositions in this browser">${hist.map((h, i) => `<li><span>${esc(h.s)} \u00b7 ${esc(h.id)}</span><button type="button" class="cite" data-hist="${i}">restore</button></li>`).join('')}</ul>
+          ${hist.length ? `<button type="button" class="btn-sm" id="rv-clear">CLEAR HISTORY</button>` : ''}
           <p class="sim-note">Recent compositions are kept only in this browser\u2019s local storage, parameters only. The link contains the seed and abstract dial values \u2014 no sensor data, location or device identifiers.</p>
         </div>
       </div>
@@ -203,6 +205,8 @@
     };
     document.getElementById('rv-restore-btn').onclick = () => doRestore(parseRestore(document.getElementById('rv-restore').value));
     document.getElementById('rv-restore').onkeydown = (e) => { if (e.key === 'Enter') doRestore(parseRestore(e.target.value)); };
+    const clr = document.getElementById('rv-clear');
+    if (clr) clr.onclick = () => { try { localStorage.removeItem(HKEY); } catch (e) { /* ignore */ } skipRemember = true; rerender(); status('History cleared from this browser.'); };
     app.querySelectorAll('[data-hist]').forEach(b => b.onclick = () => doRestore(A.decode(hist[+b.dataset.hist].enc)));
   });
 

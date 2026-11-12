@@ -195,6 +195,9 @@ let seed1, id1, params1;
   const restored = (await page.textContent('#seed-line'));
   check('new seed differs; restore by seed returns the original composition id', seed2 !== seed1 && restored.includes(seed1) && restored.includes(id1), { seed1, seed2, restored: restored.trim() });
   const hist = await page.evaluate(() => JSON.parse(localStorage.getItem('oracle.v2.history')));
+  await page.click('#rv-clear'); await settle(page, 400);
+  const cleared = await page.evaluate(() => localStorage.getItem('oracle.v2.history'));
+  check('history can be cleared (revocable)', cleared === null, { cleared });
   check('history stored locally, parameters only', hist.length >= 2 && hist.every(h => Object.keys(h).join() === 'enc,s,id'), hist.slice(0, 2));
   await ctx.close();
 }
