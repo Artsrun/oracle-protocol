@@ -1,0 +1,4 @@
+IBM Plex Mono — Copyright © 2017 IBM Corp. Licensed under the SIL Open Font License, Version 1.1.
+Syne — Copyright 2017 The Syne Project Authors. Licensed under the SIL Open Font License, Version 1.1.
+License text: https://openfontlicense.org/open-font-license-official-text/
+Files are unmodified latin subsets as served by Google Fonts; self-hosted so the app makes no third-party requests.

@@ -3,14 +3,17 @@ const ctx = canvas.getContext('2d');
 let W, H, particles = [];
 let mx = 0, my = 0;
 
+const reduceMotionMq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+const cosmosDpr = () => Math.min(window.devicePixelRatio || 1, 2);
 const resize = () => {
-  W = canvas.width = window.innerWidth * devicePixelRatio;
-  H = canvas.height = window.innerHeight * devicePixelRatio;
+  const d = cosmosDpr();
+  W = canvas.width = Math.round(window.innerWidth * d);
+  H = canvas.height = Math.round(window.innerHeight * d);
   canvas.style.width = window.innerWidth + 'px';
   canvas.style.height = window.innerHeight + 'px';
-  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+  if (reduceMotionMq.matches) drawCosmosStatic();
 };
-resize();
 window.addEventListener('resize', resize);
 window.addEventListener('pointermove', e => {
   mx = (e.clientX / window.innerWidth - 0.5) * 40;
@@ -27,30 +30,54 @@ for (let i = 0; i < 90; i++) {
   });
 }
 
+const drawParticle = (p) => {
+  const sx = (p.x / p.z) * 400 + window.innerWidth / 2 + mx;
+  const sy = (p.y / p.z) * 400 + window.innerHeight / 2 + my;
+  const r = p.s * (1 - p.z / 1000);
+  const alpha = (1 - p.z / 1000) * 0.72;
+  if (sx > 0 && sx < window.innerWidth && sy > 0 && sy < window.innerHeight) {
+    ctx.beginPath();
+    ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.globalAlpha = alpha;
+    ctx.fill();
+  }
+};
+
+// Reduced motion: one static frame, no rAF loop.
+function drawCosmosStatic() {
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#020408';
+  ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+  ctx.fillStyle = '#00e5ff';
+  for (const p of particles) drawParticle(p);
+  ctx.globalAlpha = 1;
+}
+
+let cosmosRaf = 0;
+resize();
 const animCosmos = () => {
+  ctx.globalAlpha = 1;
   ctx.fillStyle = 'rgba(2,4,8,0.18)';
   ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-  particles.forEach(p => {
+  ctx.fillStyle = '#00e5ff';
+  for (const p of particles) {
     p.z -= p.v;
     if (p.z <= 0) {
       p.x = Math.random() * 2000 - 1000;
       p.y = Math.random() * 2000 - 1000;
       p.z = 1000;
     }
-    const sx = (p.x / p.z) * 400 + window.innerWidth / 2 + mx;
-    const sy = (p.y / p.z) * 400 + window.innerHeight / 2 + my;
-    const r = p.s * (1 - p.z / 1000);
-    const alpha = (1 - p.z / 1000) * 0.72;
-    if (sx > 0 && sx < window.innerWidth && sy > 0 && sy < window.innerHeight) {
-      ctx.beginPath();
-      ctx.arc(sx, sy, r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(0,229,255,${alpha})`;
-      ctx.fill();
-    }
-  });
-  requestAnimationFrame(animCosmos);
+    drawParticle(p);
+  }
+  ctx.globalAlpha = 1;
+  cosmosRaf = requestAnimationFrame(animCosmos);
 };
-animCosmos();
+const startCosmos = () => {
+  cancelAnimationFrame(cosmosRaf);
+  if (reduceMotionMq.matches) drawCosmosStatic(); else animCosmos();
+};
+reduceMotionMq.addEventListener?.('change', startCosmos);
+startCosmos();
 
 const tickClock = () => {
   const el = document.getElementById('hud-clock');

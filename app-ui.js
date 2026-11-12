@@ -1,5 +1,12 @@
 const app = document.getElementById('app');
 
+// v2 a11y: any non-button element with role=button activates on Enter/Space.
+document.addEventListener('keydown', (e) => {
+  const t = e.target;
+  if (!(t instanceof HTMLElement) || t.getAttribute('role') !== 'button' || t.tagName === 'BUTTON') return;
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t.click(); }
+});
+
 const render = () => {
   app.innerHTML = '';
   syncHud();
@@ -28,12 +35,12 @@ const renderHandshake = () => {
     <div class="handshake-options">
       <div class="auth-card ${cryptoDone ? 'done' : 'active'}">
         <div class="auth-icon">\u26d3\ufe0f</div>
-        <div class="auth-info"><h3>BLOCKCHAIN HANDSHAKE</h3><p>Connect wallet or receive ephemeral identity.<br>MetaMask, Phantom, or anonymous.</p></div>
+        <div class="auth-info"><h3>BLOCKCHAIN HANDSHAKE</h3><p>Connect wallet or receive ephemeral identity.<br>MetaMask, Phantom, or anonymous.<br>If a wallet is connected, the wallet itself queries its RPC node for the balance; Oracle sends nothing.</p></div>
         <div class="auth-status">${cryptoDone ? '\u2713 LINKED' : '\u25cb PENDING'}</div>
       </div>
       <div class="auth-card ${bioDone ? 'done' : ''}">
         <div class="auth-icon">\ud83e\uddec</div>
-        <div class="auth-info"><h3>BIOMETRIC SEAL</h3><p>WebAuthn passkey \u2014 fingerprint, face, or device PIN.<br>Zero server transmission.</p></div>
+        <div class="auth-info"><h3>BIOMETRIC SEAL</h3><p>WebAuthn passkey \u2014 fingerprint, face, or device PIN.<br>Zero server transmission. Biometrics never reach the page; only a credential id does.</p></div>
         <div class="auth-status">${bioDone ? '\u2713 SEALED' : '\u25cb PENDING'}</div>
       </div>
     </div>
@@ -43,7 +50,7 @@ const renderHandshake = () => {
       ${(cryptoDone || bioDone) ? `<button class="btn-primary" id="btn-next">PROCEED \u2192</button>` : ''}
     </div>
     <div class="loading-bar" id="loading-bar" style="display:none"><div class="loading-fill"></div></div>
-    <div id="status-msg" style="font-size:10px;color:rgba(0,229,255,0.4);text-align:center;margin-top:12px;min-height:20px;letter-spacing:0.16em;"></div>
+    <div id="status-msg" role="status" aria-live="polite" style="font-size:10px;color:rgba(0,229,255,0.75);text-align:center;margin-top:12px;min-height:20px;letter-spacing:0.16em;"></div>
   </div>`;
   const setStatus = msg => { const el = document.getElementById('status-msg'); if (el) el.textContent = msg; };
   const setLoading = show => { const el = document.getElementById('loading-bar'); if (el) el.style.display = show ? 'block' : 'none'; };
@@ -101,6 +108,20 @@ const permsConfig = [
   { id: 'base', icon: '\ud83d\udda5\ufe0f', name: 'DEVICE PROFILE', hint: 'no prompt', fn: async () => harvestBase() }
 ];
 
+const permReads = {
+ "geo": "Reads latitude/longitude/accuracy once via the Geolocation API after your tap. Shown only on this page; never stored or sent. One-shot request, no watch.",
+ "orient": "Reads device tilt (alpha/beta/gamma) events while this tab is open. Processed in this tab; stops when you close or reload it.",
+ "shake": "Reads accelerometer magnitude to count shake peaks. Values stay in memory in this tab; stops on close/reload.",
+ "gpu": "Reads the WebGL renderer/vendor strings and whether WebGPU offers an adapter. No prompt; nothing leaves the tab.",
+ "cpu": "Runs a 24 ms local loop, reads core count, JS heap and storage quota estimate. No prompt; local only.",
+ "bt": "Asks only whether a Bluetooth radio is available. Does not scan or pair. Local only.",
+ "cam": "Opens the camera, reads resolution/frame rate/label, then immediately stops every track. No frame is drawn, kept or sent.",
+ "mic": "Opens the microphone for 0.5 s, reads the average spectrum energy, then stops the track and closes the audio context. No audio is recorded or sent.",
+ "bat": "Reads battery level/charging where the browser exposes it (Chromium). Local only.",
+ "net": "Reads the browser's coarse connection estimate (type, downlink, RTT) and online flag. Local only.",
+ "base": "Reads navigator/screen/Intl properties, probes installed fonts and draws a canvas fingerprint — the passive profile any site can read without asking. Local only."
+};
+
 const permClass = g => !g ? '' : g.error ? 'denied' : g.live ? 'granted live' : 'granted';
 const permBadge = g => !g ? 'TAP' : g.error ? 'DENIED' : g.live ? 'LIVE' : 'OK';
 
@@ -114,7 +135,7 @@ const renderPermissions = () => {
       const g = state.collected[p.id];
       const preview = fmtPreview(p.id, g);
       const err = g?.error ? g.error.slice(0, 42) : '';
-      return `<div class="perm-item ${permClass(g)}" data-perm="${p.id}">
+      return `<div class="perm-item ${permClass(g)}" data-perm="${p.id}" role="button" tabindex="0" aria-label="${p.name}: ${permBadge(g)}. ${permReads[p.id]}">
         <div class="perm-badge">${permBadge(g)}</div>
         <div class="perm-icon">${p.icon}</div>
         <div class="perm-name">${p.name}</div>
@@ -126,7 +147,12 @@ const renderPermissions = () => {
       <button class="btn-primary btn-amber" id="btn-harvest-all">\u26a1 HARVEST ALL</button>
       <button class="btn-primary" id="btn-portrait">VIEW PORTRAIT \u2192</button>
     </div>
-    <div id="harvest-status" class="harvest-status"></div>
+    <div id="harvest-status" class="harvest-status" role="status" aria-live="polite"></div>
+    <details class="perm-explain"><summary>What each tile reads, where it is processed, when it stops</summary>
+      <dl>${permsConfig.map(p => `<dt>${p.name}</dt><dd>${permReads[p.id]}</dd>`).join('')}</dl>
+      <p>Every tile is optional. Denying or skipping any of them does not block the investigation — the artwork in chapter 05 never uses these readings.</p>
+    </details>
+    ${window.OracleChapters ? `<div class="btn-group"><button class="btn-primary btn-ghost" id="btn-back-extraction">\u2190 BACK TO EXTRACTION</button></div>` : ''}
   </div>`;
 
   const runOne = async (p) => {

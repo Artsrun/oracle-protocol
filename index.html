@@ -6,9 +6,10 @@
 <meta name="theme-color" content="#020408">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>ORACLE PROTOCOL v1.2</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data: blob:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -22,7 +23,7 @@
   <span id="hud-clock">00:00:00</span>
 </div>
 <div class="phase-rail" id="phase-rail"></div>
-<div id="app"></div>
+<main id="app"></main>
 <script src="app-core.js"></script>
 <script src="app-vitals.js"></script>
 <script src="app-ui.js"></script>
