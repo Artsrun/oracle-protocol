@@ -20,23 +20,22 @@
     return C.EXCHANGE_MODEL.map(m => {
       const val = Math.round(m.f(v));
       return `<div class="model-row"><div class="model-top"><span>${m.name}</span><b>${val}</b></div>
-        <div class="bar"><i style="width:${val}%"></i></div><code>${m.formula}</code></div>`;
+        <div class="bar"><i style="width:${val}%"></i></div></div>`;
     }).join('');
   }
 
   OracleChapters.register('offer', (app) => {
     const v = state.v2;
     app.innerHTML = `<article class="chapter ch-offer">
-      ${U.chapterHead('01 // THE OFFER', 'What we trade for convenience',
-        'Every free feed, assistant and smart speaker is an exchange. Mark the ones you make \u2014 your selection shapes the artwork in chapter 05. It is stored only in this tab.')}
+      ${U.chapterHead('offer', 'What we exchange',
+        'Free feeds, assistants and speakers are exchanges. Mark yours \u2014 they shape your artwork in 05.')}
       <section class="offer-grid" aria-label="Everyday exchanges">
         ${C.OFFERS.map((o, i) => {
           const on = (v.offers >> i) & 1;
           return `<div class="offer-card ${on ? 'on' : ''}">
             <h2 class="offer-title">${o.title}</h2>
             <div class="trade"><div><span>YOU GIVE</span>${o.give}</div><div><span>YOU GET</span>${o.get}</div></div>
-            <div class="offer-doc"><div class="mini-label">Documented example</div>${E.claim(o.documented.label, o.documented.text, o.documented.src)}</div>
-            <div class="offer-pat"><div class="mini-label">General pattern</div>${E.claim(o.pattern.label, o.pattern.text)}</div>
+            ${U.more('Evidence', E.claim(o.documented.label, o.documented.text, o.documented.src) + E.claim(o.pattern.label, o.pattern.text), null, [o.documented.label, o.pattern.label])}
             <button type="button" class="toggle" data-offer="${i}" aria-pressed="${on ? 'true' : 'false'}">${on ? '\u25b2 I make this exchange' : '\u25b3 I make this exchange'}</button>
           </div>`;
         }).join('')}
@@ -44,16 +43,17 @@
 
       <section class="panel sim" aria-labelledby="exsim-title">
         <h2 id="exsim-title" class="panel-title">Exchange simulator</h2>
-        ${U.simNote('Six illustrative dials and four derived outputs. The weights are design assumptions printed next to each output so you can check them. Nothing here measures you or any service.')}
+        ${U.simNote('Illustrative dials \u2014 not a measurement of you or any service.')}
         <div class="sim-grid">
-          <div class="sliders">${C.EXCHANGE_DIMS.map(d => U.slider(d.id, d.name, v.ex[d.id], d.hint)).join('')}</div>
+          <div class="sliders">${C.EXCHANGE_DIMS.map(d => U.slider(d.id, d.name, v.ex[d.id])).join('')}</div>
           <div class="sim-out">
             <div id="hex-wrap">${hexSvg(v.ex)}</div>
             <div id="model-wrap" aria-live="polite">${modelRows(v.ex)}</div>
+            ${U.more('Formulas', C.EXCHANGE_MODEL.map(m => `<p class="claim"><b>${m.name}</b> = <code>${m.formula}</code></p>`).join('') + '<p class="claim">Weights are design assumptions.</p>')}
           </div>
         </div>
       </section>
-      ${U.chapterNav('approach', 'extraction')}
+      ${U.chapterNav('extraction')}
     </article>`;
 
     app.querySelectorAll('[data-offer]').forEach(b => b.onclick = () => {

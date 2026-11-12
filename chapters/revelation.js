@@ -3,7 +3,7 @@
 (() => {
   const A = OracleArt, U = OracleChapters.ui, esc = U.esc;
   const HKEY = 'oracle.v2.history';
-  let raf = 0, skipRemember = false;
+  let raf = 0, skipRemember = false, moreOpen = false;
 
   const ensureSeed = () => { if (!state.v2.seed) state.v2.seed = A.newSeed(); };
   const params = () => A.normalize(OracleChapters.artParams());
@@ -139,49 +139,47 @@
     const hist = readHist();
     const canNative = typeof navigator.share === 'function';
     app.innerHTML = `<article class="chapter ch-revelation">
-      ${U.chapterHead('05 // THE REVELATION', 'The geometry of the exchange',
-        'Your choices in chapters 01\u201304 \u2014 never your device readings \u2014 become one reproducible composition. Same seed and parameters, same artwork, anywhere.')}
+      ${U.chapterHead('revelation', 'Your composition',
+        'Your choices from 01\u201304 \u2014 never sensor readings \u2014 become one reproducible artwork.')}
       <div class="rev-grid">
         <div class="art-frame"><canvas id="art-canvas" role="img" aria-label="Generative artwork ${esc(p.s)}: ${esc(A.interpret(p))}"></canvas></div>
         <div class="rev-controls">
           <h2>ORACLE SEED</h2>
           <div class="seed-line" id="seed-line">${esc(p.s)}<small>composition ${esc(id)}</small></div>
           <p class="interp" id="interp">${esc(A.interpret(p))}</p>
-          <div class="btn-row"><button type="button" class="btn-sm amber" id="rv-new">NEW SEED</button><button type="button" class="btn-sm" id="rv-vary">VARY PARAMETERS</button></div>
 
           <h2>FORMAT</h2>
           <div class="seg" role="group" aria-label="Export format">${Object.entries(A.FORMATS).map(([k, f]) => `<button type="button" data-fmt="${k}" aria-pressed="${k === fmt}">${f.label}</button>`).join('')}</div>
           <label class="check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}> Editorial title on artwork</label>
-          <h2>LOOK</h2>
-          <p class="param-sum" id="rv-look">${esc(lookLabel(lookNow()))} \u2014 ${state.v2.look ? 'pinned by the link you opened' : 'follows the site theme (Auto/Night/Day switch, top right)'}. Same seed + same look = identical PNG.
+          <p class="param-sum" id="rv-look">Look: ${esc(lookLabel(lookNow()))} \u00b7 ${state.v2.look ? 'from the link' : 'follows site theme'}
           ${state.v2.look ? '<button type="button" class="cite" id="rv-unpin">use site theme</button>' : ''}</p>
 
-          <h2>EXPORT &amp; SHARE</h2>
+          <h2>EXPORT</h2>
           <div class="btn-row">
-            <button type="button" class="btn-sm amber" id="rv-download">DOWNLOAD PNG</button>
-            <button type="button" class="btn-sm amber" id="rv-share">${canNative ? 'SHARE\u2026' : 'SHARE (download + copy)'}</button>
-            <button type="button" class="btn-sm" id="rv-copy">COPY CAPTION</button>
+            <button type="button" class="btn-sm primary" id="rv-download">DOWNLOAD PNG</button>
+            <button type="button" class="btn-sm" id="rv-share">${canNative ? 'SHARE\u2026' : 'SHARE'}</button>
             <button type="button" class="btn-sm" id="rv-link">COPY LINK</button>
             <button type="button" class="btn-sm" id="rv-clean">CLEAN VIEW</button>
           </div>
           <div class="status-line" id="rv-status" role="status" aria-live="polite"></div>
+          <p class="sim-note">Link and file hold only the seed and dial values. History stays in this browser.</p>
+
+          ${U.more('Seed, caption &amp; history', `
+          <div class="btn-row"><button type="button" class="btn-sm" id="rv-new">NEW SEED</button><button type="button" class="btn-sm" id="rv-vary">VARY</button><button type="button" class="btn-sm" id="rv-copy">COPY CAPTION</button></div>
           <label for="rv-caption" class="mini-label">Caption</label>
           <textarea id="rv-caption" class="caption" readonly>${esc(A.caption(p, id, shareLink(p, fmt)))}</textarea>
-
-          <h2>RESTORE A COMPOSITION</h2>
-          <div class="restore"><input id="rv-restore" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="ORACLE-XXXX-XXXX or a shared link" aria-label="Seed or link to restore"><button type="button" class="btn-sm" id="rv-restore-btn">RESTORE</button></div>
-          <ul class="history" aria-label="Recent compositions in this browser">${hist.map((h, i) => `<li><span>${esc(h.s)} \u00b7 ${esc(h.id)}</span><button type="button" class="cite" data-hist="${i}">restore</button></li>`).join('')}</ul>
-          ${hist.length ? `<button type="button" class="btn-sm" id="rv-clear">CLEAR HISTORY</button>` : ''}
-          <p class="sim-note">Recent compositions are kept only in this browser\u2019s local storage, parameters only. The link contains the seed and abstract dial values \u2014 no sensor data, location or device identifiers.</p>
+          <label for="rv-restore" class="mini-label">Restore a seed or link</label>
+          <div class="restore"><input id="rv-restore" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="ORACLE-XXXX-XXXX or a shared link"><button type="button" class="btn-sm" id="rv-restore-btn">RESTORE</button></div>
+          <p class="mini-label" id="rv-hist-label">Recent (this browser)</p><ul class="history" aria-labelledby="rv-hist-label">${hist.map((h, i) => `<li><span>${esc(h.s)} \u00b7 ${esc(h.id)}</span><button type="button" class="cite" data-hist="${i}">restore</button></li>`).join('')}</ul>
+          ${hist.length ? `<button type="button" class="btn-sm" id="rv-clear">CLEAR HISTORY</button>` : ''}`, 'rv-more')}
         </div>
       </div>
-      <section class="panel"><h2 class="panel-title">What made this composition</h2>${paramSummary(p)}
-        <p class="sim-note">Identity \u2192 central recursive triangle \u00b7 disclosure \u2192 lattice density \u00b7 relationships \u2192 amber network \u00b7 attention \u2192 flow field \u00b7 feedback \u2192 recursion and echoes \u00b7 influence \u2192 swirl distortion \u00b7 each surrendered exchange \u2192 a crimson shard.</p></section>
-      ${U.chapterNav('loop', null)}
+      ${U.more('What made this composition', paramSummary(p) + `<p class="sim-note">Identity \u2192 central triangle \u00b7 disclosure \u2192 lattice density \u00b7 relationships \u2192 network \u00b7 attention \u2192 flow field \u00b7 feedback \u2192 echoes \u00b7 influence \u2192 swirl \u00b7 each exchange \u2192 a shard.</p>`, 'rv-why')}
     </article>`;
 
     const canvas = document.getElementById('art-canvas');
     fontsReady().then(() => draw(canvas, p, fmt === 'hires' ? 'portrait' : fmt, true));
+    const mo = document.getElementById('rv-more'); mo.open = moreOpen; mo.ontoggle = () => { moreOpen = mo.open; };
     const status = (t) => { document.getElementById('rv-status').textContent = t; };
     const rerender = () => { OracleChapters.go('revelation', { push: false, focus: false }); };
 

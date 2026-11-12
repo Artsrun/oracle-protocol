@@ -33,11 +33,11 @@
     const r = rank(sim, L), m = metrics(r);
     return `<div class="metrics">
         <div class="metric"><span>TOP-3 SHARE</span><b>${pct(m.top3)}</b></div>
-        <div class="metric"><span>CONCENTRATION (GINI)</span><b>${m.gini.toFixed(2)}</b></div>
+        <div class="metric"><span>GINI</span><b>${m.gini.toFixed(2)}</b></div>
         <div class="metric"><span>EMOTIONAL LOAD</span><b>${pct(m.emo)}</b></div>
-        <div class="metric"><span>ROUNDS RUN</span><b>${L.n}</b></div>
+        <div class="metric"><span>ROUNDS</span><b>${L.n}</b></div>
       </div>
-      <ol class="feed">${r.map((s, i) => `<li><span class="rk">#${i + 1}</span><span class="tt">${s.it.id}. ${s.it.title}<small>emotion ${s.it.emo.toFixed(2)} \u00b7 relevance ${s.it.rel.toFixed(2)} \u00b7 recency ${s.it.rec.toFixed(2)} \u00b7 repetition ${s.it.rep.toFixed(2)} \u00b7 social ${s.it.soc.toFixed(2)}</small></span><span class="sh">${pct(s.share)}</span><span class="bar"><i style="width:${Math.min(100, s.share * 100 * 2.5)}%"></i></span></li>`).join('')}</ol>`;
+      <ol class="feed">${r.map((s, i) => `<li title="emotion ${s.it.emo.toFixed(2)} \u00b7 relevance ${s.it.rel.toFixed(2)} \u00b7 recency ${s.it.rec.toFixed(2)} \u00b7 repetition ${s.it.rep.toFixed(2)} \u00b7 social ${s.it.soc.toFixed(2)}"><span class="rk">#${i + 1}</span><span class="tt">${s.it.title}</span><span class="sh">${pct(s.share)}</span><span class="bar"><i style="width:${Math.min(100, s.share * 100 * 2.5)}%"></i></span></li>`).join('')}</ol>`;
   }
   function formulaHtml(L) {
     const W = weights(L);
@@ -51,40 +51,37 @@
   OracleChapters.register('loop', (app) => {
     const L = state.v2.lab;
     if (!sim) { sim = fresh(); for (let i = 0; i < L.n; i++) step(sim, L); }
-    const sliders = [['e', 'Emotional intensity', 'weight on how charged an item is'], ['r', 'Relevance', 'weight on match to your interests'],
-      ['w', 'Recency', 'weight on newness (model only \u2014 not used by the artwork)'], ['t', 'Repetition', 'weight on having been shown before'],
-      ['k', 'Social reinforcement', 'weight on others\u2019 reactions'], ['a', 'Recommendation amplification', 'exponent: how winner-take-all ranking is']];
+    const sliders = [['e', 'Emotion'], ['r', 'Relevance'], ['w', 'Recency'], ['t', 'Repetition'], ['k', 'Social proof'], ['a', 'Amplification']];
     app.innerHTML = `<article class="chapter ch-loop">
-      ${U.chapterHead('04 // THE FEEDBACK LOOP', 'The attention laboratory',
-        'A toy ranking system over ten fictional posts. Change what it rewards, then let attention feed back into the ranking and watch it concentrate.')}
-      ${U.simNote('Conceptual simulation. It is not a reproduction of any proprietary algorithm, not evidence of real-world manipulation, and not a measurement of you. Item attributes are invented; every rule is printed below and editable.')}
+      ${U.chapterHead('loop', 'Attention lab',
+        'A toy ranker over ten fictional posts. Set what it rewards, run rounds, watch attention concentrate.')}
+      ${U.simNote('Toy model \u2014 not any real algorithm, not evidence of manipulation, not a measurement of you.')}
       <section class="panel lab-grid" aria-labelledby="lab-title">
         <div>
-          <h2 id="lab-title" class="panel-title">What the ranker rewards</h2>
-          ${sliders.map(([k, n, h]) => U.slider(k, n, L[k], h)).join('')}
+          <h2 id="lab-title" class="panel-title">What it rewards</h2>
+          ${sliders.map(([k, n]) => U.slider(k, n, L[k])).join('')}
           <div class="btn-row">
-            <button type="button" class="btn-sm amber" id="lab-step">RUN 1 ROUND</button>
-            <button type="button" class="btn-sm amber" id="lab-step5">RUN 5 ROUNDS</button>
-            <button type="button" class="btn-sm" id="lab-reset">RESET FEED</button>
-            <button type="button" class="btn-sm" id="lab-chrono">CHRONOLOGICAL BASELINE</button>
+            <button type="button" class="btn-sm primary" id="lab-step">RUN A ROUND</button>
+            <button type="button" class="btn-sm" id="lab-chrono">CHRONOLOGICAL</button>
+            <button type="button" class="btn-sm" id="lab-reset">RESET</button>
           </div>
         </div>
         <div>
-          <h2 class="panel-title">Hypothetical feed</h2>
+          <h2 class="panel-title">Fictional feed</h2>
           <div id="lab-feed" aria-live="polite">${feedHtml(L)}</div>
-          <div class="mini-label">Assumptions (causal rules in this model)</div>
-          <div id="lab-formula">${formulaHtml(L)}</div>
+          ${U.more('Model rules', `<div id="lab-formula">${formulaHtml(L)}</div>`, null, ['SIMULATED'])}
         </div>
       </section>
       <section class="panel" aria-labelledby="lab-ev">
-        <h2 id="lab-ev" class="panel-title">What the evidence does and does not say</h2>
-        ${E.claim('VERIFIED', 'In a randomized experiment holding ~2 million Twitter accounts on a reverse-chronological feed, personalized ranking measurably amplified some political content relative to that baseline; the authors did not find that it amplified far-left or far-right groups more than moderates.', ['huszar22'])}
-        ${E.claim('VERIFIED', 'Across 563,312 posts on polarizing issues, each additional moral-emotional word was associated with roughly 20% more diffusion. This is an observational association in one sample, not proof that a ranker causes it.', ['brady17'])}
-        ${E.claim('VERIFIED', 'X\u2019s published For You pipeline uses explicit signals (likes, replies) and implicit ones (profile visits, post clicks).', ['x-algo'])}
-        ${E.claim('VERIFIED', 'In the EU, very large online platforms must offer at least one recommender option not based on profiling \u2014 the closest real analogue of the CHRONOLOGICAL BASELINE button.', ['dsa38'])}
-        ${E.claim('INFERRED', 'When attention itself becomes an input to ranking, small early differences can compound \u2014 the loop in this model. Whether and how strongly a given platform does this is not public.')}
+        <h2 id="lab-ev" class="panel-title">What the evidence says</h2>
+        ${E.claim('VERIFIED', 'A randomized experiment on ~2 million Twitter accounts: personalised ranking amplified some political content versus a chronological feed.', ['huszar22'])}
+        ${E.claim('VERIFIED', 'EU very large platforms must offer a feed not based on profiling \u2014 the real-world CHRONOLOGICAL.', ['dsa38'])}
+        ${U.more('More evidence', E.claim('VERIFIED', 'The same study did not find far-left or far-right groups amplified more than moderates.', ['huszar22']) +
+          E.claim('VERIFIED', 'Each moral-emotional word was linked to ~20% more diffusion across 563,312 posts \u2014 an association, not proof a ranker causes it.', ['brady17']) +
+          E.claim('VERIFIED', 'X\u2019s published For You pipeline uses explicit (likes, replies) and implicit (profile visits, clicks) signals.', ['x-algo']) +
+          E.claim('INFERRED', 'When attention feeds ranking, early leads compound. How strongly any platform does this is not public.'), null, ['VERIFIED', 'INFERRED'])}
       </section>
-      ${U.chapterNav('machine', 'revelation')}
+      ${U.chapterNav('revelation')}
     </article>`;
 
     const refresh = () => {
@@ -98,7 +95,6 @@
     });
     const run = (k) => { for (let i = 0; i < k; i++) { step(sim, L); L.n = Math.min(12, L.n + 1); } refresh(); };
     document.getElementById('lab-step').onclick = () => run(1);
-    document.getElementById('lab-step5').onclick = () => run(5);
     document.getElementById('lab-reset').onclick = () => { sim = fresh(); L.n = 0; refresh(); };
     document.getElementById('lab-chrono').onclick = () => {
       Object.assign(L, { e: 0, r: 0, w: 100, t: 0, k: 0, a: 0 });

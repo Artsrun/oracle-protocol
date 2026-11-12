@@ -3,32 +3,32 @@
 (function (root) {
   const OFFERS = [
     { id: 'social', title: 'Social platforms', give: 'identity, relationships, activity', get: 'connection, visibility, community',
-      documented: { label: 'VERIFIED', text: 'The FTC\u2019s 2024 staff study of nine social media and video services found they collected data from and about users <em>and non-users</em> \u2014 personal and demographic information, interests, behaviours and activity elsewhere on the internet \u2014 including information inferred or bought from data brokers.', src: ['ftc6b'] },
-      pattern: { label: 'INFERRED', text: 'Because a profile is built from both what you post and what others do around you, opting out personally does not fully remove you from the graph.' } },
+      documented: { label: 'VERIFIED', text: 'The FTC\u2019s 2024 study of nine social and video services found they collected data about users <em>and non-users</em>, including data inferred or bought from data brokers.', src: ['ftc6b'] },
+      pattern: { label: 'INFERRED', text: 'Your profile also grows from what others post and do around you.' } },
     { id: 'free', title: 'Free services', give: 'searches, views, purchases, usage', get: 'search, maps, video, mail at no price',
-      documented: { label: 'VERIFIED', text: 'Google\u2019s privacy policy lists activity it collects \u2014 terms you search for, videos you watch, purchase activity, people you communicate with \u2014 and says it uses activity to do things like recommend a YouTube video, and may show personalized ads; ad personalization can be changed in My Ad Center.', src: ['google-pp'] },
-      pattern: { label: 'INFERRED', text: 'The price of an ad-funded service is paid in attention and behavioural data; the exchange rate is set by the provider, not the visitor.' } },
+      documented: { label: 'VERIFIED', text: 'Google\u2019s privacy policy lists searches, videos watched, purchases and people you communicate with among the activity it collects; it uses activity for recommendations and may show personalized ads.', src: ['google-pp'] },
+      pattern: { label: 'INFERRED', text: 'You pay in attention and data; the provider sets the rate.' } },
     { id: 'ai', title: 'AI assistants', give: 'prompts, files, context, voice', get: 'answers, drafting, analysis',
-      documented: { label: 'VERIFIED', text: 'OpenAI\u2019s US privacy policy says it collects the prompts, files, images and audio you provide as \u201cContent\u201d, may use Content to train its models, and offers an opt-out of that training use.', src: ['openai-pp'] },
-      pattern: { label: 'INFERRED', text: 'Conversation is unusually rich context: people disclose goals, worries and plans in their own words, often more than a form would ask.' } },
+      documented: { label: 'VERIFIED', text: 'OpenAI\u2019s US privacy policy says prompts, files, images and audio you provide may be used to train its models, with an opt-out.', src: ['openai-pp'] },
+      pattern: { label: 'INFERRED', text: 'In conversation, people disclose goals and worries in their own words.' } },
     { id: 'devices', title: 'Smart devices', give: 'voice, location, surroundings', get: 'hands-free help, automation',
-      documented: { label: 'VERIFIED', text: 'In 2023 the U.S. DOJ, on behalf of the FTC, <em>alleged</em> that Alexa\u2019s default settings kept voice recordings and transcripts indefinitely and that Amazon used them to train and improve Alexa (allegations, not court findings).', src: ['ftc-alexa'] },
-      pattern: { label: 'INFERRED', text: 'Devices placed in homes observe the people around them, not only the account holder.' } },
+      documented: { label: 'VERIFIED', text: 'In 2023 the DOJ, for the FTC, <em>alleged</em> Alexa kept voice recordings indefinitely by default and Amazon used them to improve Alexa (allegations).', src: ['ftc-alexa'] },
+      pattern: { label: 'INFERRED', text: 'A device at home observes everyone near it, not just the account holder.' } },
     { id: 'identity', title: 'Identity checks', give: 'ID documents, age, verified phone', get: 'continued account access',
-      documented: { label: 'VERIFIED', text: 'OpenAI\u2019s privacy policy describes collecting information you or a vendor provide \u201cto establish your identity or age\u201d and estimating age to give an age-appropriate experience.', src: ['openai-pp'] },
-      pattern: { label: 'INFERRED', text: 'Identity checks are increasingly a condition of access rather than an optional feature; refusing usually means losing the service.' } },
+      documented: { label: 'VERIFIED', text: 'OpenAI\u2019s privacy policy describes collecting information \u201cto establish your identity or age\u201d and estimating age.', src: ['openai-pp'] },
+      pattern: { label: 'INFERRED', text: 'Verification is becoming a condition of access; refusing usually means losing the service.' } },
     { id: 'entertainment', title: 'Entertainment', give: 'attention, watch time, reactions', get: 'an endless, personalized feed',
-      documented: { label: 'VERIFIED', text: 'YouTube\u2019s VP of Engineering wrote that recommendations drive a significant amount of overall viewership \u2014 more than channel subscriptions or search.', src: ['yt-blog'] },
-      pattern: { label: 'INFERRED', text: 'When a feed, not the viewer, chooses most of what is watched next, attention itself becomes the traded good.' } }
+      documented: { label: 'VERIFIED', text: 'YouTube says recommendations drive more viewing than subscriptions or search.', src: ['yt-blog'] },
+      pattern: { label: 'INFERRED', text: 'When the feed picks what plays next, attention becomes the product.' } }
   ];
 
   const EXCHANGE_DIMS = [
     { id: 'd', name: 'Disclosure', hint: 'how much you hand over' },
     { id: 'c', name: 'Convenience', hint: 'how much effort it saves' },
     { id: 'p', name: 'Personalization', hint: 'how tailored the service becomes' },
-    { id: 'y', name: 'Platform dependency', hint: 'how hard it is to leave' },
-    { id: 'x', name: 'Potential exposure', hint: 'how many parties could see it' },
-    { id: 'i', name: 'Attention influence', hint: 'how much the service steers what you see' }
+    { id: 'y', name: 'Dependency', hint: 'how hard it is to leave' },
+    { id: 'x', name: 'Exposure', hint: 'how many parties could see it' },
+    { id: 'i', name: 'Influence', hint: 'how much the service steers what you see' }
   ];
 
   // Illustrative model. Weights are design assumptions, shown verbatim in the UI.
@@ -67,13 +67,13 @@
   ];
 
   const MACHINE = [
-    { id: 'activity', name: 'Human activity', text: 'Searching, posting, watching, moving, talking to an assistant.', claim: { label: 'INFERRED', text: 'Every later stage depends on this one; it is also where the visitor has the most control.' } },
-    { id: 'collection', name: 'Data collection', text: 'First-party logs, SDKs and pixels in other apps and sites, purchased data sets.', claim: { label: 'VERIFIED', text: 'The FTC found some companies offered tracking pixels and SDKs that transmit information about users\u2019 actions on other sites and apps back to the platform.', src: ['ftc6b'] } },
-    { id: 'combination', name: 'Processing / combination', text: 'Joining sources by account, device ID, email or phone.', claim: { label: 'VERIFIED', text: 'Kochava is alleged to have bought data from other brokers and sold location feeds keyed to advertising IDs.', src: ['ftc-kochava'] } },
-    { id: 'inference', name: 'Inference / profile', text: 'Interest segments, demographics, propensities.', claim: { label: 'VERIFIED', text: 'Platforms in the FTC study assigned users to interest categories from their activity (e.g. engaging with recipes \u2192 \u201cFood and Drink\u201d).', src: ['ftc6b'] } },
-    { id: 'recommendation', name: 'Recommendation', text: 'Candidate generation, then ranking.', claim: { label: 'VERIFIED', text: 'YouTube\u2019s published system has a candidate-generation model followed by a separate ranking model.', src: ['covington16'] } },
-    { id: 'allocation', name: 'Attention allocation', text: 'What reaches the top of the feed receives most of the attention.', claim: { label: 'VERIFIED', text: 'A randomized experiment on Twitter found personalized ranking amplified some content relative to a chronological feed.', src: ['huszar22'] } },
-    { id: 'further', name: 'Further activity', text: 'Reactions to what was shown become new signals.', claim: { label: 'INFERRED', text: 'This closes the loop: the system learns from behaviour it helped shape. How strongly this feedback operates on a given platform is not public.' } }
+    { id: 'activity', name: 'Human activity', text: 'Searching, posting, watching, moving, talking.', claim: { label: 'INFERRED', text: 'Everything after depends on this step \u2014 where you have the most control.' } },
+    { id: 'collection', name: 'Data collection', text: 'Own logs, pixels and SDKs in other apps, bought data.', claim: { label: 'VERIFIED', text: 'Some companies in the FTC study offered pixels and SDKs that send users\u2019 actions on other sites back to the platform.', src: ['ftc6b'] } },
+    { id: 'combination', name: 'Processing / combination', text: 'Joining sources by account, device ID, email or phone.', claim: { label: 'VERIFIED', text: 'Kochava allegedly bought broker data and sold location feeds keyed to advertising IDs.', src: ['ftc-kochava'] } },
+    { id: 'inference', name: 'Inference / profile', text: 'Interest segments, demographics, propensities.', claim: { label: 'VERIFIED', text: 'Platforms in the FTC study sorted users into interest categories (recipes \u2192 \u201cFood and Drink\u201d).', src: ['ftc6b'] } },
+    { id: 'recommendation', name: 'Recommendation', text: 'Candidate generation, then ranking.', claim: { label: 'VERIFIED', text: 'YouTube\u2019s published system: a candidate model, then a ranking model.', src: ['covington16'] } },
+    { id: 'allocation', name: 'Attention allocation', text: 'The top of the feed gets most of the attention.', claim: { label: 'VERIFIED', text: 'A Twitter experiment found personalized ranking amplified some content versus a chronological feed.', src: ['huszar22'] } },
+    { id: 'further', name: 'Further activity', text: 'Reactions to what was shown become new signals.', claim: { label: 'INFERRED', text: 'The loop closes: the system learns from behaviour it shaped. How strongly, on any platform, is not public.' } }
   ];
 
   // Ecosystem map. Only relations with a source are VERIFIED; others are typed UNKNOWN/INFERRED explicitly.

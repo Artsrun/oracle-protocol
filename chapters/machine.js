@@ -38,31 +38,28 @@
     clearInterval(timer);
     const types = ['all', ...new Set(C.RELATIONS.map(r => r.type))];
     app.innerHTML = `<article class="chapter ch-machine">
-      ${U.chapterHead('03 // THE MACHINE', 'A transparent systems map',
-        'A conceptual flow \u2014 not a diagram of any one company. Each step carries its own evidence label.')}
-      <section class="panel" aria-labelledby="loop-title">
-        <h2 id="loop-title" class="panel-title">From activity back to activity</h2>
+      ${U.chapterHead('machine', 'The loop',
+        'A conceptual flow, not any one company\u2019s system. Pick a step.')}
+      <section class="panel" aria-label="Systems map">
         <div class="machine-grid">
           <div><div id="loop-svg">${loopSvg()}</div>
-            <div class="btn-row"><button type="button" class="btn-sm" id="m-prev">\u25c0 PREV</button><button type="button" class="btn-sm" id="m-next">NEXT \u25b6</button>
-            <button type="button" class="btn-sm amber" id="m-play" ${OracleChapters.reduceMotion() ? 'disabled title="Disabled: reduced motion preferred"' : ''}>PLAY THE LOOP</button></div></div>
+            <div class="btn-row"><button type="button" class="btn-sm primary" id="m-play" ${OracleChapters.reduceMotion() ? 'disabled title="Disabled: reduced motion preferred"' : ''}>PLAY THE LOOP</button></div></div>
           <div><ol class="node-list">${C.MACHINE.map((m, i) => `<li><button type="button" class="node-btn" data-node="${i}" aria-pressed="${i === active}">${String(i + 1).padStart(2, '0')} ${m.name}</button></li>`).join('')}</ol>
             <div class="node-detail" id="node-detail" aria-live="polite">${nodeDetail()}</div></div>
         </div>
       </section>
 
       <section class="panel" aria-labelledby="eco-title">
-        <h2 id="eco-title" class="panel-title">Ecosystem roles</h2>
-        <p class="sim-note">Companies are placed only in roles their own documents or a regulator\u2019s report describe. A company appearing in two roles says nothing about data moving between them.</p>
+        <h2 id="eco-title" class="panel-title">Who does what</h2>
+        <p class="sim-note">Roles come from each company\u2019s own documents or a regulator. Two roles do not mean data moves between them.</p>
         <div class="roles">${C.ROLES.map(r => {
           const ents = C.ENTITIES.filter(e => e.roles.includes(r.id));
           return `<div class="role"><h3>${r.name}</h3><ul>${ents.length ? ents.map(e => `<li>${e.name} ${E.cite(e.src)}</li>`).join('') : '<li class="empty">none listed</li>'}</ul></div>`;
         }).join('')}</div>
-        <h3 class="mini-label">Relations \u2014 filter by type</h3>
-        <div class="seg" role="group" aria-label="Relation type">${types.map(t => `<button type="button" data-filter="${t}" aria-pressed="${t === filter}">${t}</button>`).join('')}</div>
-        <table class="rel-table"><thead><tr><th>Relation</th><th>Type</th><th>Label</th><th>Evidence</th></tr></thead><tbody id="rel-body">${relRows()}</tbody></table>
+        ${U.more(`Documented relations (${C.RELATIONS.length})`, `<div class="seg" role="group" aria-label="Relation type">${types.map(t => `<button type="button" data-filter="${t}" aria-pressed="${t === filter}">${t}</button>`).join('')}</div>
+        <table class="rel-table"><thead><tr><th>Relation</th><th>Type</th><th>Label</th><th>Evidence</th></tr></thead><tbody id="rel-body">${relRows()}</tbody></table>`, 'm-rel', C.RELATIONS.map(r => r.label))}
       </section>
-      ${U.chapterNav('extraction', 'loop')}
+      ${U.chapterNav('loop')}
     </article>`;
 
     const setActive = (i) => {
@@ -72,8 +69,6 @@
       app.querySelectorAll('.node-btn').forEach((b, j) => b.setAttribute('aria-pressed', j === active));
     };
     app.querySelectorAll('.node-btn').forEach(b => b.onclick = () => { clearInterval(timer); setActive(+b.dataset.node); });
-    document.getElementById('m-prev').onclick = () => { clearInterval(timer); setActive(active - 1); };
-    document.getElementById('m-next').onclick = () => { clearInterval(timer); setActive(active + 1); };
     const play = document.getElementById('m-play');
     play.onclick = () => {
       clearInterval(timer);
