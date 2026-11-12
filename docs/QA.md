@@ -2,6 +2,86 @@
 
 Run on the build box, 2026-11-13 (Asia/Yerevan). **Local only — nothing was deployed.**
 
+## Iteration 2 — theme system (2026-11-13, Asia/Yerevan) — current results
+
+Clean start: server restarted, `qa/node_modules` reused, output folders wiped. All runs are on commit
+`b0e2f84` (code) — docs committed after.
+
+**0. Re-check before any theme work** (commit `1031124`, server restarted): unit 8/8, e2e **51/51** — no regressions.
+
+**1. Unit** `npm test`: **10/10** (adds: every palette × mode complete and mirrored in theme.css; legacy palette kept;
+scene stores colour roles, so composition is theme-independent).
+
+**2. End-to-end in both colour schemes** — `COLOR_SCHEME=dark|light node qa.mjs` emulates `prefers-color-scheme`
+in *every* browser context (desktop, DPR 2, mobile DPR 3 + touch, reduced motion, permissions denied/granted):
+
+| Scheme | Checks | axe WCAG 2.1 A/AA (14 screens) | Console app errors | Non-localhost requests |
+|---|---|---|---|---|
+| dark (Night) | **62/62 pass** | 0 violations | 0 (only the 2 deliberate CSP probes) | 0 |
+| light (Day) | **62/62 pass** | 0 violations | 0 (only the 2 deliberate CSP probes) | 0 |
+
+New checks (11): auto mode follows the emulated scheme; default look = Observatory + Instrument; switch is a labelled
+native `<select>` (Auto/Night/Day); auto reacts live when the OS scheme flips; manual override applies and is stored
+in `localStorage['oracle.theme']`; override persists across reload; keyboard can change it; back to Auto clears the
+key and follows the device; unknown `?palette/?type` fall back; switching theme repaints the artwork with the same
+composition id; legacy links (no look params) render with the legacy look. The reduced-motion "artwork drawn" check
+is now theme-aware (counts pixels that differ from the palette background).
+axe "incomplete" is only `color-contrast` (text over the starfield canvas), covered by the audit below.
+
+**3. Contrast audit** `qa/contrast.mjs` — every visible text element on 8 screens (approach, 01–05, sources drawer,
+v1.2 harvest), blended over its real backdrop (opaque ancestor background, else `--bg` and `--signal` 8% tint; worst
+wins), for **all 3 palettes × Night/Day** (`/workspace/oracle-qa/theme/contrast-themes.json`):
+
+| Palette | Night min ratio | Day min ratio | Elements checked (each) | Failing |
+|---|---|---|---|---|
+| Observatory (default) | 6.20 | 5.40 | 602 | 0 |
+| Sodium | 5.66 | 5.38 | 602 | 0 |
+| Spectral | 5.22 | 5.32 | 602 | 0 |
+
+The first Day pass failed on the approach screen (signal/trace 4.0–4.3:1 for 11–12 px uppercase labels and the
+primary buttons); Day signal and trace colours were darkened one step in all palettes, then everything passed.
+Exception still excluded and documented: the v1.2 `ORACLE` title uses `background-clip:text`.
+
+**4. Determinism per theme** (`qa/theme.mjs`, `/workspace/oracle-qa/theme/theme-results.json`). Fixed reference
+`ORACLE-7K3F-Q9ZD` (composition `C-3DEA15B5A8` in every look), portrait 1080×1350, exported twice: context A =
+desktop DPR 1 with the mode from emulated `prefers-color-scheme`; context B = mobile DPR 3 with `?theme=` forced.
+**All 12 looks: A === B byte-identical; 12 distinct hashes; one composition id.**
+
+| Look (palette-mode-type) | SHA-256 (PNG file) |
+|---|---|
+| observatory-dark-instrument (**default, Night**) | `d17be765a17cb7f34872dec6f268b4ff6f85c0ca42f3a27c2514bbcba3c0d6ce` |
+| observatory-light-instrument (**default, Day**) | `fb15f959170197ab308cacc1e23e337e4e6ebf048d07a64ee37cd904ff3796b4` |
+| observatory-dark-signal (legacy look) | `a3eaef2e1a8994667517cb49aa7037f42fe804367bbf3fc4e468f4956bcb633a` |
+| observatory-light-signal | `66fee4df412a0f9b5c5604f5be87b4d110be610495d8157b511b5a6b5bcd809a` |
+| sodium-dark-instrument | `e5e7be16f34899f8ff7ceb440bbd39f1df6736a47786e9fb3c0328e28932f3f1` |
+| sodium-light-instrument | `5a91417336bee36be55daa473539c961caad043784b2b2908f95072ccffb044d` |
+| sodium-dark-signal | `1768ebe3e9462f5ae1b9a10bba6e10e45bfafc4263a58936d51afc810bbe0aec` |
+| sodium-light-signal | `4b4abd50a6fd5142aa34ebb09eac9067d1d101edb082c9532aa947440f13b5e0` |
+| spectral-dark-instrument | `2a9cb1a437dc2fc4e520e9e91b37ea8efb4ec6ce5abd3c0539c924e589cf2363` |
+| spectral-light-instrument | `d49b2749ef1107aa4caa1fb44c874e3775dd15b2ae76109cf3343fc4f97ae476` |
+| spectral-dark-signal | `33d41bc00e1f0481d1cc27549836a217b666ab55aa879d62e6ae938aeaddae2b` |
+| spectral-light-signal | `db2b8fddb8d006b10d1e5c15b88f0d68bfda7cb62b671d6ff9fcfd01a5fdfd76` |
+
+Cross-checks: the e2e `fixed-desktop-portrait` export (downloaded through the UI) equals the table for the default
+look in both schemes; story 1080×1920 desktop === mobile DPR 3 (Night `df332b67…`, Day `ed1d0299…`); a pinned link
+(`&pal=sodium&th=light&ty=signal`) opened on a Night device renders sodium-light-signal (hash equals the table)
+while the site itself stays Night. **Legacy:** a v2.0 link without look params renders pixel-identical to the
+v2.0 release (RGBA SHA-256 portrait `a50aedde…`, story `de7520c1…`, same as the earlier QA run); the PNG file bytes
+differ only by the added `look=` metadata.
+
+**5. Theme screenshots** (`/workspace/oracle-qa/theme/`, auto mode via emulated scheme, reduced motion for stable frames):
+- `palette/{observatory,sodium,spectral}-{dark,light}-{desktop,mobile}-{offer,revelation}.png` (24)
+- `type/{instrument,signal,almanac}-{dark,light}-{desktop,mobile}-{extraction,loop}.png` (24)
+- `compare-palettes.png` (chapter 01), `compare-palettes-artwork.png` (chapter 05), `compare-typefaces.png`,
+  `compare-typefaces-detail.png` (1:1 crops) — each with its `.html` source
+- `pinned-link-sodium-light-on-dark-device.png`
+- e2e screenshots per scheme: `/workspace/oracle-qa/scheme-dark/shots/`, `/workspace/oracle-qa/scheme-light/shots/`
+
+**Theme limits.** Alternative palettes/types were contrast-audited and screenshotted but axe ran only on the default
+look (both schemes). Chrome headless only — `color-mix()` needs Safari ≥ 16.2 / Firefox ≥ 113 (older browsers ignore
+those declarations and fall back to inherited colours). Windows High Contrast / `forced-colors` not tested. The
+comparison sheets are scaled overviews; judge type from the 1:1 detail sheet or the individual shots.
+
 ## Environment
 
 - Static server: `python3 -m http.server 8765` serving a directory that contains the repo at `/oracle-protocol/`, i.e. the
@@ -15,7 +95,9 @@ Reproduce:
 ```
 npm test                                     # unit: art module determinism (node --test, no deps)
 cd qa && npm i && node qa.mjs                # end-to-end (needs Chrome; BASE/CHROME/QA_DIR env vars)
-node contrast.mjs                            # approximate contrast audit
+COLOR_SCHEME=light QA_DIR=… node qa.mjs     # same suite with prefers-color-scheme: light
+node contrast.mjs                            # contrast audit, all palettes × Night/Day
+node theme.mjs                               # theme screenshots, comparison sheets, per-look export hashes
 ```
 
 ## Baseline (v1.2, branch `prod` @ 7f1f3a6)
@@ -24,14 +106,14 @@ Same harness against the untouched `prod` worktree: approach → handshake (anon
 DEVICE OK, Bluetooth + geo DENIED) → portrait with `ORACLE_HASH`. Console: one 404 (favicon). **Six requests to
 fonts.googleapis.com / fonts.gstatic.com** on every load. Screenshots: `/workspace/oracle-qa/shots/baseline/`.
 
-## Unit tests — `tests/art.test.cjs` (8/8 pass)
+## Unit tests — `tests/art.test.cjs` (iteration 1: 8/8; now 10/10)
 
 Same seed+params → deep-equal scene for portrait/story/square · different seed → different hash · **every one of the 14
 parameters changes the composition** · unknown keys (`lat`, `lng`, `ua`, `geo`, `gpu`) dropped, ranges clamped ·
 encode/decode round-trip · seed format · max-density story compose < 150 ms (≈7–9 ms, 7,850 primitives) ·
 interpretation contains no raw readings.
 
-## End-to-end — `qa/qa.mjs` (51/51 checks pass)
+## End-to-end — `qa/qa.mjs` (iteration 1: 51/51 checks pass; see iteration 2 above for the current 62/62 × 2 schemes)
 
 | Result | Check |
 |---|---|

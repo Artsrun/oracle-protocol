@@ -83,6 +83,57 @@ Mapping (handover §8 table):
 * Performance: DPR capped at 2 for the background; artwork preview rendered at ≤ 1.5× display size; export renders to
   an offscreen canvas once; no per-frame allocation in the starfield loop; loop paused while the tab is hidden.
 
+## 5a. Theme system — palettes, Night/Day, type (iteration 2)
+
+**Mechanics.** `theme.css` holds every colour and type decision as custom properties; `styles.css` and
+`chapters.css` contain no literal colours any more (a script converted each `rgba()`/hex to a role token with
+`color-mix()`). Roles: `--bg --bg-2 --surface --ink --ink-hi --signal --trace --alert --sim --slate --link`
+(legacy names `--void --cyan --amber --crimson --violet` are aliases). Translucent text uses
+`color-mix(… calc(100% - (100% - a) * var(--tf)))`: `--tf` is 1 at Night (same alphas as v2.0) and 0.2 by Day,
+so dim-on-paper text keeps ≥ 4.5:1. Glows scale with `--glow-k` (0.25 by Day: no smudgy halos on paper).
+
+* `theme-boot.js` (sync, in `<head>`, CSP-safe external file) sets `data-palette`, `data-type`, `data-theme`
+  before first paint. Mode = `prefers-color-scheme` unless the visitor picked one: **Auto / Night / Day** native
+  `<select>` (labelled "Colour theme", keyboard-operable, live region announces the result) in the HUD, persisted
+  as `localStorage['oracle.theme']` (`auto` removes the key). Auto reacts live to OS changes. No-JS fallback:
+  a `prefers-color-scheme` media block for the default palette.
+* Comparison switches (not persisted): `?palette=`, `?type=`, `?theme=dark|light` (one view), `?themelab`
+  (small dev switcher). Unknown values fall back to the default.
+* **Artwork.** Scene items store a colour *role* index, never a colour, so `compose()` and the Composition ID are
+  theme-independent. `render(…, { palette: 'sodium-light', fonts })` applies `PALETTES[...]` (mirrored from
+  theme.css — QA asserts equality). Light palettes get ×1.35 line alpha (dark ink on paper reads thinner).
+  The artwork follows the site theme; share/clean-view links add `&pal=&th=&ty=` and the PNG `Comment` chunk adds
+  `look=pal-mode-type`, so the same seed + same look reproduces byte-identically anywhere. Links without look
+  params (v2.0) render with the legacy look (Observatory · Night · Signal) — pixel-identical to the v2.0 export.
+
+**Palette directions** (all: one signal colour, one trace colour, one alert; flat fields, hairlines, no gradients).
+
+| | Night | Day | Idea |
+|---|---|---|---|
+| **A · Observatory** (default) | void `#020408`, signal cyan `#00e5ff`, trace amber `#ffab00`, alert `#ff1744` | survey paper `#eef1f0`, ink `#0b1a22`, signal teal `#005c6b`, trace `#7d4900`, alert `#b01030` | the v1.2 instrument panel, refined: cold signal vs warm inference |
+| **B · Sodium** | warm black `#0b0a09`, sodium `#ffb54a`, steel `#9cc3d3`, alert `#ff6a55` | newsprint `#f3eee4`, `#7a4600` / `#1d4f63` | streetlight sodium-vapour at night; most "analogue" |
+| **C · Spectral** | violet-black `#07060d`, UV `#b0a4ff`, emission mint `#74e3c4`, rose `#ff7a95` | lilac plate `#f2f1f7`, `#4231b8` / `#00634f` | spectroscopy plates; most "scientific" |
+
+**Type pairings** (all SIL OFL 1.1, self-hosted latin subsets; a face downloads only when used).
+
+| | Display | Reading | Data / HUD |
+|---|---|---|---|
+| **Instrument** (default) | Space Grotesk 700 | IBM Plex Sans | IBM Plex Mono |
+| **Signal** (v1.2 voice) | Syne 800 | IBM Plex Mono | IBM Plex Mono |
+| **Almanac** | Fraunces 600 | IBM Plex Sans | IBM Plex Mono |
+
+Type scale (tokens): micro 10 · label 11 · xs 12 · sm 13 · body 14→15.5 · lead 15.5→18 · h3 17→20 · h2 21→26 ·
+h1 30→48 · hero 34→67 px (fluid `clamp()`); v2.0 had 8–9 px HUD text, now ≥ 10 px. Roles: display = headings,
+body = reading text, mono = HUD, labels, badges, data, controls.
+
+**Chosen default: Observatory + Instrument.** Observatory keeps the brand equity of v1.2 and its semantics
+(cyan = observed/verified, amber = inferred) — Sodium inverts that colour meaning (amber becomes VERIFIED) and Spectral moves
+VERIFIED onto violet, the hue SIMULATED uses in A. It also has the highest Night contrast (min 6.93:1 measured) and keeps old links
+pixel-identical. Instrument because long evidence text in Plex Sans is markedly easier to read than monospace on a
+390 px screen (measured: chapter 01's reading text is 1354 px tall vs 1808 px in Signal — 25% less scrolling), while Space Grotesk keeps the technical/observatory voice
+without Syne 800's loudness; Plex Mono stays for data so the "instrument" texture survives. Almanac is the runner-up
+(beautiful, but a serif pulls the piece toward an editorial magazine rather than an observatory).
+
 ## 6. Privacy guarantees (handover §2, §9)
 
 * CSP meta: `default-src 'self'; connect-src 'none'; img-src 'self' data: blob:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'`.
