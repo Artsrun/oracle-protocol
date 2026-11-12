@@ -1,5 +1,6 @@
 const vitals = window.vitals || {
   motionOn: false,
+  seen: {},
   lastAcc: null,
   shakePeaks: 0,
   lastShakeAt: 0,
@@ -68,6 +69,8 @@ const attachMotion = () => {
   if (vitals.motionOn) return;
   vitals.motionOn = true;
   window.addEventListener('deviceorientation', (e) => {
+    if (e.beta == null && e.gamma == null) return; // desktops fire one empty event: that is not a sensor
+    vitals.seen.orient = true;
     emitVital('orient', {
       alpha: e.alpha != null ? e.alpha.toFixed(1) : '\u2014',
       beta: e.beta != null ? e.beta.toFixed(1) : '\u2014',
@@ -78,7 +81,8 @@ const attachMotion = () => {
   }, { passive: true });
   window.addEventListener('devicemotion', (e) => {
     const a = e.accelerationIncludingGravity;
-    if (!a) return;
+    if (!a || (a.x == null && a.y == null && a.z == null)) return;
+    vitals.seen.shake = true;
     const mag = Math.hypot(a.x || 0, a.y || 0, a.z || 0);
     const last = vitals.lastAcc;
     vitals.lastAcc = mag;
@@ -94,6 +98,11 @@ const attachMotion = () => {
   }, { passive: true });
 };
 
+const waitSeen = (id, ms = 1200) => new Promise(res => {
+  if (vitals.seen[id]) return res(true);
+  const t0 = Date.now(), iv = setInterval(() => { if (vitals.seen[id] || Date.now() - t0 > ms) { clearInterval(iv); res(!!vitals.seen[id]); } }, 60);
+});
+
 const getOrientation = async () => {
   if (!('DeviceOrientationEvent' in window) && !screen.orientation) {
     return { error: 'Orientation API absent' };
@@ -101,7 +110,10 @@ const getOrientation = async () => {
   const perm = await requestMotionPerm();
   if (perm === 'denied') return { error: 'Motion permission denied', screen: screen.orientation?.type };
   attachMotion();
-  return { alpha: '0.0', beta: '0.0', gamma: '0.0', screen: screen.orientation?.type || 'unknown', live: true, perm };
+  // Honesty: only report LIVE once a real reading arrives; no events → UNAVAILABLE (e.g. desktops).
+  if (!(await waitSeen('orient'))) return { unavailable: true, error: 'No orientation sensor on this device', screen: screen.orientation?.type };
+  const o = state.collected.orient || {};
+  return { alpha: o.alpha ?? '\u2014', beta: o.beta ?? '\u2014', gamma: o.gamma ?? '\u2014', screen: screen.orientation?.type || 'unknown', live: true, perm };
 };
 
 const getShake = async () => {
@@ -109,7 +121,8 @@ const getShake = async () => {
   const perm = await requestMotionPerm();
   if (perm === 'denied') return { error: 'Shake permission denied' };
   attachMotion();
-  return { g: '9.8', peaks: vitals.shakePeaks, last: '\u2014', live: true, perm };
+  if (!(await waitSeen('shake'))) return { unavailable: true, error: 'No motion sensor on this device' };
+  return { g: vitals.lastAcc != null ? vitals.lastAcc.toFixed(2) : '\u2014', peaks: vitals.shakePeaks, last: '\u2014', live: true, perm };
 };
 
 const getGpu = async () => {
