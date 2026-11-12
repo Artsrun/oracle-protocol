@@ -2,7 +2,82 @@
 
 Run on the build box, 2026-11-13 (Asia/Yerevan). **Local only — nothing was deployed.**
 
-## Iteration 2 — theme system (2026-11-13, Asia/Yerevan) — current results
+## Iteration 3: simplification and validation (2026-11-13, Asia/Yerevan), current results
+
+Goal: less cognitive load and fewer mixed signals, about 40% less copy, the same five stages and evidence labels.
+Server restarted; output folders wiped. Everything is local; nothing was pushed or deployed.
+
+**Consistency fixes**
+* **One meaning per colour.** signal = interactive / observed / VERIFIED · amber (trace) = INFERRED only · alert = DENIED ·
+  sim = SIMULATED · dashed ink = UNKNOWN / UNAVAILABLE · focus ring = ink-hi. Amber was removed from selected states, buttons, HUD and seed.
+* **One primary action per screen.** It is the only filled button: BEGIN, RUN A ROUND, DOWNLOAD PNG, PORTRAIT →, Next · 03 MACHINE →.
+* **One navigation pattern.** The phase rail goes anywhere, plus a forward-only "Next · NN LABEL →" button. The per-chapter Back buttons and
+  the Machine prev/next are gone. The HUD and chapter kicker read the same "NN LABEL", taken from `PHASES`.
+* **One entry.** The approach has a single BEGIN. The v1.2 demo now sits inside 02 ("02 · LIVE DEMO · …"). Identity is optional;
+  the 02 button and `#sensors` open the tiles directly, so there are two fewer steps.
+* **One vocabulary.** "Derived" is now INFERRED everywhere. Dial names match between 01 and 05. Wording follows the evidence labels.
+* **Honest badges.** LIVE appears only after a real sensor event. No event within 1.2 s gives UNAVAILABLE (dashed). A refusal gives DENIED.
+  A missing device (for example "Requested device not found") gives UNAVAILABLE.
+  The portrait's BIO row now says PASSKEY CREATED/NONE; it no longer says VERIFIED.
+* **One sigil.** The v1.2 circular ring is replaced by the triangular sigil used by the artwork (static under reduced motion).
+* **Bug found by the new checks:** link-style buttons sharing the `.cite` class (edit, history restore, identity) opened an empty
+  sources drawer that then blocked clicks. The drawer now opens only for `.cite[data-source]`.
+
+**Shortening** (`qa/words.mjs`: visible words in `#app`, desktop, expanders closed; before = `ff86a74`)
+
+| Screen | Words before → after | Change | Incl. expanders | Page height |
+|---|---|---|---|---|
+| 00 Approach | 60 → 27 | −55% | 60 → 27 | 860 → 860 |
+| 01 Offer | 663 → 191 | −71% | 663 → 459 | 2270 → 1531 |
+| 02 Extraction | 313 → 183 | −42% | 313 → 237 | 1394 → 1132 |
+| 03 Machine | 495 → 236 | −52% | 495 → 463 (relations table is data) | 2603 → 1657 |
+| 04 Feedback loop | 616 → 200 | −68% | 616 → 328 | 1824 → 1386 |
+| 05 Revelation | 322 → 96 | −70% | 322 → 276 (caption + history are data) | 1870 → 1044 |
+| v1.2 sensors | 98 → 52 | −47% | 354 → 304 | 860 → 860 |
+| **All** | **2567 → 985** | **−62%** | 2823 → 2094 (−26%) | |
+
+Detail moved into `<details>` expanders. Each expander summary still shows its evidence badges, so labels stay visible when
+collapsed. Fewer controls: the loop "×5" button is gone; the Machine prev/next buttons are gone; the seed, caption and history tools sit behind "Seed, caption & history".
+Screenshots are in `/workspace/oracle-qa/simplify/{before,after}/`, with the sheet at `simplify/compare-before-after.png` (made by `qa/simplify-sheet.mjs`).
+
+**Validation**
+| Check | Tool | Result |
+|---|---|---|
+| HTML | html-validate 9 (`recommended`, stylistic rules off) on `index.html` plus the rendered DOM of 10 screens with expanders open (`qa/dom-dump.mjs`) | **0 errors** after fixes: `type="button"` on v1.2 buttons; slider `<output>` moved out of `<label>`; history list labelled with `aria-labelledby`; sensor tiles changed from `div[role=button]` to native `<button>` |
+| CSS syntax | css-tree 3 lexer, all 3 stylesheets | 0 errors. Declarations using `var()`/`color-mix()`/`calc()` are checked only by the browser |
+| CSS lint | stylelint 16 + `stylelint-config-recommended` | 0 errors except `no-duplicate-selectors` (15): v1.2 base rules plus v2 contrast overrides on purpose. Dead `.perm-hint` rules and a triple `.perm-item.denied` were merged |
+| JS | `node --check` on every file; eslint 9 on the 13 classic scripts concatenated in load order (shared global scope) | 0 syntax errors, **0 lint errors**. 14 warnings: unused `catch (e)` and two unused legacy constants |
+| Links | curl (browser UA, follow redirects) on all 18 URLs in data, chapters and docs | 14 × 200. PNAS (3) returns 403 to bots: the DOIs resolve and Crossref returns the matching titles. openai.com returns 403 to curl: fetched with a reader instead and re-checked against the claims (training on Content with opt-out; "establish your identity or age"; "estimate your age") |
+| CSP | e2e probe | `fetch('https://example.com')` blocked (connect-src 'none'). Zero non-localhost requests in every run |
+
+**QA in both schemes** (`COLOR_SCHEME=dark|light node qa.mjs`)
+| Scheme | e2e | axe WCAG 2.1 A/AA (15 screens) | App console errors | External requests |
+|---|---|---|---|---|
+| dark | **69/69** | 0 violations | 0 | 0 |
+| light | **69/69** | 0 violations | 0 | 0 |
+
+New checks:
+* There is exactly one entry action on the approach.
+* There is at most one filled action per screen.
+* The chapter nav is forward-only.
+* The kicker matches the HUD.
+* The v1.2 screens are numbered as 02.
+* The sensor demo opens straight on the tiles.
+* Missing sensors (orientation, shake) show UNAVAILABLE and never LIVE.
+* A refused geo or mic shows DENIED. The camera shows DENIED or UNAVAILABLE (headless Chrome has no camera device).
+* Evidence expanders show their labels while collapsed.
+* The tiles are native buttons.
+
+Flows were updated for the new controls: details are opened, and RUN A ROUND is clicked 5 times.
+* Unit `npm test`: **10/10**.
+* Determinism: Node id === browser id. Same seed gives byte-identical PNGs across DPR 1/2 and mobile DPR 3. Default exports are unchanged from
+  iteration 2 (Night `d17be765…`, Day `fb15f959…`). `qa/theme.mjs` gives all 12 look hashes identical to iteration 2, 0 errors, 0 requests.
+* Exports: 1080×1350 / 1080×1920 / 1080×1080 / 2160×2700 (fixed reference 1.36 / 1.62 / 1.12 / 3.73 MB in Night).
+* Mobile 390px: no horizontal overflow in any chapter; drawer full width; rail targets 28px tall. Reduced motion: static starfield, artwork drawn at once.
+* Contrast (`qa/contrast.mjs`; now also measures text inside opened expanders and the identity screen; the ORACLE-title exception is removed because the title is now solid):
+  **0 failures in all 6 palette × mode looks, 597 text elements each.** Minimums: observatory 6.20/5.23, sodium 5.66/5.21, spectral 5.09/5.32 (Night/Day).
+
+## Iteration 2 — theme system (2026-11-13, Asia/Yerevan)
 
 Clean start: server restarted, `qa/node_modules` reused, output folders wiped. All runs are on commit
 `b0e2f84` (code) — docs committed after.
@@ -258,8 +333,13 @@ desktop CPU under mobile *emulation*. Story export incl. PNG encoding ≈0.8 s. 
 3. Native Web Share was exercised only with a stubbed `navigator.share`; the real share sheet was not tested. Clipboard
    copy reported success in headless Chrome but the clipboard contents were not read back.
 4. Optional animated export (GIF/WebM) not implemented.
-5. v1.2 behaviour kept as-is: orientation/shake tiles report LIVE on devices with no such sensors (seen in headless
-   desktop); the wallet path's balance query goes through the wallet's own RPC node; the approach sigil uses circles.
+5. v1.2: the wallet path's balance query goes through the wallet's own RPC node; that part is unchanged. Fixed in iteration 3:
+   orientation and shake now show UNAVAILABLE without real events, and the sigil is triangular. A real sensor that is merely still for 1.2 s also reads UNAVAILABLE;
+   tapping again re-reads it.
+8. Word counts are by script (visible text with expanders closed). Including expanders, total copy is down 26%; the
+   rest is reference data (relations table, caption, history) and the evidence text, which was kept on purpose.
+9. Validation tools (html-validate, css-tree, stylelint, eslint) were run from `/tmp`. They are not added to the repo, so the
+   site stays dependency-free. `no-duplicate-selectors` warnings remain (intentional override layers).
 6. Evidence: 12 sources. Three PNAS papers were read via their Europe PMC records (PNAS and PMC blocked the fetcher);
    the DSA text via digitalacts.eu (EUR-Lex returned an empty 202). Court complaints are presented as allegations.
 7. The phase rail is navigation, not a progress gate — visitors can jump to any chapter (intentional: nothing is

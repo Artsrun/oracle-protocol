@@ -24,7 +24,7 @@ Source of truth: `ORACLE_PROTOCOL_HANDOVER.md` (334 lines). This plan maps each 
 | Chapter | Module | Interaction | Feeds artwork |
 |---|---|---|---|
 | 01 Offer | Six everyday exchanges (social, free services, AI assistants, smart devices, identity checks, entertainment): *you give / you get*, documented example vs general pattern. **Exchange simulator**: 6 sliders (disclosure, convenience, personalization, dependency, exposure, attention influence) → illustrative outputs with formulas shown. | toggle "I make this exchange"; sliders | offers bitmask; 6 slider values |
-| 02 Extraction | **Digital footprint explorer**: 8 categories (identity, location, relationships, interests, purchases, conversations, visual surroundings, attention patterns). Each: observed signal · derived inference · unknown · how it may be used · documented vs hypothetical · known control. Entry to the optional live harvest. | select category; mark as disclosed | categories bitmask |
+| 02 Extraction | **Digital footprint explorer**: 8 categories (identity, location, relationships, interests, purchases, conversations, visual surroundings, attention patterns). Each: observed signal · inferred · unknown · how it may be used · documented vs hypothetical · known control. Entry to the optional live harvest. | select category; mark as disclosed | categories bitmask |
 | 03 Machine | **Systems map** (SVG): Human activity → Collection → Processing/combination → Inference/profile → Recommendation → Attention allocation → Further activity (loop). **Ecosystem map**: roles (collectors, processors, ad intermediaries, identity providers, platforms, AI/cloud) with only documented relationships, typed (ownership / data purchase / processing / unknown). | step through nodes; filter by relation type | — |
 | 04 Feedback loop | **Attention laboratory**: 10 fictional feed items; editable weights for emotional intensity, relevance, repetition, social reinforcement, recency and an amplification exponent; "run N feedback rounds" shows attention concentrating (top-3 share, Gini). All formulas visible. | sliders, step/reset | 5 weights + amplification + rounds |
 | 05 Revelation | Deterministic artwork, seed, regenerate/vary/restore, formats, export, share, caption. | buttons, seed input | — |
@@ -133,6 +133,33 @@ pixel-identical. Instrument because long evidence text in Plex Sans is markedly 
 390 px screen (measured: chapter 01's reading text is 1354 px tall vs 1808 px in Signal — 25% less scrolling), while Space Grotesk keeps the technical/observatory voice
 without Syne 800's loudness; Plex Mono stays for data so the "instrument" texture survives. Almanac is the runner-up
 (beautiful, but a serif pulls the piece toward an editorial magazine rather than an observatory).
+
+## 5b. Simplification rules (iteration 3)
+
+1. **One colour, one meaning.**
+   * signal = interactive / observed / VERIFIED
+   * trace (amber) = INFERRED only
+   * alert = DENIED
+   * sim = SIMULATED
+   * dashed ink = UNKNOWN / UNAVAILABLE
+   * focus = ink-hi
+2. **One primary action per screen**, shown as the only filled button. Everything else is outlined or a text link.
+3. **One navigation pattern**: the phase rail plus a forward-only `Next · NN LABEL →`. There are no Back buttons; going back is done from the rail.
+4. **Progressive disclosure**: evidence, formulas, model rules and reference tables go in `<details class="more">` (`U.more`).
+   The summary always shows the evidence badges of what is inside.
+5. **Copy budget**: a chapter lead is at most 2 short sentences. Headings are 1–4 words. Slider rows carry no hints.
+6. **The v1.2 demo is part of 02**: it is labelled `02 · LIVE DEMO · …` and reached only from 02 (`#sensors`). Identity (`#protocol`) is optional.
+7. **Badges are honest**: LIVE only after a real event. DENIED = refused. UNAVAILABLE = no such sensor, device or API. OK = read. TAP = not asked yet.
+
+Glossary (same words in every chapter, the HUD and the v1.2 screens):
+* **Exchange**: something you give for a service (01).
+* **Observed / Inferred / Unknown**: what is collected, what is guessed from it, and what cannot be known (02).
+* **The loop**: collect → combine → infer → recommend → attention (03).
+* **Round**: one ranking pass in the attention lab (04).
+* **Composition**: the artwork. It has a **seed** (`ORACLE-XXXX-XXXX`) and a **composition id** (`C-…`) (05).
+* **Look**: palette · Night/Day · type.
+* **Dials**: Disclosure, Convenience, Personalization, Dependency, Exposure, Influence (01); Emotion, Relevance, Recency,
+  Repetition, Social proof, Amplification (04).
 
 ## 6. Privacy guarantees (handover §2, §9)
 

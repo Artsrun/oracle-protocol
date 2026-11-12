@@ -13,9 +13,9 @@ https://artsrun.github.io/oracle-protocol/
 
 | | Chapter | What you do |
 |---|---|---|
-| 00 | **Approach** | Begin the investigation, or run the original v1.2 protocol. |
+| 00 | **Approach** | One button: BEGIN. |
 | 01 | **The Offer** | Six everyday exchanges (social, free services, AI assistants, smart devices, identity checks, entertainment) with a documented example and a general pattern each. **Exchange simulator** with six dials. |
-| 02 | **The Extraction** | Observed vs derived vs unknown. **Digital footprint explorer** (8 categories). Optional **live harvest** — the v1.2 protocol. |
+| 02 | **The Extraction** | Observed vs inferred vs unknown. **Digital footprint explorer** (8 categories). Optional **live sensor demo**, the v1.2 protocol (`#sensors`). |
 | 03 | **The Machine** | Transparent systems map (activity → collection → combination → inference → recommendation → attention → activity) and an ecosystem map of documented roles and typed relations. |
 | 04 | **The Feedback Loop** | **Attention laboratory**: a toy ranker over ten fictional posts; edit what it rewards and watch attention concentrate. |
 | 05 | **The Revelation** | Your abstract choices become a deterministic artwork. Export 1080×1350 / 1080×1920 / 1080×1080 / 2160×2700 PNG, share, copy caption, restore by seed or link. |
@@ -23,7 +23,9 @@ https://artsrun.github.io/oracle-protocol/
 Every factual statement carries a provenance label — **VERIFIED** (with a source), **INFERRED**, **SIMULATED** or
 **UNKNOWN** — and the **SOURCES** drawer lists every source with publisher, date, URL and what it supports.
 
-### v1.2 protocol (preserved)
+### v1.2 protocol (preserved, inside 02)
+
+Open it from 02 or go to `#sensors`. Identity (`#protocol`) is optional.
 
 1. **Handshake** — wallet and/or WebAuthn (optional; spectral if denied). A connected wallet queries its own RPC node for the balance.
 2. **Harvest** — per-tile grant: geo · orientation · shake/g · GPU · CPU/memory · Bluetooth availability · camera meta · mic energy · battery · network · device profile. Each tile explains what it reads, where it is processed, and when it stops.
@@ -32,7 +34,7 @@ Every factual statement carries a provenance label — **VERIFIED** (with a sour
 Camera and mic are used only to read device metadata / energy, then tracks are stopped. No frames or audio leave the device.
 
 iOS: geolocation and DeviceMotion/Orientation only prompt from a user tap. If geo is denied at OS level: Settings → Safari → Location → Allow, then tap the tile again.
-Safari withholds Battery API, `deviceMemory`, and Web Bluetooth. Those tiles report N/A instead of looking empty.
+Safari withholds Battery API, `deviceMemory`, and Web Bluetooth. Those tiles report UNAVAILABLE instead of looking empty. LIVE is shown only after a real sensor event, DENIED only when you or the browser refused.
 
 ## Privacy
 
