@@ -97,23 +97,29 @@ const state = {
   fingerprint: null
 };
 
+// v2: five chapters + approach. The v1.2 protocol (handshake → harvest → witness) lives inside 02 EXTRACTION.
 const PHASES = [
-  { id: 'approach', label: '00 APPROACH' },
-  { id: 'handshake', label: '01 HANDSHAKE' },
-  { id: 'permissions', label: '02 HARVEST' },
-  { id: 'portrait', label: '03 WITNESS' }
+  { id: 'approach', n: '00', label: 'APPROACH' },
+  { id: 'offer', n: '01', label: 'OFFER' },
+  { id: 'extraction', n: '02', label: 'EXTRACTION' },
+  { id: 'machine', n: '03', label: 'MACHINE' },
+  { id: 'loop', n: '04', label: 'FEEDBACK LOOP' },
+  { id: 'revelation', n: '05', label: 'REVELATION' }
 ];
+const LEGACY_PARENT = { handshake: 'extraction', permissions: 'extraction', portrait: 'extraction', art: 'revelation' };
 
 const syncHud = () => {
-  const names = { approach: 'APPROACH', handshake: 'HANDSHAKE', permissions: 'HARVEST', portrait: 'WITNESS' };
+  const names = { approach: 'APPROACH', handshake: 'HANDSHAKE', permissions: 'HARVEST', portrait: 'WITNESS', offer: 'THE OFFER',
+    extraction: 'THE EXTRACTION', machine: 'THE MACHINE', loop: 'THE FEEDBACK LOOP', revelation: 'THE REVELATION', art: 'ARTWORK' };
   const el = document.getElementById('hud-phase');
   if (el) el.textContent = names[state.stage] || state.stage;
   const rail = document.getElementById('phase-rail');
   if (!rail) return;
-  const idx = PHASES.findIndex(p => p.id === state.stage);
+  const cur = LEGACY_PARENT[state.stage] || state.stage;
+  const idx = PHASES.findIndex(p => p.id === cur);
   rail.innerHTML = PHASES.map((p, i) => {
     const cls = i === idx ? 'on' : i < idx ? 'done' : '';
-    return `<div class="phase-pip ${cls}">${p.label}</div>`;
+    return `<button type="button" class="phase-pip ${cls}" data-go="${p.id}" ${i === idx ? 'aria-current="step"' : ''} aria-label="${p.n} ${p.label}"><span class="pip-n">${p.n}</span><span class="pip-l"> ${p.label}</span></button>`;
   }).join('');
 };
 

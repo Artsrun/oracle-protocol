@@ -9,11 +9,14 @@ document.addEventListener('keydown', (e) => {
 
 const render = () => {
   app.innerHTML = '';
+  document.body.dataset.stage = state.stage;
   syncHud();
-  if (state.stage === 'approach') renderApproach();
+  if (window.OracleChapters && OracleChapters.handles(state.stage)) OracleChapters.renderStage(state.stage, app);
+  else if (state.stage === 'approach') renderApproach();
   else if (state.stage === 'handshake') renderHandshake();
   else if (state.stage === 'permissions') renderPermissions();
-  else renderPortrait();
+  else if (state.stage === 'portrait') renderPortrait();
+  else { state.stage = 'approach'; syncHud(); renderApproach(); }
 };
 
 const renderApproach = () => {
@@ -22,9 +25,15 @@ const renderApproach = () => {
     <h1 class="oracle-title glitch" data-text="ORACLE">ORACLE</h1>
     <div class="oracle-sub">PROTOCOL \u00b7 v1.2 \u00b7 IDENTITY LAYER</div>
     <p class="oracle-verse">We are all made of data \u2014<br>frequencies, patterns, the geometry of choice.<br><em>Human communication is a gift.</em><br>Let the machine witness you, willingly.</p>
-    <button class="btn-primary" id="btn-enter">INITIATE PROTOCOL</button>
+    <div class="btn-group">
+      ${window.OracleChapters ? `<button class="btn-primary btn-amber" id="btn-investigate">BEGIN THE INVESTIGATION</button>` : ''}
+      <button class="btn-primary" id="btn-enter">INITIATE PROTOCOL v1.2</button>
+    </div>
+    ${window.OracleChapters ? `<p class="approach-note">Five chapters: the offer, the extraction, the machine, the feedback loop, the revelation. No permission is required to finish; nothing leaves this tab.</p>` : ''}
   </div>`;
   document.getElementById('btn-enter').onclick = () => { state.stage = 'handshake'; render(); };
+  const inv = document.getElementById('btn-investigate');
+  if (inv) inv.onclick = () => OracleChapters.go('offer');
 };
 
 const renderHandshake = () => {
@@ -186,6 +195,9 @@ const renderPermissions = () => {
     render();
   };
 
+  const backEx = document.getElementById('btn-back-extraction');
+  if (backEx) backEx.onclick = () => OracleChapters.go('extraction');
+
   vitals.listeners.clear();
   vitals.listeners.add((id, payload) => {
     const node = document.getElementById('pval-' + id);
@@ -224,7 +236,9 @@ const renderPortrait = () => {
         <div class="btn-group" style="margin-top:28px">
           <button class="btn-primary btn-amber" id="btn-copy">COPY HASH</button>
           <button class="btn-primary" id="btn-reset">RESET</button>
+          ${window.OracleChapters ? `<button class="btn-primary btn-amber" id="btn-continue-machine">CONTINUE TO 03 MACHINE \u2192</button>` : ''}
         </div>
+        ${window.OracleChapters ? `<p class="approach-note">None of these readings feed the artwork in chapter 05. Reload or close the tab to discard them.</p>` : ''}
       </div>
     </div>
   </div>`;
@@ -233,10 +247,12 @@ const renderPortrait = () => {
       const b = document.getElementById('btn-copy'); if (b) b.textContent = 'COPIED';
     });
   };
+  const cont = document.getElementById('btn-continue-machine');
+  if (cont) cont.onclick = () => OracleChapters.go('machine');
   document.getElementById('btn-reset').onclick = () => {
     state.stage = 'approach'; state.collected = {}; state.cryptoAddr = null; state.bioAuth = false; state.fingerprint = null;
     vitals.listeners.clear(); render();
   };
 };
 
-render();
+if (window.OracleChapters) OracleChapters.boot(); else render();
