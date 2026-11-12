@@ -4,5 +4,5 @@
   "type": "module",
   "description": "End-to-end QA harness. Not part of the deployed site.",
   "devDependencies": { "axe-core": "^4.14.0", "playwright-core": "^1.65.0", "pngjs": "^7.0.0" },
-  "scripts": { "qa": "node qa.mjs", "contrast": "node contrast.mjs" }
+  "scripts": { "qa": "node qa.mjs", "qa:dark": "COLOR_SCHEME=dark QA_DIR=/workspace/oracle-qa/scheme-dark node qa.mjs", "qa:light": "COLOR_SCHEME=light QA_DIR=/workspace/oracle-qa/scheme-light node qa.mjs", "contrast": "node contrast.mjs", "theme": "node theme.mjs" }
 }

@@ -10,6 +10,7 @@ const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 
 const BASE = (process.env.BASE || 'http://127.0.0.1:8765/oracle-protocol/');
 const QA = (process.env.QA_DIR || '/workspace/oracle-qa');
+const SCHEME = process.env.COLOR_SCHEME === 'light' ? 'light' : 'dark'; // emulated prefers-color-scheme for every context
 const R = { started: new Date().toISOString(), checks: [], requests: [], consoleErrors: [], exports: {}, axe: {} };
 const FIXED = 's=ORACLE-7K3F-Q9ZD&o=21&f=77&d=80&c=40&p=70&y=60&x=65&i=55&e=75&r=60&t=50&k=60&a=70&n=4';
 const FAKE_GEO = { latitude: 51.50135, longitude: -0.14189 }; // fake coordinates used only to detect leaks
@@ -51,7 +52,7 @@ async function exportFmt(page, fmt, dir) {
 
 // ── 1. v1.2 regression, desktop, permissions DENIED (none granted) ─────────
 {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true });
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 800 }, acceptDownloads: true });
   const page = await ctx.newPage(); instrument(page, 'regression-denied');
   await page.goto(BASE); await settle(page, 700);
   check('approach renders v1.2 entry + new investigation entry', await page.isVisible('#btn-enter') && await page.isVisible('#btn-investigate'));
@@ -85,7 +86,7 @@ async function exportFmt(page, fmt, dir) {
 
 // ── 2. v1.2 grant path (geolocation granted with FAKE coords) ──────────────
 {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, permissions: ['geolocation'], geolocation: FAKE_GEO });
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 800 }, permissions: ['geolocation'], geolocation: FAKE_GEO });
   const page = await ctx.newPage(); instrument(page, 'regression-granted');
   await page.goto(BASE + '#protocol'); await settle(page, 600);
   check('#protocol deep link opens handshake', await page.isVisible('#btn-crypto'));
@@ -103,7 +104,7 @@ async function exportFmt(page, fmt, dir) {
 // ── 3. full five-chapter journey, desktop, zero permissions ───────────────
 let seed1, id1, params1;
 {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true });
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 800 }, acceptDownloads: true });
   const page = await ctx.newPage(); instrument(page, 'journey-desktop');
   await page.goto(BASE); await settle(page, 600);
   await page.keyboard.press('Tab');
@@ -204,9 +205,9 @@ let seed1, id1, params1;
 
 // ── 4. determinism: fresh context, open the shared link, export again ─────
 {
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, acceptDownloads: true, deviceScaleFactor: 2 });
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1440, height: 900 }, acceptDownloads: true, deviceScaleFactor: 2 });
   const page = await ctx.newPage(); instrument(page, 'determinism');
-  await page.goto(BASE + '#art?' + Art.encode(params1) + '&fmt=portrait'); await settle(page, 900);
+  await page.goto(BASE + '#art?' + Art.encode(params1) + '&fmt=portrait&pal=observatory&th=' + SCHEME + '&ty=instrument'); await settle(page, 900); // as produced by COPY LINK
   await page.screenshot({ path: `${QA}/shots/desktop/07-shared-link-clean-view.png` });
   await page.click('#ac-back'); await settle(page, 800);
   const id2 = (await page.textContent('#seed-line')).match(/C-[0-9A-F]{10}/)[0];
@@ -214,6 +215,10 @@ let seed1, id1, params1;
   for (const fmt of ['portrait', 'story', 'square', 'hires']) R.exports['run2-' + fmt] = await exportFmt(page, fmt, `${QA}/exports/run2`);
   const same = ['portrait', 'story', 'square', 'hires'].map(f => [f, R.exports['run1-' + f].sha256 === R.exports['run2-' + f].sha256]);
   check('same seed + params → byte-identical PNGs across contexts (DPR 1 vs 2, different viewport)', same.every(s => s[1]), Object.fromEntries(same));
+  // legacy link (pre-theming, no look params) → rendered with the legacy look so old links reproduce exactly
+  await page.goto(BASE + '#art?' + Art.encode(params1) + '&fmt=portrait'); await settle(page, 900);
+  const legacyLook = await page.evaluate(() => OracleExport.lookNow());
+  check('legacy link without look params renders with the legacy look (observatory · night · signal)', legacyLook.pal === 'observatory' && legacyLook.th === 'dark' && legacyLook.ty === 'signal', legacyLook);
   // fixed reference composition (stable across QA runs)
   await page.goto(BASE + '#revelation?' + FIXED); await settle(page, 900);
   for (const fmt of ['portrait', 'story', 'square', 'hires']) R.exports['fixed-desktop-' + fmt] = await exportFmt(page, fmt, `${QA}/exports/fixed`);
@@ -226,7 +231,7 @@ let seed1, id1, params1;
 
 // ── 5. mobile viewport (390×844, touch, DPR 3), zero permissions ──────────
 {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, acceptDownloads: true,
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, acceptDownloads: true,
     userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0 Mobile Safari/537.36' });
   const page = await ctx.newPage(); instrument(page, 'mobile');
   await page.goto(BASE); await settle(page, 700);
@@ -260,7 +265,7 @@ let seed1, id1, params1;
 
 // ── 6. reduced motion ─────────────────────────────────────────────────────
 {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
   const page = await ctx.newPage(); instrument(page, 'reduced-motion');
   await page.goto(BASE + '#machine'); await settle(page, 600);
   const raf1 = await page.evaluate(() => cosmosRaf);
@@ -269,16 +274,51 @@ let seed1, id1, params1;
   check('reduced motion: starfield loop not running (static frame)', raf1 === 0 && raf2 === 0, { raf1, raf2 });
   check('reduced motion: PLAY THE LOOP disabled', await page.$eval('#m-play', b => b.disabled));
   await page.goto(BASE + '#revelation'); await settle(page, 400);
-  const drawn = await page.$eval('#art-canvas', c => { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let lit = 0; for (let i = 0; i < d.length; i += 4 * 97) if (d[i] + d[i + 1] + d[i + 2] > 60) lit++; return lit; });
+  const drawn = await page.$eval('#art-canvas', c => { const L = OracleExport.lookNow(), bg = OracleArt.PALETTES[L.pal + '-' + L.th].bg, v = parseInt(bg.slice(1), 16), B = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let lit = 0; for (let i = 0; i < d.length; i += 4 * 97) if (Math.abs(d[i] - B[0]) + Math.abs(d[i + 1] - B[1]) + Math.abs(d[i + 2] - B[2]) > 60) lit++; return lit; });
   check('reduced motion: artwork drawn immediately (no draw-in)', drawn > 50, { litSamples: drawn });
   await page.screenshot({ path: `${QA}/shots/reduced/05-revelation-reduced.png` });
   await ctx.close();
-  const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const ctx2 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 800 } });
   const p2 = await ctx2.newPage(); instrument(p2, 'motion-on');
   await p2.goto(BASE); await settle(p2, 400);
   const a = await p2.evaluate(() => cosmosRaf); await settle(p2, 300); const b = await p2.evaluate(() => cosmosRaf);
   check('control: without reduced motion the starfield animates', b > a, { a, b });
   await ctx2.close();
+}
+
+// ── theme: auto follows prefers-color-scheme, manual override persists, artwork repaints with same composition ──
+{
+  const other = SCHEME === 'dark' ? 'light' : 'dark';
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage(); instrument(page, 'theme');
+  const th = () => page.evaluate(() => ({ t: document.documentElement.dataset.theme, pref: document.documentElement.dataset.themePref, ls: localStorage.getItem('oracle.theme'), sel: document.getElementById('theme-select')?.value, pal: document.documentElement.dataset.palette, type: document.documentElement.dataset.type }));
+  await page.goto(BASE + '#offer'); await settle(page, 400);
+  let t = await th();
+  check(`theme: auto mode follows emulated prefers-color-scheme (${SCHEME})`, t.t === SCHEME && t.pref === 'auto' && t.sel === 'auto' && t.ls === null, t);
+  check('theme: default look is observatory palette + instrument type', t.pal === 'observatory' && t.type === 'instrument', t);
+  const name = await page.$eval('#theme-select', el => ({ label: el.labels[0]?.textContent, opts: [...el.options].map(o => o.textContent) }));
+  check('theme: switch is a labelled native <select> (Auto/Night/Day)', name.label === 'Colour theme' && name.opts.length === 3, name);
+  await page.emulateMedia({ colorScheme: other }); await settle(page, 200);
+  t = await th(); check('theme: auto mode reacts live when the device scheme changes', t.t === other, t);
+  await page.emulateMedia({ colorScheme: SCHEME }); await settle(page, 200);
+  await page.selectOption('#theme-select', other); await settle(page, 200);
+  t = await th(); check('theme: manual override applies and is stored in localStorage', t.t === other && t.ls === other, t);
+  await page.reload(); await settle(page, 400);
+  t = await th(); check('theme: manual override persists across reload (device scheme unchanged)', t.t === other && t.sel === other, t);
+  await page.focus('#theme-select'); await page.keyboard.press('ArrowUp'); await settle(page, 200);
+  t = await th(); check('theme: keyboard can change the switch', t.sel !== other, t);
+  await page.selectOption('#theme-select', 'auto'); await settle(page, 200);
+  t = await th(); check('theme: back to auto clears storage and follows device again', t.t === SCHEME && t.ls === null, t);
+  await page.goto(BASE + '?palette=nope&type=nope#offer'); await settle(page, 300);
+  t = await th(); check('theme: unknown ?palette/?type fall back to defaults', t.pal === 'observatory' && t.type === 'instrument', t);
+  await page.goto(BASE + '#revelation?' + FIXED + '&fmt=portrait'); await settle(page, 1800);
+  const before = await page.evaluate(() => ({ id: document.querySelector('#seed-line small').textContent, px: [...document.getElementById('art-canvas').getContext('2d').getImageData(4, 4, 1, 1).data].slice(0, 3) }));
+  await page.selectOption('#theme-select', other); await settle(page, 1800);
+  const after = await page.evaluate(() => ({ id: document.querySelector('#seed-line small').textContent, px: [...document.getElementById('art-canvas').getContext('2d').getImageData(4, 4, 1, 1).data].slice(0, 3), look: OracleExport.lookNow() }));
+  check('theme: switching theme repaints the artwork, composition id unchanged', before.id === after.id && before.px.join() !== after.px.join() && after.look.th === other, { before, after });
+  await page.evaluate(() => localStorage.clear());
+  await ctx.close();
 }
 
 await browser.close();
