@@ -104,10 +104,10 @@
     { from: 'google', to: 'youtube', type: 'ownership', label: 'VERIFIED', note: 'YouTube, LLC is wholly owned by Google LLC; Alphabet is the ultimate parent.', src: ['ftc6b'] },
     { from: 'amazon', to: 'twitch', type: 'ownership', label: 'VERIFIED', note: 'Amazon.com, Inc. is the parent company of Twitch.', src: ['ftc6b'] },
     { from: 'bytedance', to: 'tiktok', type: 'ownership', label: 'VERIFIED', note: 'ByteDance Ltd. is the ultimate parent of TikTok LLC.', src: ['ftc6b'] },
-    { from: 'brokers', to: 'platforms', type: 'data purchase', label: 'VERIFIED', note: 'Most studied companies with an ad service bought data sets from data brokers and others. The report does not name which broker sold to which company.', src: ['ftc6b'] },
-    { from: 'platforms', to: 'third parties', type: 'sharing', label: 'UNKNOWN', note: 'No company in the FTC study provided a comprehensive list of third parties it shared personal information with.', src: ['ftc6b'] },
-    { from: 'kochava', to: 'customers', type: 'data sale', label: 'VERIFIED', note: 'FTC alleges Kochava sold location data feeds to customers, including via a cloud marketplace listing (allegation).', src: ['ftc-kochava'] },
-    { from: 'any two named companies above', to: '', type: 'data sharing', label: 'UNKNOWN', note: 'This map does not assert data-sharing between any two named companies; no source used here documents such a relationship.' }
+    { from: 'brokers', to: 'Studied platforms with ad services', type: 'data purchase', label: 'VERIFIED', note: 'Most studied companies with an ad service bought data sets from data brokers and others. The report does not name which broker sold to which company.', src: ['ftc6b'] },
+    { from: 'Studied platforms', to: 'Third parties', type: 'sharing', label: 'UNKNOWN', note: 'No company in the FTC study provided a comprehensive list of third parties it shared personal information with.', src: ['ftc6b'] },
+    { from: 'kochava', to: 'Customers', type: 'data sale', label: 'VERIFIED', note: 'FTC alleges Kochava sold location data feeds to customers, including via a cloud marketplace listing (allegation).', src: ['ftc-kochava'] },
+    { from: 'Any two companies named on this page', to: '', type: 'data sharing', label: 'UNKNOWN', note: 'This map does not assert data-sharing between any two named companies; no source used here documents such a relationship.' }
   ];
 
   const LAB_ITEMS = [
