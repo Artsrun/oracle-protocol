@@ -78,7 +78,7 @@ input[type=range]{width:100%;accent-color:var(--cyan);min-height:28px;background
 .cat-list{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 16px;padding:0;list-style:none}
 .cat-btn{font:inherit;font-size:12.5px;padding:9px 12px;min-height:44px;background:transparent;color:var(--ink);border:1px solid rgba(0,229,255,.35);cursor:pointer}
 .cat-btn[aria-selected=true]{background:var(--cyan);color:var(--void);border-color:var(--cyan)}
-.cat-btn.disclosed::after{content:' \u25b2';color:var(--amber)}
+.cat-btn.disclosed::after{content:' \25B2';color:var(--amber)}
 .cat-btn[aria-selected=true].disclosed::after{color:var(--void)}
 .cat-detail{display:grid;gap:14px;grid-template-columns:1fr}
 @media(min-width:760px){.cat-detail{grid-template-columns:repeat(3,1fr)}}
