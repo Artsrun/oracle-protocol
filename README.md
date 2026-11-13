@@ -14,8 +14,8 @@ https://artsrun.github.io/oracle-protocol/
 | | Chapter | What you do |
 |---|---|---|
 | 00 | **Approach** | One button: BEGIN. |
-| 01 | **The Offer** | Six everyday exchanges (social, free services, AI assistants, smart devices, identity checks, entertainment) with a documented example and a general pattern each. **Exchange simulator** with six dials. |
-| 02 | **The Extraction** | Observed vs inferred vs unknown. **Digital footprint explorer** (8 categories). Optional **live sensor demo**, the v1.2 protocol (`#sensors`). |
+| 01 | **The Offer** | A checklist of six everyday trades (social, free services, AI assistants, smart devices, identity checks, entertainment); tick the ones you make ("3 of 6"). Evidence per row, collapsed. The six art dials are derived from the ticks (`OracleContent.deriveEx`). The **Exchange simulator** is hidden for now; `?simulator=1` brings it back. |
+| 02 | **The Extraction** | Observed / inferred / unknown as a short vertical list. **Footprint checklist** (8 categories, details in an inline accordion). Optional **live sensor demo** (collapsed), the v1.2 protocol (`#sensors`). |
 | 03 | **The Machine** | Transparent systems map (activity → collection → combination → inference → recommendation → attention → activity) and an ecosystem map of documented roles and typed relations. |
 | 04 | **The Feedback Loop** | **Attention laboratory**: a toy ranker over ten fictional posts; edit what it rewards and watch attention concentrate. |
 | 05 | **The Revelation** | Your abstract choices become a deterministic artwork. Export 1080×1350 / 1080×1920 / 1080×1080 / 2160×2700 PNG, share, copy caption, restore by seed or link. |
