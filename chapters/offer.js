@@ -1,4 +1,4 @@
-/* 01 THE OFFER — voluntary exchange + exchange simulator. */
+/* 01 THE OFFER — everyday trades as one checklist. Exchange simulator hidden behind ?simulator=1. */
 (() => {
   const E = OracleEvidence, C = OracleContent, U = OracleChapters.ui;
 
@@ -24,24 +24,9 @@
     }).join('');
   }
 
-  OracleChapters.register('offer', (app) => {
-    const v = state.v2;
-    app.innerHTML = `<article class="chapter ch-offer">
-      ${U.chapterHead('offer', 'What we exchange',
-        'Free feeds, assistants and speakers are exchanges. Mark yours \u2014 they shape your artwork in 05.')}
-      <section class="offer-grid" aria-label="Everyday exchanges">
-        ${C.OFFERS.map((o, i) => {
-          const on = (v.offers >> i) & 1;
-          return `<div class="offer-card ${on ? 'on' : ''}">
-            <h2 class="offer-title">${o.title}</h2>
-            <div class="trade"><div><span>YOU GIVE</span>${o.give}</div><div><span>YOU GET</span>${o.get}</div></div>
-            ${U.more('Evidence', E.claim(o.documented.label, o.documented.text, o.documented.src) + E.claim(o.pattern.label, o.pattern.text), null, [o.documented.label, o.pattern.label])}
-            <button type="button" class="toggle" data-offer="${i}" aria-pressed="${on ? 'true' : 'false'}">${on ? '\u25b2 I make this exchange' : '\u25b3 I make this exchange'}</button>
-          </div>`;
-        }).join('')}
-      </section>
-
-      <section class="panel sim" aria-labelledby="exsim-title">
+  // v3: a single checklist. The Exchange simulator stays in the code but only renders with ?simulator=1.
+  function simulatorPanel(v) {
+    return `<section class="panel sim" aria-labelledby="exsim-title">
         <h2 id="exsim-title" class="panel-title">Exchange simulator</h2>
         ${U.simNote('Illustrative dials \u2014 not a measurement of you or any service.')}
         <div class="sim-grid">
@@ -52,19 +37,33 @@
             ${U.more('Formulas', C.EXCHANGE_MODEL.map(m => `<p class="claim"><b>${m.name}</b> = <code>${m.formula}</code></p>`).join('') + '<p class="claim">Weights are design assumptions.</p>')}
           </div>
         </div>
-      </section>
+      </section>`;
+  }
+
+  OracleChapters.register('offer', (app) => {
+    const v = state.v2, sim = OracleChapters.simulatorOn;
+    app.innerHTML = `<article class="chapter ch-offer">
+      ${U.chapterHead('offer', 'What do you trade?',
+        'Free apps cost data and attention. Tick the trades you make \u2014 each one shapes your artwork.')}
+      ${U.tally('of-count', 'trades')}
+      <ul class="rows" aria-label="Everyday trades">
+        ${C.OFFERS.map((o, i) => U.row({
+          id: 'offer-' + o.id, data: 'data-offer', i, on: (v.offers >> i) & 1,
+          title: o.title, checkLabel: 'I make this trade',
+          sub: o.line,
+          body: E.claim(o.documented.label, o.documented.text, o.documented.src) + E.claim(o.pattern.label, o.pattern.text)
+        })).join('')}
+      </ul>
+      ${sim ? simulatorPanel(v) : ''}
       ${U.chapterNav('extraction')}
     </article>`;
 
-    app.querySelectorAll('[data-offer]').forEach(b => b.onclick = () => {
-      const i = +b.dataset.offer;
-      v.offers ^= (1 << i);
-      const on = (v.offers >> i) & 1;
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-      b.textContent = (on ? '\u25b2' : '\u25b3') + ' I make this exchange';
-      b.closest('.offer-card').classList.toggle('on', !!on);
-    });
-    app.querySelectorAll('.sliders input[type=range]').forEach(inp => inp.oninput = () => {
+    U.bindRows(app, 'data-offer', (i, on) => {
+      if (on) v.offers |= (1 << i); else v.offers &= ~(1 << i);
+      // Without the simulator the six art dials follow the ticked trades (deterministic, see OracleContent.deriveEx).
+      if (!sim) v.ex = C.deriveEx(v.offers);
+    }, U.setTally('of-count'));
+    if (sim) app.querySelectorAll('.sliders input[type=range]').forEach(inp => inp.oninput = () => {
       v.ex[inp.dataset.key] = +inp.value;
       document.getElementById('out-' + inp.dataset.key).textContent = inp.value;
       document.getElementById('hex-wrap').innerHTML = hexSvg(v.ex);

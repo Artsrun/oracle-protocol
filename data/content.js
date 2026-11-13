@@ -2,22 +2,22 @@
  * label: VERIFIED | INFERRED | SIMULATED | UNKNOWN. Keep company-specific statements to what the source says. */
 (function (root) {
   const OFFERS = [
-    { id: 'social', title: 'Social platforms', give: 'identity, relationships, activity', get: 'connection, visibility, community',
+    { id: 'social', line: 'Give identity and activity \u00b7 get connection', title: 'Social platforms', give: 'identity, relationships, activity', get: 'connection, visibility, community',
       documented: { label: 'VERIFIED', text: 'The FTC\u2019s 2024 study of nine social and video services found they collected data about users <em>and non-users</em>, including data inferred or bought from data brokers.', src: ['ftc6b'] },
       pattern: { label: 'INFERRED', text: 'Your profile also grows from what others post and do around you.' } },
-    { id: 'free', title: 'Free services', give: 'searches, views, purchases, usage', get: 'search, maps, video, mail at no price',
+    { id: 'free', line: 'Give searches and clicks \u00b7 get free tools', title: 'Free services', give: 'searches, views, purchases, usage', get: 'search, maps, video, mail at no price',
       documented: { label: 'VERIFIED', text: 'Google\u2019s privacy policy lists searches, videos watched, purchases and people you communicate with among the activity it collects; it uses activity for recommendations and may show personalized ads.', src: ['google-pp'] },
       pattern: { label: 'INFERRED', text: 'You pay in attention and data; the provider sets the rate.' } },
-    { id: 'ai', title: 'AI assistants', give: 'prompts, files, context, voice', get: 'answers, drafting, analysis',
+    { id: 'ai', line: 'Give prompts and files \u00b7 get answers', title: 'AI assistants', give: 'prompts, files, context, voice', get: 'answers, drafting, analysis',
       documented: { label: 'VERIFIED', text: 'OpenAI\u2019s US privacy policy says prompts, files, images and audio you provide may be used to train its models, with an opt-out.', src: ['openai-pp'] },
       pattern: { label: 'INFERRED', text: 'In conversation, people disclose goals and worries in their own words.' } },
-    { id: 'devices', title: 'Smart devices', give: 'voice, location, surroundings', get: 'hands-free help, automation',
+    { id: 'devices', line: 'Give voice and location \u00b7 get hands-free help', title: 'Smart devices', give: 'voice, location, surroundings', get: 'hands-free help, automation',
       documented: { label: 'VERIFIED', text: 'In 2023 the DOJ, for the FTC, <em>alleged</em> Alexa kept voice recordings indefinitely by default and Amazon used them to improve Alexa (allegations).', src: ['ftc-alexa'] },
       pattern: { label: 'INFERRED', text: 'A device at home observes everyone near it, not just the account holder.' } },
-    { id: 'identity', title: 'Identity checks', give: 'ID documents, age, verified phone', get: 'continued account access',
+    { id: 'identity', line: 'Give ID and age \u00b7 keep account access', title: 'Identity checks', give: 'ID documents, age, verified phone', get: 'continued account access',
       documented: { label: 'VERIFIED', text: 'OpenAI\u2019s privacy policy describes collecting information \u201cto establish your identity or age\u201d and estimating age.', src: ['openai-pp'] },
       pattern: { label: 'INFERRED', text: 'Verification is becoming a condition of access; refusing usually means losing the service.' } },
-    { id: 'entertainment', title: 'Entertainment', give: 'attention, watch time, reactions', get: 'an endless, personalized feed',
+    { id: 'entertainment', line: 'Give attention \u00b7 get an endless feed', title: 'Entertainment', give: 'attention, watch time, reactions', get: 'an endless, personalized feed',
       documented: { label: 'VERIFIED', text: 'YouTube says recommendations drive more viewing than subscriptions or search.', src: ['yt-blog'] },
       pattern: { label: 'INFERRED', text: 'When the feed picks what plays next, attention becomes the product.' } }
   ];
@@ -30,6 +30,28 @@
     { id: 'x', name: 'Exposure', hint: 'how many parties could see it' },
     { id: 'i', name: 'Influence', hint: 'how much the service steers what you see' }
   ];
+
+  // v3: with the simulator hidden, the six exchange dials are derived from the exchanges the visitor marks.
+  // Per-offer weights over [d, c, p, y, x, i] are design assumptions (SIMULATED), not measurements.
+  const OFFER_WEIGHTS = {
+    social:        [10, 4, 8, 8, 12, 8],
+    free:          [8, 12, 8, 6, 6, 6],
+    ai:            [12, 10, 8, 6, 4, 4],
+    devices:       [10, 10, 4, 6, 8, 2],
+    identity:      [12, 2, 2, 8, 6, 2],
+    entertainment: [4, 6, 12, 10, 2, 12]
+  };
+  const EX_BASE = 30;
+  // Pure + deterministic: same offers bitmask → same dials.
+  function deriveEx(offers) {
+    const out = {};
+    EXCHANGE_DIMS.forEach((d, k) => {
+      let v = EX_BASE;
+      OFFERS.forEach((o, i) => { if ((offers >> i) & 1) v += OFFER_WEIGHTS[o.id][k]; });
+      out[d.id] = Math.max(0, Math.min(100, v));
+    });
+    return out;
+  }
 
   // Illustrative model. Weights are design assumptions, shown verbatim in the UI.
   const EXCHANGE_MODEL = [
@@ -124,6 +146,6 @@
     { id: 'J', title: 'Fear-framed health claim', emo: 0.9, rel: 0.5, rec: 0.6 }
   ];
 
-  root.OracleContent = { OFFERS, EXCHANGE_DIMS, EXCHANGE_MODEL, FOOTPRINT, MACHINE, ROLES, ENTITIES, RELATIONS, LAB_ITEMS };
+  root.OracleContent = { OFFERS, OFFER_WEIGHTS, deriveEx, EXCHANGE_DIMS, EXCHANGE_MODEL, FOOTPRINT, MACHINE, ROLES, ENTITIES, RELATIONS, LAB_ITEMS };
   if (typeof module !== 'undefined') module.exports = root.OracleContent;
 })(typeof window !== 'undefined' ? window : globalThis);

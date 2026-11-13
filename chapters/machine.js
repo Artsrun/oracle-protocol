@@ -59,7 +59,7 @@
         ${U.more(`Documented relations (${C.RELATIONS.length})`, `<div class="seg" role="group" aria-label="Relation type">${types.map(t => `<button type="button" data-filter="${t}" aria-pressed="${t === filter}">${t}</button>`).join('')}</div>
         <table class="rel-table"><thead><tr><th>Relation</th><th>Type</th><th>Label</th><th>Evidence</th></tr></thead><tbody id="rel-body">${relRows()}</tbody></table>`, 'm-rel', C.RELATIONS.map(r => r.label))}
       </section>
-      ${U.chapterNav('loop')}
+      ${U.chapterNav('loop', true)}
     </article>`;
 
     const setActive = (i) => {
