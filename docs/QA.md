@@ -344,3 +344,30 @@ desktop CPU under mobile *emulation*. Story export incl. PNG encoding ≈0.8 s. 
    the DSA text via digitalacts.eu (EUR-Lex returned an empty 202). Court complaints are presented as allegations.
 7. The phase rail is navigation, not a progress gate — visitors can jump to any chapter (intentional: nothing is
    gated on permissions), so "journey completion" is not tracked.
+
+## v3 UX pass (branch `oracle-v3-ux`, 2026-11-13) — awaiting design approval
+
+Feedback addressed: floating chapter nav / header over content, stray frame lines, animation that never
+stopped after granting a sensor, too much on 01 Offer, horizontal controls on 02 Extraction.
+
+| Bug | Cause | Fix |
+|---|---|---|
+| Chapter nav floats mid-screen over cards and buttons | `.phase-rail` was `position:fixed` at the bottom with a translucent background; full-page captures paint it mid-page | Nav moved into one opaque `<header class="appbar">` in normal page flow at the top |
+| Header drawn mid-page / over the chapter header | `.hud-bar` was `position:fixed` and transparent; content scrolled underneath it | Same app bar; `html,body{overflow-x:clip}` (`hidden` turned `<body>` into a scroll container) |
+| Stray lines and frame edges across the page | Decorative `position:fixed` `.hud-frame` border and corner marks | Removed (`display:none`) |
+| Animation never stops after a grant | Every sensor re-render replayed `grantPulse` on all granted tiles; the LIVE badge pulsed `infinite`; the starfield rAF ran forever | Grant animation only on the tile that just changed (`.just`, once); LIVE pulses twice then rests; starfield plays 6 s on Approach only, stops on entering a chapter or when the tab is hidden; no `infinite` CSS animation left except the loading bar while it is shown |
+
+**Results** (both emulated colour schemes): `qa.mjs` **85/85** dark, **85/85** light (new checks: checklist
+structure, tally, derived dials, keyboard, accordion, collapsed evidence and demo, `?simulator=1`, in-flow chrome
+at 1024/1280/1440/390 with nothing fixed or sticky over content, motion settles, nothing left running after a grant).
+Unit tests **14/14** (`tests/content.test.cjs` adds `deriveEx`: pure, in range for all 64 combinations, monotonic,
+changes the composition). axe-core WCAG 2.1 A/AA **0 violations on 15 screens** per scheme. Contrast: **0 failing of
+4,446 text elements**, minimum **5.12** across all palettes × modes (default Observatory **5.28**), now including
+the app bar and expanded rows. Fixed-reference exports (portrait, story, square, hi-res, mobile story) are
+**byte-identical to v2** in both schemes, so existing shared links render the same.
+
+Screenshots: `/workspace/oracle-qa/v3/{before,after}/` (`offer|extraction-{1024,1280,1440,390}-{dark,light}[-full|-mid].png`,
+`after/*-interact.png`), side-by-side `/workspace/oracle-qa/v3/compare-before-after.png` (also `compare-1024.png`,
+`compare-390.png`). Scripts: `qa/v3-shots.mjs`, `qa/v3-interact.mjs`.
+
+Not tested: real devices, Safari, Firefox, Brave itself (Chromium headless only).

@@ -211,3 +211,70 @@ details.more>summary .prov{text-transform:none}
 /* v2.2: sensor tiles are native buttons */
 button.perm-item{font:inherit;color:inherit;width:100%;display:block}
 button.perm-item>span{display:block}
+
+/* ── v3: app bar (in normal flow at the top of the page, opaque) replaces the floating HUD + bottom pill rail ──
+ * Nothing chrome-like is fixed or sticky over content any more, so it can't overlap cards, and full-page
+ * screenshots can't paint it mid-page. Decorative frame lines are gone. Forward nav = the Next button. */
+.hud-frame{display:none}
+.appbar{position:relative;z-index:20;display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;
+  padding:calc(var(--safe-t) + 8px) clamp(12px,3vw,24px) 8px;background:var(--bg);border-bottom:1px solid var(--line)}
+.appbar .hud-bar{display:contents;position:static}
+.hud-brand{order:0;display:flex;align-items:center;white-space:nowrap;font-size:var(--fs-micro);letter-spacing:.22em;color:var(--ink-2);text-transform:uppercase}
+.hud-brand b,.hud-sep{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.appbar .phase-rail{order:1;position:static;flex:1 1 auto;display:flex;justify-content:center;gap:2px;padding:0;pointer-events:auto;min-width:0}
+.appbar .theme-switch{order:2;margin-left:auto}
+.appbar .hud-sources{order:3}
+.appbar .phase-pip{background:transparent;border:1px solid transparent;backdrop-filter:none;min-height:32px;padding:4px 8px;font-size:var(--fs-micro);letter-spacing:.14em;color:var(--ink-2);box-shadow:none}
+.appbar .phase-pip:hover{color:var(--ink);border-color:var(--line)}
+.appbar .phase-pip.done{color:var(--ink-2);border-color:transparent}
+.appbar .phase-pip.on{color:var(--bg);background:var(--signal);border-color:var(--signal);box-shadow:none}
+.appbar .pip-l{display:none}
+.appbar .phase-pip.on .pip-l{display:inline}
+@media(min-width:1180px){.appbar .pip-l{display:inline}}
+@media(max-width:759px){
+  .appbar .phase-rail{order:4;flex-basis:100%;justify-content:space-between}
+  .appbar .phase-pip{flex:1 1 0;padding:4px 2px}
+  .appbar .phase-pip.on{flex:2.4 1 0}
+}
+#app{padding:28px 14px calc(var(--safe-b) + 40px)}
+body[data-stage=art] .appbar{display:none}
+body[data-stage=art] #app{padding-top:0}
+
+/* ── v3: list rows (settings / checklist pattern) shared by 01 Offer and 02 Extraction ── */
+.tally{display:flex;align-items:center;gap:12px;margin:0 0 10px;font-size:var(--fs-sm);color:var(--ink-2)}
+.tally b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.tally .meter{flex:1;max-width:220px;height:4px;background:color-mix(in srgb,var(--signal) 14%,transparent)}
+.tally .meter i{display:block;height:100%;width:0;background:var(--signal);transition:width .25s ease}
+.rows{list-style:none;margin:0;padding:0;border:1px solid var(--line);background:color-mix(in srgb,var(--bg-2) 88%,transparent)}
+.row+.row{border-top:1px solid var(--line)}
+.row-main{display:flex;align-items:center;gap:14px;padding:12px 8px 12px 16px;min-height:60px}
+.row-check{appearance:none;-webkit-appearance:none;flex:0 0 auto;width:22px;height:22px;margin:0;border:1.5px solid color-mix(in srgb,var(--ink) 55%,transparent);background:transparent;cursor:pointer;display:grid;place-content:center}
+.row-check::after{content:'';width:11px;height:6px;border:solid var(--bg);border-width:0 0 2px 2px;transform:rotate(-45deg) translate(1px,-1px);opacity:0}
+.row-check:checked{background:var(--signal);border-color:var(--signal)}
+.row-check:checked::after{opacity:1}
+.row-check:focus-visible,.row-exp:focus-visible{outline:2px solid var(--ink-hi);outline-offset:2px}
+.row-text{flex:1;min-width:0;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.row-title{font-family:var(--font-display);font-weight:600;font-size:var(--fs-body);color:var(--ink);line-height:1.3}
+.row-sub{font-family:var(--font-body);font-size:var(--fs-sm);color:var(--ink-2);line-height:1.45}
+.row.on .row-title{color:var(--signal)}
+.row-exp{flex:0 0 auto;width:44px;height:44px;display:grid;place-content:center;background:transparent;border:0;color:var(--ink-2);cursor:pointer}
+.row-exp:hover{color:var(--ink)}
+.row-exp svg{width:16px;height:16px;transition:transform .2s ease}
+.row-exp[aria-expanded=true] svg{transform:rotate(180deg)}
+.row-more{padding:0 16px 14px 52px}
+.row-more .claim{font-size:var(--fs-sm)}
+.kv{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0 0 8px}
+.kv dt{font-family:var(--font-mono);font-size:var(--fs-micro);letter-spacing:.16em;padding-top:3px}
+.kv dd{margin:0;font-family:var(--font-body);font-size:var(--fs-sm);line-height:1.5;color:var(--ink)}
+.list-hint{font-family:var(--font-body);font-size:var(--fs-sm);color:var(--ink-2);margin:0 0 10px}
+.ch-offer,.ch-extraction{max-width:720px}
+.ch-offer .ch-head,.ch-extraction .ch-head{max-width:none}
+.section-title{font-family:var(--font-display);font-weight:700;font-size:var(--fs-h3);color:var(--ink);margin:32px 0 8px}
+.kinds{display:flex;flex-direction:column;margin:0;border-left:2px solid var(--line);padding-left:14px;gap:10px}
+.kinds>div{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:baseline}
+.kinds dt{font-family:var(--font-mono);font-size:var(--fs-micro);letter-spacing:.18em}
+.kinds dd{margin:0;font-family:var(--font-body);font-size:var(--fs-body);color:var(--ink-2);line-height:1.5}
+.ch-offer .ch-nav,.ch-extraction .ch-nav{margin-top:28px}
+details.more.quiet{border-top:0;margin-top:6px}
+@media(max-width:480px){.row-main{padding-left:12px;gap:12px}.row-more{padding-left:46px;padding-right:12px}.kinds>div{grid-template-columns:1fr;gap:2px}}
+@media(prefers-reduced-motion:reduce){.row-exp svg,.tally .meter i{transition:none}}

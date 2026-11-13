@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#020408">
 <meta name="color-scheme" content="dark light">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>ORACLE PROTOCOL v2 — The Anatomy of Attention</title>
+<title>ORACLE PROTOCOL — The Anatomy of Attention</title>
 <meta name="description" content="An interactive, local-only investigation of the digital-self economy that ends in a reproducible generative artwork.">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data: blob:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
@@ -22,12 +22,12 @@
 <div class="scanlines"></div>
 <div class="noise"></div>
 <div class="vignette"></div>
-<div class="hud-frame"></div>
-<div class="hud-bar">
-  <span><span class="hud-dot" style="display:inline-block;vertical-align:middle;margin-right:8px"></span>ORACLE // <b id="hud-phase">APPROACH</b></span>
-  <span id="hud-clock">00:00:00</span>
-</div>
-<div class="phase-rail" id="phase-rail"></div>
+<header class="appbar">
+  <div class="hud-bar">
+    <span class="hud-brand"><span class="hud-dot" aria-hidden="true"></span>ORACLE <span class="hud-sep" aria-hidden="true">//</span> <b id="hud-phase">APPROACH</b></span>
+  </div>
+  <nav class="phase-rail" id="phase-rail" aria-label="Chapters"></nav>
+</header>
 <main id="app"></main>
 <script src="app-core.js"></script>
 <script src="app-vitals.js"></script>

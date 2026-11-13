@@ -81,7 +81,7 @@
           E.claim('VERIFIED', 'X\u2019s published For You pipeline uses explicit (likes, replies) and implicit (profile visits, clicks) signals.', ['x-algo']) +
           E.claim('INFERRED', 'When attention feeds ranking, early leads compound. How strongly any platform does this is not public.'), null, ['VERIFIED', 'INFERRED'])}
       </section>
-      ${U.chapterNav('revelation')}
+      ${U.chapterNav('revelation', true)}
     </article>`;
 
     const refresh = () => {

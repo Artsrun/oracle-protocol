@@ -14,6 +14,10 @@ window.OracleChapters = (() => {
     seed: null, format: 'portrait', title: true, fromUrl: false
   };
 
+  // v3: the Exchange simulator is hidden unless ?simulator=1. Without it the dials follow the marked exchanges.
+  const simulatorOn = /[?&]simulator=1\b/.test(location.search);
+  if (!simulatorOn && window.OracleContent && OracleContent.deriveEx) state.v2.ex = OracleContent.deriveEx(0);
+
   const ROUTES = ['offer', 'extraction', 'machine', 'loop', 'revelation'];
   const hashFor = (id) => id === 'approach' ? location.pathname + location.search : '#' + id;
 
@@ -119,9 +123,9 @@ window.OracleChapters = (() => {
       ${lead ? `<p class="ch-lead">${lead}</p>` : ''}
     </header>`;
   // Forward only: going back is the phase rail (one navigation pattern, not two).
-  const chapterNav = (next) => {
+  const chapterNav = (next, quiet) => { // quiet: the chapter already has its own primary action
     const N = PHASES.find(p => p.id === next);
-    return N ? `<nav class="ch-nav" aria-label="Next chapter"><button type="button" class="btn-primary" data-goto="${N.id}">Next \u00b7 ${N.n} ${N.label} \u2192</button></nav>` : '';
+    return N ? `<nav class="ch-nav" aria-label="Next chapter"><button type="button" class="btn-primary${quiet ? '' : ' btn-fill'}" data-goto="${N.id}">Next \u00b7 ${N.n} ${N.label} \u2192</button></nav>` : '';
   };
   const slider = (id, name, value, hint, extra) => `
     <div class="slider">
@@ -132,6 +136,40 @@ window.OracleChapters = (() => {
   const simNote = (text) => `<p class="sim-note">${E.badge('SIMULATED')} ${text || 'Illustrative model \u2014 not a measurement of you or any company\u2019s system.'}</p>`;
   // Progressive disclosure: detail lives in <details>; the summary shows the evidence labels inside.
   const more = (summary, body, id, labels) => `<details class="more"${id ? ` id="${id}"` : ''}><summary>${summary}${labels ? ' ' + [...new Set(labels)].map(l => E.badge(l)).join(' ') : ''}</summary><div class="more-body">${body}</div></details>`;
+
+  // v3: one list-row pattern (checkbox + title + one line + chevron disclosure), like a settings checklist.
+  const chevron = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+  const row = ({ id, data, i, on, title, sub, body, checkLabel }) => `
+    <li class="row ${on ? 'on' : ''}">
+      <div class="row-main">
+        <input type="checkbox" class="row-check" id="${id}" ${data}="${i}" ${on ? 'checked' : ''} aria-describedby="${id}-sub">
+        <label class="row-text" for="${id}"><span class="row-title">${title}</span><span class="vh"> \u2014 ${checkLabel}</span><span class="row-sub" id="${id}-sub">${sub}</span></label>
+        ${body ? `<button type="button" class="row-exp" aria-expanded="false" aria-controls="${id}-more" aria-label="Details: ${title.replace(/<[^>]+>/g, '')}">${chevron}</button>` : ''}
+      </div>
+      ${body ? `<div class="row-more" id="${id}-more" hidden>${body}</div>` : ''}
+    </li>`;
+  // Accordion: one row open at a time. onCheck(i, on) runs on every checkbox change.
+  function bindRows(root, data, onCheck, onCount) {
+    const boxes = [...root.querySelectorAll('[' + data + ']')];
+    const count = () => onCount && onCount(boxes.filter(b => b.checked).length, boxes.length);
+    boxes.forEach(b => b.addEventListener('change', () => {
+      b.closest('.row').classList.toggle('on', b.checked);
+      onCheck(+b.getAttribute(data), b.checked); count();
+    }));
+    root.querySelectorAll('.row-exp').forEach(btn => btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') !== 'true';
+      root.querySelectorAll('.row-exp[aria-expanded=true]').forEach(o => { if (o !== btn) { o.setAttribute('aria-expanded', 'false'); document.getElementById(o.getAttribute('aria-controls')).hidden = true; } });
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      document.getElementById(btn.getAttribute('aria-controls')).hidden = !open;
+    }));
+    count();
+  }
+  const tally = (id, unit) => `<div class="tally" aria-live="polite"><span><b id="${id}">0</b> of <span id="${id}-n">0</span> ${unit}</span><span class="meter" aria-hidden="true"><i id="${id}-bar"></i></span></div>`;
+  const setTally = (id) => (n, total) => {
+    const b = document.getElementById(id); if (!b) return;
+    b.textContent = n; document.getElementById(id + '-n').textContent = total;
+    document.getElementById(id + '-bar').style.width = (100 * n / total) + '%';
+  };
 
   // ── sources drawer ──────────────────────────────────────────────────────
   let lastFocus = null;
@@ -193,7 +231,7 @@ window.OracleChapters = (() => {
     register: (id, fn) => { registry[id] = fn; },
     handles: (stage) => !!registry[stage],
     renderStage: (stage, app) => registry[stage](app),
-    go, boot, openDrawer, closeDrawer, artParams, reduceMotion,
-    ui: { chapterHead, chapterNav, slider, simNote, more, esc }
+    go, boot, openDrawer, closeDrawer, artParams, reduceMotion, simulatorOn,
+    ui: { chapterHead, chapterNav, slider, simNote, more, esc, row, bindRows, tally, setTally }
   };
 })();
