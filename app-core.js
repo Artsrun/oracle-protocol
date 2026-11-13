@@ -12,7 +12,7 @@ const resize = () => {
   canvas.style.width = window.innerWidth + 'px';
   canvas.style.height = window.innerHeight + 'px';
   ctx.setTransform(d, 0, 0, d, 0, 0);
-  if (reduceMotionMq.matches) drawCosmosStatic();
+  if (!cosmosRaf) drawCosmosStatic();
 };
 window.addEventListener('resize', resize);
 window.addEventListener('pointermove', e => {
@@ -51,7 +51,7 @@ function readCosmosColours() {
   cosmosCol.star = cs.getPropertyValue('--signal').trim() || '#00e5ff';
 }
 readCosmosColours();
-if (window.OracleTheme) OracleTheme.onChange(() => { readCosmosColours(); if (reduceMotionMq.matches) drawCosmosStatic(); });
+if (window.OracleTheme) OracleTheme.onChange(() => { readCosmosColours(); if (!cosmosRaf) drawCosmosStatic(); });
 
 // Reduced motion: one static frame, no rAF loop.
 function drawCosmosStatic() {
@@ -64,8 +64,13 @@ function drawCosmosStatic() {
 }
 
 let cosmosRaf = 0;
+// v3: the starfield is ambience for the approach screen only. It plays for COSMOS_MS, then settles to one
+// static frame and never restarts on its own. Chapters always get the static frame. Reduced motion: static only.
+const COSMOS_MS = 6000;
+let cosmosUntil = 0;
 resize();
 const animCosmos = () => {
+  if (performance.now() > cosmosUntil || document.hidden) { settleCosmos(); return; }
   ctx.globalAlpha = 0.18;
   ctx.fillStyle = cosmosCol.bg;
   ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
@@ -83,19 +88,20 @@ const animCosmos = () => {
   ctx.globalAlpha = 1;
   cosmosRaf = requestAnimationFrame(animCosmos);
 };
+function settleCosmos() {
+  cancelAnimationFrame(cosmosRaf);
+  cosmosRaf = 0; cosmosUntil = 0;
+  drawCosmosStatic();
+}
 const startCosmos = () => {
   cancelAnimationFrame(cosmosRaf);
-  if (reduceMotionMq.matches) drawCosmosStatic(); else animCosmos();
+  if (reduceMotionMq.matches) { settleCosmos(); return; }
+  cosmosUntil = performance.now() + COSMOS_MS;
+  animCosmos();
 };
-reduceMotionMq.addEventListener?.('change', startCosmos);
+reduceMotionMq.addEventListener?.('change', () => { if (reduceMotionMq.matches) settleCosmos(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && cosmosRaf) settleCosmos(); });
 startCosmos();
-
-const tickClock = () => {
-  const el = document.getElementById('hud-clock');
-  if (el) el.textContent = new Date().toISOString().slice(11, 19) + 'Z';
-};
-setInterval(tickClock, 1000);
-tickClock();
 
 const state = {
   stage: 'approach',
@@ -120,6 +126,7 @@ const PHASES = [
 const LEGACY_PARENT = { handshake: 'extraction', permissions: 'extraction', portrait: 'extraction', art: 'revelation' };
 
 const syncHud = () => {
+  if (state.stage !== 'approach' && cosmosRaf) settleCosmos(); // chapters: static background, no motion
   // One naming scheme everywhere: "NN LABEL" (HUD, rail, chapter kicker). The v1.2 demo is part of 02.
   const P = PHASES.find(p => p.id === (LEGACY_PARENT[state.stage] || state.stage));
   const el = document.getElementById('hud-phase');

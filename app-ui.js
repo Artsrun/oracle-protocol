@@ -137,7 +137,9 @@ const permState = g => !g ? 'tap' : g.error ? (!g.unavailable && isDenied(g) ? '
 const permClass = g => ({ tap: '', denied: 'denied', unavailable: 'unavailable', live: 'granted live', ok: 'granted' })[permState(g)];
 const permBadge = g => ({ tap: 'TAP', denied: 'DENIED', unavailable: 'UNAVAILABLE', live: 'LIVE', ok: 'OK' })[permState(g)];
 
+let permJust = null; // v3: only the tile that just changed plays its settle animation (once); re-renders don't replay it
 const renderPermissions = () => {
+  const just = permJust; permJust = null;
   app.innerHTML = `<div class="stage-permissions">
     <div class="stage-label">02 \u00b7 LIVE DEMO \u00b7 SENSORS</div>
     <div class="harvest-lead"><span>Each tile asks once. Nothing leaves this tab.</span></div>
@@ -145,7 +147,7 @@ const renderPermissions = () => {
       const g = state.collected[p.id];
       const preview = fmtPreview(p.id, g);
       const err = g?.error ? g.error.slice(0, 42) : '';
-      return `<button type="button" class="perm-item ${permClass(g)}" data-perm="${p.id}" aria-describedby="reads-${p.id}">
+      return `<button type="button" class="perm-item ${permClass(g)}${just === p.id ? ' just' : ''}" data-perm="${p.id}" aria-describedby="reads-${p.id}">
         <span class="perm-badge">${permBadge(g)}</span>
         <span class="perm-icon" aria-hidden="true">${p.icon}</span>
         <span class="perm-name">${p.name}</span>
@@ -173,7 +175,7 @@ const renderPermissions = () => {
   };
 
   permsConfig.forEach(p => {
-    document.querySelector(`[data-perm="${p.id}"]`).onclick = async () => { await runOne(p); renderPermissions(); };
+    document.querySelector(`[data-perm="${p.id}"]`).onclick = async () => { await runOne(p); permJust = p.id; renderPermissions(); };
   });
 
   document.getElementById('btn-harvest-all').onclick = async () => {
@@ -182,7 +184,7 @@ const renderPermissions = () => {
       const s = document.getElementById('harvest-status');
       if (s) s.textContent = `READING ${p.name}...`;
       await runOne(p);
-      renderPermissions();
+      permJust = p.id; renderPermissions();
       await new Promise(r => setTimeout(r, 220));
     }
     const s = document.getElementById('harvest-status');
