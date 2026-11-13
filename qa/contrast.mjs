@@ -53,8 +53,8 @@ for (const pal of PALETTES) for (const mode of MODES) {
     await page.goto(url); await page.waitForTimeout(label === 'approach' ? 1000 : 450);
     for (const c of clicks) { await page.click(c); await page.waitForTimeout(300); }
     if (clicks.length) { await page.mouse.move(0, 0); await page.waitForTimeout(700); } // no hover state, finished fade-in
-    await page.evaluate(() => document.querySelectorAll('#app details').forEach(d => { d.open = true; })); await page.waitForTimeout(150); // measure text inside expanders too
-    const r = await run(page, label === 'sources' ? '#sources-drawer' : '#app');
+    await page.evaluate(() => { document.querySelectorAll('#app details').forEach(d => { d.open = true; }); document.querySelectorAll('#app .row-more').forEach(m => { m.hidden = false; }); document.querySelectorAll('#app .row-check').forEach((c, i) => { if (i % 2) c.click(); }); }); await page.waitForTimeout(150); // measure text inside expanders too
+    const r = (await run(page, label === 'sources' ? '#sources-drawer' : '#app')).concat(label === 'sources' || label === 'harvest' ? [] : await run(page, '.appbar'));
     const fails = r.filter(x => x.ratio < x.need);
     out[key][label] = { elements: r.length, min: Math.min(...r.map(x => x.ratio)), failing: fails.length, samples: fails.slice(0, 6) };
   }

@@ -97,6 +97,11 @@ async function exportFmt(page, fmt, dir) {
   const geoTxt = await page.textContent('[data-perm="geo"]');
   check('harvest: granted geolocation shows coordinates locally', geoTxt.includes('51.50135'), geoTxt.trim().replace(/\s+/g, ' '));
   await page.screenshot({ path: `${QA}/shots/denied/04-harvest-geo-granted.png` });
+  await settle(page, 3600);
+  const infG = await page.evaluate(() => document.getAnimations().filter(an => an.playState === 'running').map(an => an.animationName + ':' + an.effect.getTiming().iterations));
+  check('after grant: every animation has settled (no LIVE pulse / glow loop left running)', infG.length === 0, infG);
+  await page.click('[data-perm="gpu"]'); await settle(page, 600);
+  check('after grant: re-render does not replay the grant animation on earlier tiles', await page.evaluate(() => !document.querySelector('[data-perm="geo"]').classList.contains('just') && document.querySelector('[data-perm="gpu"]').classList.contains('just')));
   // CSP: page cannot make network requests even if code tried
   const csp = await page.evaluate(async () => { try { await fetch('https://example.com/?probe=1'); return 'fetch allowed'; } catch (e) { return 'blocked: ' + e.message; } });
   check('CSP connect-src none blocks outbound fetch', csp.startsWith('blocked'), csp);
@@ -113,16 +118,22 @@ let seed1, id1, params1;
   let tabs = 0; while (tabs++ < 8 && !(await page.evaluate(() => document.activeElement?.id === 'btn-investigate'))) await page.keyboard.press('Tab');
   await page.keyboard.press('Enter'); await settle(page);
   check('keyboard: Tab + Enter starts the investigation', await page.evaluate(() => state.stage === 'offer' && location.hash === '#offer'));
+  check('offer: exchange simulator hidden by default (no .sim, no sliders)', await page.evaluate(() => !document.querySelector('.sim') && !document.querySelector('#app input[type=range]')));
+  check('offer: one vertical checklist of 6 rows with checkboxes', await page.evaluate(() => document.querySelectorAll('#app .rows > .row input[type=checkbox][data-offer]').length === 6 && !document.querySelector('.offer-grid')));
   for (const i of [0, 2, 5]) await page.click(`[data-offer="${i}"]`);
-  await setRange(page, '#sl-d', 82); await setRange(page, '#sl-i', 70);
-  const model = await page.textContent('#model-wrap');
-  check('offer: toggles + exchange simulator respond', await page.evaluate(() => state.v2.offers === 0b100101 && state.v2.ex.d === 82) && model.includes('Exposure'), model.replace(/\s+/g, ' ').slice(0, 140));
-  check('offer: simulator labelled SIMULATED', (await page.textContent('.sim')).includes('SIMULATED'));
+  const offerState = await page.evaluate(() => ({ o: state.v2.offers, ex: state.v2.ex, want: OracleContent.deriveEx(0b100101), tally: document.querySelector('.tally').textContent.replace(/\s+/g, ' ').trim() }));
+  check('offer: checkboxes set the offers bitmask; tally shows "3 of 6"', offerState.o === 0b100101 && offerState.tally.startsWith('3 of 6'), offerState.tally);
+  check('offer: art dials derived deterministically from ticked trades when simulator hidden', JSON.stringify(offerState.ex) === JSON.stringify(offerState.want) && offerState.ex.d === 56, offerState.ex);
+  await page.focus('[data-offer="1"]'); await page.keyboard.press('Space'); await page.keyboard.press('Space');
+  check('offer: checkbox keyboard-operable (Space toggles)', await page.evaluate(() => state.v2.offers === 0b100101));
   await page.screenshot({ path: `${QA}/shots/desktop/01-offer.png`, fullPage: true });
   await axe(page, 'offer');
   // sources drawer via a citation
-  await page.locator('#app details.more > summary').first().click();
-  check('offer: evidence sits in a collapsed expander whose summary still shows its labels', await page.locator('#app details.more > summary .prov').count() > 0);
+  check('offer: evidence collapsed by default (no visible provenance badges)', await page.locator('#app .prov:visible').count() === 0);
+  await page.click('.row:has(#offer-social) .row-exp');
+  check('offer: row disclosure reveals labelled evidence (VERIFIED/INFERRED)', await page.locator('#offer-social-more .prov-verified:visible').count() === 1 && await page.locator('#offer-social-more .prov-inferred:visible').count() === 1);
+  await page.click('.row:has(#offer-ai) .row-exp');
+  check('offer: accordion keeps one row open', await page.evaluate(() => document.getElementById('offer-social-more').hidden && !document.getElementById('offer-ai-more').hidden));
   const cite = page.locator('.cite:visible').first();
   await cite.click(); await settle(page);
   check('sources drawer opens from a citation and highlights the source', await page.isVisible('#sources-drawer') && (await page.$$('.src-hit')).length === 1);
@@ -130,14 +141,16 @@ let seed1, id1, params1;
   await page.keyboard.press('Escape'); await settle(page);
   check('drawer: Esc closes and returns focus to the citation', await page.isHidden('#sources-drawer') && await page.evaluate(() => document.activeElement?.classList.contains('cite')));
   await page.click('[data-goto="extraction"]'); await settle(page);
-  await page.click('#cat-location'); await page.click('#btn-disclosed');
-  await page.click('#cat-interests'); await page.click('#btn-disclosed');
-  await page.focus('#cat-interests'); await page.keyboard.press('ArrowRight');
-  check('extraction: footprint toggles + arrow-key tabs', await page.evaluate(() => state.v2.footprint === 0b1010 && document.activeElement.id === 'cat-purchases'));
+  check('extraction: explainer is a vertical stack (3 rows, one column)', await page.evaluate(() => { const r = [...document.querySelectorAll('.kinds > div')].map(d => d.getBoundingClientRect()); return r.length === 3 && r[0].left === r[1].left && r[1].top > r[0].top && r[2].top > r[1].top; }));
+  check('extraction: footprint is a vertical checklist (8 rows), details collapsed', await page.evaluate(() => document.querySelectorAll('#app [data-fp]').length === 8 && [...document.querySelectorAll('#app .row-more')].every(m => m.hidden) && !document.querySelector('.cat-list')));
+  await page.click('[data-fp="1"]'); await page.click('[data-fp="3"]');
+  await page.click('.row:has(#fp-purchases) .row-exp');
+  check('extraction: footprint checkboxes + inline accordion details', await page.evaluate(() => state.v2.footprint === 0b1010 && !document.getElementById('fp-purchases-more').hidden && document.getElementById('fp-purchases-more').textContent.includes('OBSERVED') && document.querySelector('.tally').textContent.trim().startsWith('2 of 8')));
+  check('extraction: live sensor demo collapsed by default', await page.evaluate(() => !document.getElementById('live-more').open));
   await page.screenshot({ path: `${QA}/shots/desktop/02-extraction.png`, fullPage: true });
   await axe(page, 'extraction');
   // enter the live harvest with everything denied, come back
-  await page.click('#btn-live'); await settle(page);
+  await openMore(page, 'live-more'); await page.click('#btn-live'); await settle(page);
   check('extraction: sensor demo opens straight on the sensor tiles (identity step optional)', await page.isVisible('[data-perm="geo"]') && await page.evaluate(() => location.hash === '#sensors'));
   await page.click('[data-perm="cam"]'); await settle(page, 600);
   await page.click('#btn-back-extraction'); await settle(page);
@@ -169,7 +182,7 @@ let seed1, id1, params1;
   check('revelation: seed + composition id shown; URL holds only abstract params', /^#revelation\?s=ORACLE-/.test(await page.evaluate(() => location.hash)), await page.evaluate(() => location.hash));
   const nodeId = Art.compositionId(params1);
   check('cross-engine determinism: Node compositionId === browser compositionId', nodeId === id1, { node: nodeId, browser: id1 });
-  check('artwork params reflect visitor choices (offers/footprint/dials/rounds)', params1.o === 37 && params1.f === 10 && params1.d === 82 && params1.n === 5, params1);
+  check('artwork params reflect visitor choices (offers/footprint/derived dials/rounds)', params1.o === 37 && params1.f === 10 && params1.d === 56 && params1.n === 5, params1);
   await page.screenshot({ path: `${QA}/shots/desktop/05-revelation.png`, fullPage: true });
   await axe(page, 'revelation');
   for (const fmt of ['portrait', 'story', 'square', 'hires']) R.exports['run1-' + fmt] = await exportFmt(page, fmt, `${QA}/exports/run1`);
@@ -186,7 +199,7 @@ let seed1, id1, params1;
   check('share fallback: no Web Share → PNG downloaded + caption copy attempted', !hasShare && !!sdl && /downloaded/.test(shareStatus), { hasShare, shareStatus, file: sdl.suggestedFilename() });
   // simulate a device WITH Web Share (files) to exercise the native path
   await page.evaluate(() => { window.__shared = null; navigator.canShare = () => true; navigator.share = async (d) => { window.__shared = { files: d.files.map(f => [f.name, f.type, f.size]), text: d.text }; }; });
-  await page.click('#rv-share'); await settle(page, 1500);
+  await page.click('#rv-share'); await page.waitForFunction(() => window.__shared, null, { timeout: 10000 }).catch(() => {});
   const shared = await page.evaluate(() => window.__shared);
   check('share native path (stubbed navigator.share) receives PNG file + caption', shared && shared.files[0][1] === 'image/png' && shared.text.includes(seed1), shared && { file: shared.files[0], text: shared.text.slice(0, 80) });
   await page.click('#rv-clean'); await settle(page, 800);
@@ -289,7 +302,49 @@ let seed1, id1, params1;
   await p2.goto(BASE); await settle(p2, 400);
   const a = await p2.evaluate(() => cosmosRaf); await settle(p2, 300); const b = await p2.evaluate(() => cosmosRaf);
   check('control: without reduced motion the starfield animates', b > a, { a, b });
+  await settle(p2, 6400);
+  const c = await p2.evaluate(() => cosmosRaf);
+  check('motion settles: starfield stops by itself after ~6 s (no endless loop)', c === 0, { c });
+  const inf = await p2.evaluate(() => document.getAnimations().filter(an => an.effect.getTiming().iterations === Infinity && an.playState === 'running').map(an => an.animationName || an.id));
+  check('motion settles: no infinite CSS animation running on approach', inf.length === 0, inf);
+  await p2.goto(BASE); await settle(p2, 300); await p2.click('#btn-investigate'); await settle(p2, 300);
+  check('motion settles: entering a chapter stops the starfield immediately', await p2.evaluate(() => cosmosRaf) === 0);
   await ctx2.close();
+}
+
+// ── v3: simulator flag + app chrome never floats over content (1024 / 1280 / 1440 / 390) ──
+{
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage(); instrument(page, 'simulator-flag');
+  await page.goto(BASE + '?simulator=1#offer'); await settle(page, 500);
+  await setRange(page, '#sl-d', 82); await setRange(page, '#sl-i', 70);
+  await page.click('[data-offer="0"]');
+  const sim = await page.evaluate(() => ({ d: state.v2.ex.d, i: state.v2.ex.i, label: document.querySelector('.sim')?.textContent.includes('SIMULATED'), model: document.getElementById('model-wrap')?.textContent.includes('Exposure') }));
+  check('?simulator=1 restores the Exchange simulator (sliders drive dials, ticks do not overwrite them, SIMULATED label)', sim.d === 82 && sim.i === 70 && sim.label && sim.model, sim);
+  await axe(page, 'offer-simulator');
+  await ctx.close();
+  const layout = {};
+  for (const [w, h] of [[1024, 768], [1280, 800], [1440, 900], [390, 844]]) {
+    const c2 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: w, height: h }, isMobile: w < 600, hasTouch: w < 600 });
+    const p = await c2.newPage(); instrument(p, 'layout-' + w);
+    for (const ch of ['offer', 'extraction', 'machine', 'loop', 'revelation']) {
+      await p.goto(BASE + '#' + ch); await settle(p, ch === 'revelation' ? 1200 : 400);
+      await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2)); await settle(p, 150);
+      layout[w + '-' + ch] = await p.evaluate(() => {
+        const bar = document.querySelector('.appbar'), r = bar.getBoundingClientRect(), cs = getComputedStyle(bar); const docTop = Math.round(r.top + window.scrollY);
+        const allowed = new Set(['cosmos', 'sources-drawer']);
+        const fixed = [...document.body.querySelectorAll('*')].filter(e => ['fixed', 'sticky'].includes(getComputedStyle(e).position) && e.getClientRects().length && !allowed.has(e.id) && !e.closest('#sources-drawer') && !['scanlines', 'noise', 'vignette'].some(k => e.classList.contains(k)));
+        const nav = document.querySelector('#app .ch-nav button, #app #rv-download'); nav && nav.scrollIntoView({ block: 'center' });
+        const nr = nav && nav.getBoundingClientRect();
+        const hit = nav && document.elementFromPoint(nr.left + nr.width / 2, nr.top + nr.height / 2);
+        const railInBar = bar.contains(document.getElementById('phase-rail'));
+        return { inFlow: ['static', 'relative'].includes(cs.position), docTop, opaque: !/rgba?\(.*,\s*0(\.\d+)?\)$/.test(cs.backgroundColor) || cs.backgroundColor.startsWith('rgb('), railInBar, fixed: fixed.map(e => e.className || e.tagName), navClear: !nav || nav.contains(hit) };
+      });
+    }
+    await c2.close();
+  }
+  check('chrome: app bar sits in page flow at the document top, opaque, holds the chapter nav (all widths, mid-scroll)', Object.values(layout).every(v => v.inFlow && v.docTop === 0 && v.opaque && v.railInBar), Object.fromEntries(Object.entries(layout).filter(([, v]) => !(v.inFlow && v.docTop === 0 && v.opaque && v.railInBar))));
+  check('chrome: no fixed or sticky UI floats over content; primary action never covered', Object.values(layout).every(v => v.fixed.length === 0 && v.navClear), Object.fromEntries(Object.entries(layout).filter(([, v]) => v.fixed.length || !v.navClear)));
 }
 
 // ── cognitive load: one filled action per screen, one navigation pattern, consistent names ──
