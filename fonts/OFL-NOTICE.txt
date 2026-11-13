@@ -1,0 +1,6 @@
+All fonts in this folder are licensed under the SIL Open Font License, Version 1.1 (full texts in ./licenses/, fetched from github.com/google/fonts/tree/main/ofl).
+IBM Plex Mono, IBM Plex Sans — Copyright © 2017 IBM Corp. with Reserved Font Name "Plex".
+Syne — Copyright 2017 The Syne Project Authors.
+Space Grotesk — Copyright 2020 The Space Grotesk Project Authors.
+Fraunces — Copyright 2018 The Fraunces Project Authors.
+Files are unmodified latin subsets as served by Google Fonts (same family names, no derivative renaming); self-hosted so the app makes no third-party requests.

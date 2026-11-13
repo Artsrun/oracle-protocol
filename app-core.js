@@ -3,14 +3,17 @@ const ctx = canvas.getContext('2d');
 let W, H, particles = [];
 let mx = 0, my = 0;
 
+const reduceMotionMq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+const cosmosDpr = () => Math.min(window.devicePixelRatio || 1, 2);
 const resize = () => {
-  W = canvas.width = window.innerWidth * devicePixelRatio;
-  H = canvas.height = window.innerHeight * devicePixelRatio;
+  const d = cosmosDpr();
+  W = canvas.width = Math.round(window.innerWidth * d);
+  H = canvas.height = Math.round(window.innerHeight * d);
   canvas.style.width = window.innerWidth + 'px';
   canvas.style.height = window.innerHeight + 'px';
-  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+  if (reduceMotionMq.matches) drawCosmosStatic();
 };
-resize();
 window.addEventListener('resize', resize);
 window.addEventListener('pointermove', e => {
   mx = (e.clientX / window.innerWidth - 0.5) * 40;
@@ -27,30 +30,65 @@ for (let i = 0; i < 90; i++) {
   });
 }
 
-const animCosmos = () => {
-  ctx.fillStyle = 'rgba(2,4,8,0.18)';
+const drawParticle = (p) => {
+  const sx = (p.x / p.z) * 400 + window.innerWidth / 2 + mx;
+  const sy = (p.y / p.z) * 400 + window.innerHeight / 2 + my;
+  const r = p.s * (1 - p.z / 1000);
+  const alpha = (1 - p.z / 1000) * 0.72;
+  if (sx > 0 && sx < window.innerWidth && sy > 0 && sy < window.innerHeight) {
+    ctx.beginPath();
+    ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.globalAlpha = alpha;
+    ctx.fill();
+  }
+};
+
+// Starfield colours come from the theme tokens (--bg / --signal), re-read when the theme changes.
+const cosmosCol = { bg: '#020408', star: '#00e5ff' };
+function readCosmosColours() {
+  const cs = getComputedStyle(document.documentElement);
+  cosmosCol.bg = cs.getPropertyValue('--bg').trim() || '#020408';
+  cosmosCol.star = cs.getPropertyValue('--signal').trim() || '#00e5ff';
+}
+readCosmosColours();
+if (window.OracleTheme) OracleTheme.onChange(() => { readCosmosColours(); if (reduceMotionMq.matches) drawCosmosStatic(); });
+
+// Reduced motion: one static frame, no rAF loop.
+function drawCosmosStatic() {
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = cosmosCol.bg;
   ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-  particles.forEach(p => {
+  ctx.fillStyle = cosmosCol.star;
+  for (const p of particles) drawParticle(p);
+  ctx.globalAlpha = 1;
+}
+
+let cosmosRaf = 0;
+resize();
+const animCosmos = () => {
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = cosmosCol.bg;
+  ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = cosmosCol.star;
+  for (const p of particles) {
     p.z -= p.v;
     if (p.z <= 0) {
       p.x = Math.random() * 2000 - 1000;
       p.y = Math.random() * 2000 - 1000;
       p.z = 1000;
     }
-    const sx = (p.x / p.z) * 400 + window.innerWidth / 2 + mx;
-    const sy = (p.y / p.z) * 400 + window.innerHeight / 2 + my;
-    const r = p.s * (1 - p.z / 1000);
-    const alpha = (1 - p.z / 1000) * 0.72;
-    if (sx > 0 && sx < window.innerWidth && sy > 0 && sy < window.innerHeight) {
-      ctx.beginPath();
-      ctx.arc(sx, sy, r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(0,229,255,${alpha})`;
-      ctx.fill();
-    }
-  });
-  requestAnimationFrame(animCosmos);
+    drawParticle(p);
+  }
+  ctx.globalAlpha = 1;
+  cosmosRaf = requestAnimationFrame(animCosmos);
 };
-animCosmos();
+const startCosmos = () => {
+  cancelAnimationFrame(cosmosRaf);
+  if (reduceMotionMq.matches) drawCosmosStatic(); else animCosmos();
+};
+reduceMotionMq.addEventListener?.('change', startCosmos);
+startCosmos();
 
 const tickClock = () => {
   const el = document.getElementById('hud-clock');
@@ -70,23 +108,29 @@ const state = {
   fingerprint: null
 };
 
+// v2: five chapters + approach. The v1.2 protocol (handshake → harvest → witness) lives inside 02 EXTRACTION.
 const PHASES = [
-  { id: 'approach', label: '00 APPROACH' },
-  { id: 'handshake', label: '01 HANDSHAKE' },
-  { id: 'permissions', label: '02 HARVEST' },
-  { id: 'portrait', label: '03 WITNESS' }
+  { id: 'approach', n: '00', label: 'APPROACH' },
+  { id: 'offer', n: '01', label: 'OFFER' },
+  { id: 'extraction', n: '02', label: 'EXTRACTION' },
+  { id: 'machine', n: '03', label: 'MACHINE' },
+  { id: 'loop', n: '04', label: 'FEEDBACK LOOP' },
+  { id: 'revelation', n: '05', label: 'REVELATION' }
 ];
+const LEGACY_PARENT = { handshake: 'extraction', permissions: 'extraction', portrait: 'extraction', art: 'revelation' };
 
 const syncHud = () => {
-  const names = { approach: 'APPROACH', handshake: 'HANDSHAKE', permissions: 'HARVEST', portrait: 'WITNESS' };
+  // One naming scheme everywhere: "NN LABEL" (HUD, rail, chapter kicker). The v1.2 demo is part of 02.
+  const P = PHASES.find(p => p.id === (LEGACY_PARENT[state.stage] || state.stage));
   const el = document.getElementById('hud-phase');
-  if (el) el.textContent = names[state.stage] || state.stage;
+  if (el) el.textContent = state.stage === 'art' ? 'ARTWORK' : P ? (P.id === 'approach' ? P.label : `${P.n} ${P.label}`) + (LEGACY_PARENT[state.stage] === 'extraction' ? ' \u00b7 LIVE DEMO' : '') : state.stage;
   const rail = document.getElementById('phase-rail');
   if (!rail) return;
-  const idx = PHASES.findIndex(p => p.id === state.stage);
+  const cur = LEGACY_PARENT[state.stage] || state.stage;
+  const idx = PHASES.findIndex(p => p.id === cur);
   rail.innerHTML = PHASES.map((p, i) => {
     const cls = i === idx ? 'on' : i < idx ? 'done' : '';
-    return `<div class="phase-pip ${cls}">${p.label}</div>`;
+    return `<button type="button" class="phase-pip ${cls}" data-go="${p.id}" ${i === idx ? 'aria-current="step"' : ''} aria-label="${p.n} ${p.label}"><span class="pip-n">${p.n}</span><span class="pip-l"> ${p.label}</span></button>`;
   }).join('');
 };
 

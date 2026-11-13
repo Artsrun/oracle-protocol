@@ -1,0 +1,6 @@
+{
+  "name": "oracle-protocol",
+  "private": true,
+  "description": "No build step. This file only documents the test command; the site has no runtime dependencies.",
+  "scripts": { "test": "node --test tests/*.test.cjs" }
+}

@@ -1,0 +1,81 @@
+/* ORACLE PROTOCOL — design tokens.
+ * Palette × mode tokens (html[data-palette][data-theme]) and type pairings (html[data-type]).
+ * theme-boot.js sets the attributes before first paint: mode follows prefers-color-scheme unless the
+ * visitor picks Night/Day (persisted in localStorage 'oracle.theme'); palette/type come from ?palette= / ?type=.
+ * Hex values here are mirrored in art/oracle-art.js PALETTES (QA asserts they match). No gradients added. */
+
+/* ── base + derived tokens ─────────────────────────────────────────────── */
+:root{
+  color-scheme:dark;
+  /* Observatory · Night (legacy brand values, so v1/v2 links keep identical artwork) */
+  --bg:#020408;--bg-2:#050d14;--surface:#07141e;--ink:#e8f6ff;--ink-hi:#ffffff;
+  --signal:#00e5ff;--trace:#ffab00;--alert:#ff1744;--sim:#b9a7ff;--slate:#7f8ea3;--link:#7fefff;
+  --tf:1;--glow-k:1;--scan:.55;--shade:#000000;
+  /* derived — every legacy name resolves to a role token */
+  --void:var(--bg);--deep:var(--bg-2);--cyan:var(--signal);--amber:var(--trace);--crimson:var(--alert);--violet:var(--sim);
+  --line:color-mix(in srgb,var(--signal) 18%,transparent);
+  --ghost:color-mix(in srgb,var(--signal) 5%,transparent);
+  --glow:0 0 18px color-mix(in srgb,var(--signal) calc(35% * var(--glow-k)),transparent),0 0 48px color-mix(in srgb,var(--signal) calc(8% * var(--glow-k)),transparent);
+  --amber-glow:0 0 18px color-mix(in srgb,var(--trace) calc(40% * var(--glow-k)),transparent);
+  --ink-2:color-mix(in srgb,var(--ink) calc(100% - 22% * var(--tf)),transparent);
+  --ink-3:color-mix(in srgb,var(--ink) calc(100% - 38% * var(--tf)),transparent);
+
+  /* type — default pairing "Instrument" (overridden by [data-type]) */
+  --font-display:'Space Grotesk','IBM Plex Sans',system-ui,sans-serif;
+  --font-body:'IBM Plex Sans',system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --display-w:700;--display-track:-.025em;--display-lh:1.02;
+  /* type scale — floors chosen for 390px phones; fluid steps for headings */
+  --fs-micro:10px;      /* HUD, rail, uppercase tracked labels */
+  --fs-label:11px;      /* badges, table heads, small caps labels */
+  --fs-xs:12px;         /* meta, captions, hints */
+  --fs-sm:13px;         /* secondary text, controls */
+  --fs-body:clamp(14px,13.2px + .25vw,15.5px);
+  --fs-lead:clamp(15.5px,14.6px + .4vw,18px);
+  --fs-h3:clamp(17px,16px + .4vw,20px);
+  --fs-h2:clamp(21px,18px + 1vw,26px);
+  --fs-h1:clamp(30px,6vw,48px);
+  --fs-hero:clamp(34px,11vw,67px);
+}
+
+/* ── palettes ──────────────────────────────────────────────────────────── */
+/* A · OBSERVATORY — signal cyan, trace amber, alert crimson on deep space. Day: cool survey paper, ink teal. */
+html[data-theme=light]{color-scheme:light;
+  --bg:#eef1f0;--bg-2:#e2e8e8;--surface:#f8faf9;--ink:#0b1a22;--ink-hi:#000d14;
+  --signal:#005c6b;--trace:#7d4900;--alert:#b01030;--sim:#5a3fc0;--slate:#56636e;--link:#004f5e;
+  --tf:.2;--glow-k:.25;--scan:.16;--shade:#0b1a22}
+/* B · SODIUM — sodium-vapour amber as the signal, cold steel as the trace, near-black warm. Day: newsprint. */
+html[data-palette=sodium]{
+  --bg:#0b0a09;--bg-2:#14120f;--surface:#1b1814;--ink:#f1e9dc;--ink-hi:#fffaf0;
+  --signal:#ffb54a;--trace:#9cc3d3;--alert:#ff6a55;--sim:#d0b3ff;--slate:#8d8578;--link:#ffd08a}
+html[data-palette=sodium][data-theme=light]{
+  --bg:#f3eee4;--bg-2:#e9e2d4;--surface:#fbf8f2;--ink:#1e1a14;--ink-hi:#0d0a05;
+  --signal:#7a4600;--trace:#1d4f63;--alert:#a8261b;--sim:#5b3aa6;--slate:#6b6456;--link:#6b3c00;--shade:#1e1a14}
+/* C · SPECTRAL — spectroscopy: ultraviolet signal, emission-line mint trace, rose alert on violet-black. Day: lilac-grey plate. */
+html[data-palette=spectral]{
+  --bg:#07060d;--bg-2:#0e0c18;--surface:#141122;--ink:#ebe8f7;--ink-hi:#ffffff;
+  --signal:#b0a4ff;--trace:#74e3c4;--alert:#ff7a95;--sim:#ffc46b;--slate:#8a86a3;--link:#d2cbff}
+html[data-palette=spectral][data-theme=light]{
+  --bg:#f2f1f7;--bg-2:#e6e4ef;--surface:#fbfaff;--ink:#15122a;--ink-hi:#06041a;
+  --signal:#4231b8;--trace:#00634f;--alert:#ad1748;--sim:#8a4b00;--slate:#5c5873;--link:#36279a;--shade:#15122a}
+/* No-JS fallback: follow the device for the default palette */
+@media (prefers-color-scheme:light){html:not([data-theme]){color-scheme:light;
+  --bg:#eef1f0;--bg-2:#e2e8e8;--surface:#f8faf9;--ink:#0b1a22;--ink-hi:#000d14;
+  --signal:#005c6b;--trace:#7d4900;--alert:#b01030;--sim:#5a3fc0;--slate:#56636e;--link:#004f5e;
+  --tf:.2;--glow-k:.25;--scan:.16;--shade:#0b1a22}}
+
+/* ── type pairings ─────────────────────────────────────────────────────── */
+/* 1 · SIGNAL — Syne display + IBM Plex Mono for everything (the v1.2 voice) */
+html[data-type=signal]{--font-display:'Syne',system-ui,sans-serif;--font-body:'IBM Plex Mono',ui-monospace,monospace;--display-w:800;--display-track:-.035em;--display-lh:.98}
+/* 2 · INSTRUMENT — Space Grotesk display + IBM Plex Sans reading + Plex Mono data (default) */
+html[data-type=instrument]{--font-display:'Space Grotesk','IBM Plex Sans',system-ui,sans-serif;--font-body:'IBM Plex Sans',system-ui,sans-serif;--display-w:700;--display-track:-.025em;--display-lh:1.02}
+/* 3 · ALMANAC — Fraunces (optical-size serif) display + IBM Plex Sans + Plex Mono: the field-notes register */
+html[data-type=almanac]{--font-display:'Fraunces',Georgia,serif;--font-body:'IBM Plex Sans',system-ui,sans-serif;--display-w:600;--display-track:-.01em;--display-lh:1.04}
+
+/* ── theme switch + dev lab ────────────────────────────────────────────── */
+.theme-switch{pointer-events:auto;display:flex;align-items:center;gap:6px}
+.theme-switch select{font:inherit;font-size:var(--fs-micro);letter-spacing:.14em;text-transform:uppercase;color:var(--signal);background:var(--bg-2);border:1px solid color-mix(in srgb,var(--signal) 60%,transparent);padding:4px 6px;min-height:30px;cursor:pointer;border-radius:0}
+.theme-switch select:focus-visible{outline:2px solid var(--trace);outline-offset:2px}
+.theme-lab{position:fixed;left:12px;bottom:calc(var(--safe-b) + 52px);z-index:40;display:flex;gap:8px;flex-wrap:wrap;padding:8px;background:var(--bg-2);border:1px solid var(--line);font-family:var(--font-mono);font-size:var(--fs-xs);color:var(--ink)}
+.theme-lab label{display:flex;gap:6px;align-items:center}
+.theme-lab select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);min-height:32px}
