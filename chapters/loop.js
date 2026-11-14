@@ -61,7 +61,7 @@
           <h2 id="lab-title" class="panel-title">What it rewards</h2>
           ${sliders.map(([k, n]) => U.slider(k, n, L[k])).join('')}
           <div class="btn-row">
-            <button type="button" class="btn-sm primary" id="lab-step">RUN A ROUND</button>
+            <button type="button" class="btn-sm" id="lab-step">RUN A ROUND</button>
             <button type="button" class="btn-sm" id="lab-chrono">CHRONOLOGICAL</button>
             <button type="button" class="btn-sm" id="lab-reset">RESET</button>
           </div>
@@ -81,7 +81,7 @@
           E.claim('VERIFIED', 'X\u2019s published For You pipeline uses explicit (likes, replies) and implicit (profile visits, clicks) signals.', ['x-algo']) +
           E.claim('INFERRED', 'When attention feeds ranking, early leads compound. How strongly any platform does this is not public.'), null, ['VERIFIED', 'INFERRED'])}
       </section>
-      ${U.chapterNav('revelation', true)}
+      ${U.chapterNav('revelation')}
     </article>`;
 
     const refresh = () => {

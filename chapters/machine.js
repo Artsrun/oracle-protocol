@@ -13,13 +13,13 @@
       const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, ang = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
       return `<line class="ln" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/><polygon class="ln" points="${triPts(0, 0, 4, true)}" transform="translate(${mx},${my}) rotate(${ang + 90})"/>`;
     }).join('');
+    // Numbers only on the ring; the step names are listed beside it (labels were 9 px and clipped).
     const nodes = C.MACHINE.map((m, i) => {
-      const [x, y] = pos(i), lx = CX + (R + 26) * Math.cos(-Math.PI / 2 + i * 2 * Math.PI / N), ly = CY + (R + 26) * Math.sin(-Math.PI / 2 + i * 2 * Math.PI / N);
-      const anchor = Math.abs(lx - CX) < 12 ? 'middle' : lx > CX ? 'start' : 'end';
-      return `<polygon class="nd ${i === active ? 'on' : ''}" points="${triPts(x, y, 9, true)}"/><text x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle">${String(i + 1).padStart(2, '0')} ${m.name.split(' /')[0]}</text>`;
+      const [x, y] = pos(i), a = -Math.PI / 2 + i * 2 * Math.PI / N, lx = CX + (R + 24) * Math.cos(a), ly = CY + (R + 24) * Math.sin(a);
+      return `<polygon class="nd ${i === active ? 'on' : ''}" points="${triPts(x, y, 9, true)}"/><text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="central">${String(i + 1).padStart(2, '0')}</text>`;
     }).join('');
     const [px, py] = pos(active);
-    return `<svg viewBox="-60 -10 440 340" class="loopviz" aria-hidden="true">${edges}${nodes}<polygon class="pulse" points="${triPts(px, py, 4, true)}"/></svg>`;
+    return `<svg viewBox="0 0 320 320" class="loopviz" aria-hidden="true">${edges}${nodes}<polygon class="pulse" points="${triPts(px, py, 4, true)}"/></svg>`;
   }
 
   function nodeDetail() {
@@ -43,7 +43,7 @@
       <section class="panel" aria-label="Systems map">
         <div class="machine-grid">
           <div><div id="loop-svg">${loopSvg()}</div>
-            <div class="btn-row"><button type="button" class="btn-sm primary" id="m-play" ${OracleChapters.reduceMotion() ? 'disabled title="Disabled: reduced motion preferred"' : ''}>PLAY THE LOOP</button></div></div>
+            <div class="btn-row"><button type="button" class="btn-sm" id="m-play" ${OracleChapters.reduceMotion() ? 'disabled title="Disabled: reduced motion preferred"' : ''}>PLAY THE LOOP</button></div></div>
           <div><ol class="node-list">${C.MACHINE.map((m, i) => `<li><button type="button" class="node-btn" data-node="${i}" aria-pressed="${i === active}">${String(i + 1).padStart(2, '0')} ${m.name}</button></li>`).join('')}</ol>
             <div class="node-detail" id="node-detail" aria-live="polite">${nodeDetail()}</div></div>
         </div>
@@ -59,7 +59,7 @@
         ${U.more(`Documented relations (${C.RELATIONS.length})`, `<div class="seg" role="group" aria-label="Relation type">${types.map(t => `<button type="button" data-filter="${t}" aria-pressed="${t === filter}">${t}</button>`).join('')}</div>
         <table class="rel-table"><thead><tr><th>Relation</th><th>Type</th><th>Label</th><th>Evidence</th></tr></thead><tbody id="rel-body">${relRows()}</tbody></table>`, 'm-rel', C.RELATIONS.map(r => r.label))}
       </section>
-      ${U.chapterNav('loop', true)}
+      ${U.chapterNav('loop')}
     </article>`;
 
     const setActive = (i) => {

@@ -1,4 +1,4 @@
-# ORACLE PROTOCOL v2 — The Anatomy of Attention
+# ORACLE PROTOCOL v3 — The Anatomy of Attention
 
 An interactive, local-only investigation of the digital-self economy, ending in a unique, reproducible
 generative artwork: **ORACLE // DIGITAL REMAINS**.

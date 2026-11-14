@@ -398,6 +398,31 @@ let seed1, id1, params1;
   await ctx.close();
 }
 
+// ── handover UX (docs/HANDOVER-UX.md WP1–WP6) ──────────────────────────────
+{
+  const out = {};
+  for (const [w, h] of [[390, 844], [1280, 800]]) {
+    const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: w, height: h }, isMobile: w < 600, hasTouch: w < 600 });
+    const page = await ctx.newPage(); instrument(page, 'handover-' + w);
+    await page.goto(BASE + '#machine'); await settle(page, 400);
+    out['diagram-' + w] = await page.evaluate(() => {
+      const svg = document.querySelector('.loopviz'), sr = svg.getBoundingClientRect();
+      return [...svg.querySelectorAll('text')].map(t => { const r = t.getBoundingClientRect(); return { t: t.textContent, px: +(r.height).toFixed(1), inside: r.left >= sr.left - 0.5 && r.right <= sr.right + 0.5 && r.top >= sr.top - 0.5 && r.bottom <= sr.bottom + 0.5 }; });
+    });
+    await ctx.close();
+  }
+  check('WP1 machine: ring labels unclipped and at least 12 px tall at 390 and 1280', Object.values(out).every(L => L.length === 7 && L.every(l => l.inside && l.px >= 12)), out);
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage(); instrument(page, 'handover-desktop');
+  const navs = {};
+  for (const ch of ['offer', 'extraction', 'machine', 'loop']) { await page.goto(BASE + '#' + ch); await settle(page, 300); navs[ch] = await page.$eval('#app .ch-nav button', b => b.className); }
+  check('WP1 one Next-button style in all four chapters (filled)', new Set(Object.values(navs)).size === 1 && navs.offer.includes('btn-fill'), navs);
+  await page.goto(BASE); await settle(page, 300);
+  const ap = (await page.textContent('#app')).replace(/\s+/g, ' ');
+  check('WP1 approach says what you do, what you get, how long, and that nothing leaves the tab', /answer a few questions/i.test(ap) && /artwork made from your answers/i.test(ap) && /three minutes/i.test(ap) && /nothing leaves this tab/i.test(ap), ap.slice(0, 200));
+  await ctx.close();
+}
+
 await browser.close();
 
 // ── privacy: every request, every run ─────────────────────────────────────

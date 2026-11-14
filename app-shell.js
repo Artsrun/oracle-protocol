@@ -122,10 +122,11 @@ window.OracleChapters = (() => {
       <h1 class="ch-title">${title}</h1>
       ${lead ? `<p class="ch-lead">${lead}</p>` : ''}
     </header>`;
-  // Forward only: going back is the phase rail (one navigation pattern, not two).
-  const chapterNav = (next, quiet) => { // quiet: the chapter already has its own primary action
+  // Forward only: going back is the phase rail (one navigation pattern, not two). One style in every chapter:
+  // the Next button is the screen's filled action; in-chapter actions are outlined.
+  const chapterNav = (next) => {
     const N = PHASES.find(p => p.id === next);
-    return N ? `<nav class="ch-nav" aria-label="Next chapter"><button type="button" class="btn-primary${quiet ? '' : ' btn-fill'}" data-goto="${N.id}">Next \u00b7 ${N.n} ${N.label} \u2192</button></nav>` : '';
+    return N ? `<nav class="ch-nav" aria-label="Next chapter"><button type="button" class="btn-primary btn-fill" data-goto="${N.id}">Next \u00b7 ${N.n} ${N.label} \u2192</button></nav>` : '';
   };
   const slider = (id, name, value, hint, extra) => `
     <div class="slider">

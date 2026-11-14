@@ -7,6 +7,7 @@
 @media(min-width:760px){.pip-l{display:inline}.phase-pip{min-width:64px}}
 .hud-bar .hud-sources{pointer-events:auto;font:inherit;font-size:var(--fs-label);letter-spacing:.22em;color:var(--signal);background:color-mix(in srgb,var(--bg-2) 80%,transparent);border:1px solid color-mix(in srgb,var(--signal) 60%,transparent);padding:6px 10px;cursor:pointer;min-height:30px}.hud-bar .hud-sources:hover,.hud-bar .hud-sources:focus-visible{background:var(--signal);color:var(--bg);outline:none}
 .hud-bar{gap:12px}.hud-bar>span:nth-child(2){margin-left:auto}
+.approach-lead{font-family:var(--font-body);font-size:var(--fs-lead);line-height:1.55;color:var(--ink);max-width:40ch;margin:0 auto 28px}
 .approach-note{margin:18px auto 0;max-width:52ch;font-size:var(--fs-sm);line-height:1.6;color:var(--ink-3)}
 
 .chapter{width:100%;max-width:1080px;animation:fadeIn .3s ease;color:var(--ink)}
@@ -92,7 +93,7 @@ input[type=range]{width:100%;accent-color:var(--cyan);min-height:28px;background
 .loopviz{width:100%;max-width:420px;display:block;margin:0 auto}
 .loopviz .ln{stroke:color-mix(in srgb,var(--signal) 35%,transparent);stroke-width:1;fill:none}
 .loopviz .nd{fill:var(--bg);stroke:var(--signal);stroke-width:1.2}.loopviz .nd.on{fill:var(--ink-hi);stroke:var(--ink-hi)}
-.loopviz text{font:500 9px var(--font-mono);fill:color-mix(in srgb,var(--ink) calc(100% - 15% * var(--tf)),transparent)}.loopviz .pulse{fill:var(--signal)}
+.loopviz text{font:600 15px var(--font-mono);fill:color-mix(in srgb,var(--ink) calc(100% - 15% * var(--tf)),transparent)}.loopviz .pulse{fill:var(--signal)}
 .node-list{list-style:none;padding:0;margin:0;counter-reset:n}
 .node-btn{font:inherit;width:100%;text-align:left;font-size:var(--fs-body);padding:10px 12px;min-height:44px;background:transparent;color:var(--ink);border:0;border-left:2px solid color-mix(in srgb,var(--signal) 25%,transparent);cursor:pointer}.node-btn[aria-pressed=true]{border-left-color:var(--signal);background:color-mix(in srgb,var(--signal) 8%,transparent);color:var(--ink-hi)}
 .node-detail{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
