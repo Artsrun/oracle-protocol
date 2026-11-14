@@ -371,3 +371,36 @@ Screenshots: `/workspace/oracle-qa/v3/{before,after}/` (`offer|extraction-{1024,
 `compare-390.png`). Scripts: `qa/v3-shots.mjs`, `qa/v3-interact.mjs`.
 
 Not tested: real devices, Safari, Firefox, Brave itself (Chromium headless only).
+
+## Handover UX pass (branch `ux-handover-wp0-6`, 2026-11-14, Asia/Yerevan)
+
+Work packages from `docs/HANDOVER-UX.md` §6, one commit each. WP7 (footprint derived from trades) not done:
+it needs the owner's go-ahead (§10.4).
+
+### WP0. Baseline (before any change, `claude/dreamy-hawking-n9hjce` @ 523ea6b = prod 4526203 + docs)
+
+Environment: headless Google Chrome (`/usr/bin/google-chrome`), Playwright-core, axe-core 4.x, Node.
+
+- Unit tests: **14/14**.
+- `qa.mjs`: **85/85** dark, **85/85** light. (The handover expected 84/85 on a container with no audio device;
+  this machine has Chrome and the mic tile reads DENIED, so the check passes.)
+- Contrast (`contrast.mjs`, 3 palettes × 2 modes × 9 screens): **0 failing of 4,446** text elements, minimum **5.09**.
+- axe-core WCAG 2.1 A/AA: **0 violations on 15 screens** per scheme.
+- Fixed reference `ORACLE-7K3F-Q9ZD` PNG SHA-256 (first 12): dark portrait `d17be765a17c`, story `df332b679c8d`,
+  square `60b9ade83a84`, hi-res `e69f044a2595`; light portrait `fb15f9591701`, story `ed1d0299297d`, square
+  `714d95327a57`, hi-res `b263c13cec22`. Every later WP must reproduce these.
+
+`load.mjs` at 390 × 844, Night (`qa/load-table.mjs` prints it):
+
+| Screen | Words | Controls | App-bar controls | Disclosures | Targets < 44 px | Font sizes (px) | Smallest px | Uppercase labels | App bar px | Page length (viewports) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 00-approach mobile | 27 | 1 | 8 | 0 | 8 | 11/13/16/43 | 11 | 3 | 87 | 1.1 |
+| 01-offer mobile | 80 | 13 | 8 | 6 | 13 | 11/13/14/16/30 | 11 | 2 | 87 | 1.1 |
+| 02-extraction mobile | 114 | 19 | 8 | 10 | 18 | 10/11/12/13/14/16/18/30 | 10 | 7 | 87 | 1.6 |
+| 03-machine mobile | 236 | 31 | 8 | 1 | 30 | 9/10/11/12/13/14/16/18/30 | 9 | 7 | 87 | 2.7 |
+| 04-loop mobile | 200 | 14 | 8 | 2 | 18 | 10/11/12/13/14/16/18/24/30 | 10 | 17 | 91 | 2.5 |
+| 05-revelation mobile | 96 | 11 | 8 | 2 | 15 | 11/12/13/14/16/30 | 11 | 10 | 87 | 1.7 |
+| 02b-sensors mobile | 52 | 16 | 8 | 1 | 11 | 10/11/12/13/25 | 10 | 26 | 87 | 1.4 |
+
+Outputs: `/workspace/oracle-qa/handover-ux/before/` (`load-{dark,light}/` screenshots + `load.json`,
+`qa-{dark,light}/`, `contrast.json`).
