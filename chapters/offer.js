@@ -43,7 +43,7 @@
   OracleChapters.register('offer', (app) => {
     const v = state.v2, sim = OracleChapters.simulatorOn;
     app.innerHTML = `<article class="chapter ch-offer">
-      ${U.chapterHead('offer', 'What do you trade?',
+      ${U.chapterHead('offer',
         'Free apps cost data and attention. Tick the trades you make \u2014 each one shapes your artwork.',
         'Tick a trade to add a red shard.')}
       ${U.tally('of-count', 'trades')}

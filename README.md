@@ -11,21 +11,21 @@ https://artsrun.github.io/oracle-protocol/
 
 ## The journey
 
-| | Chapter | What you do |
+| Step | Name (route) | What you do |
 |---|---|---|
-| 00 | **Approach** | One button: BEGIN. |
-| 01 | **The Offer** | A checklist of six everyday trades (social, free services, AI assistants, smart devices, identity checks, entertainment); tick the ones you make ("3 of 6"). Evidence per row, collapsed. The six art dials are derived from the ticks (`OracleContent.deriveEx`). The **Exchange simulator** is hidden for now; `?simulator=1` brings it back. |
-| 02 | **The Extraction** | Observed / inferred / unknown as a short vertical list. **Footprint checklist** (8 categories, details in an inline accordion). Optional **live sensor demo** (collapsed), the v1.2 protocol (`#sensors`). |
-| 03 | **The Machine** | Transparent systems map (activity → collection → combination → inference → recommendation → attention → activity) and an ecosystem map of documented roles and typed relations. |
-| 04 | **The Feedback Loop** | **Attention laboratory**: a toy ranker over ten fictional posts; edit what it rewards and watch attention concentrate. |
-| 05 | **The Revelation** | Your abstract choices become a deterministic artwork. Export 1080×1350 / 1080×1920 / 1080×1080 / 2160×2700 PNG, share, copy caption, restore by seed or link. |
+| — | **Start** | Says what you do, what you get, how long (about three minutes), and that nothing leaves the tab. One button: Begin. |
+| 1 | **Trade** (`#offer`) | Tick the everyday trades you make (6 rows; evidence per row behind the chevron). A live preview of your artwork in the header adds a red shard per trade. The six art dials are derived from the ticks (`OracleContent.deriveEx`); the **Exchange simulator** is hidden, `?simulator=1` brings it back. |
+| 2 | **Footprint** (`#extraction`) | Recorded / Guessed / Hidden in plain words, then tick the 8 footprint categories you have shared (each densifies the preview's lattice). Optional **live sensor demo** (collapsed), the v1.2 protocol (`#sensors`). |
+| 3 | **Loop** (`#machine`) | The seven steps of the loop as one list beside a ring illustration; each step's sourced claim behind its chevron. "Who is in this loop?" opens the company directory and documented relations in the Sources drawer. |
+| 4 | **Feed** (`#loop`) | Attention lab: pick Newest first / For you / Most engaging, read one sentence on how concentrated attention is, run rounds. The six raw weights sit in "Adjust the ranker yourself". |
+| 5 | **Artwork** (`#revelation`) | Your artwork, Save image and Share, and a legend written from your own answers with edit links. Format (1080×1350 / 1080×1920 / 1080×1080 / 2160×2700), copy link, clean view, seed, caption and history are under Options. |
 
 Every factual statement carries a provenance label — **VERIFIED** (with a source), **INFERRED**, **SIMULATED** or
-**UNKNOWN** — and the **SOURCES** drawer lists every source with publisher, date, URL and what it supports.
+**UNKNOWN** — and the **Sources** drawer (footer button) lists every source with publisher, date, URL and what it supports.
 
-### v1.2 protocol (preserved, inside 02)
+### v1.2 protocol (preserved, inside step 2 Footprint)
 
-Open it from 02 or go to `#sensors`. Identity (`#protocol`) is optional.
+Open it from Footprint or go to `#sensors`. Identity (`#protocol`) is optional.
 
 1. **Handshake** — wallet and/or WebAuthn (optional; spectral if denied). A connected wallet queries its own RPC node for the balance.
 2. **Harvest** — per-tile grant: geo · orientation · shake/g · GPU · CPU/memory · Bluetooth availability · camera meta · mic energy · battery · network · device profile. Each tile explains what it reads, where it is processed, and when it stops.

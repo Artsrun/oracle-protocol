@@ -77,7 +77,7 @@ window.OracleChapters = (() => {
     };
     sel.onchange = () => { if (typeof state !== 'undefined' && state.v2) state.v2.look = null; T.setPref(sel.value); };
     T.onChange(sync); sync();
-    document.querySelector('.hud-bar').appendChild(wrap);
+    document.getElementById('sitefoot').appendChild(wrap); // WP6: theme switch lives in the in-flow footer
   }
   // Hidden dev switch (?themelab): compare palettes and type pairings; writes ?palette=&type= and keeps the hash.
   function buildThemeLab() {
@@ -100,6 +100,8 @@ window.OracleChapters = (() => {
     buildDrawer();
     buildThemeLab();
     document.getElementById('phase-rail').addEventListener('click', (e) => {
+      const t = e.target.closest('.rail-toggle');
+      if (t) { const open = t.getAttribute('aria-expanded') !== 'true'; t.setAttribute('aria-expanded', open); t.parentElement.classList.toggle('open', open); return; }
       const b = e.target.closest('[data-go]');
       if (b) go(b.dataset.go);
     });
@@ -117,16 +119,20 @@ window.OracleChapters = (() => {
   // ── shared templates ────────────────────────────────────────────────────
   const esc = E.esc;
   // preview: caption text for the live artwork preview (WP2). The preview sits in the header, in page flow.
-  const chapterHead = (id, title, lead, preview) => `
+  // WP6: the H1 is the chapter's one name (same as the nav); the kicker says where you are.
+  const chapterHead = (id, lead, preview) => {
+    const P = PHASES.find(p => p.id === id) || { n: '', label: id };
+    return `
     <header class="ch-head${preview ? ' has-preview' : ''}">
-      <div class="stage-label">${(PHASES.find(p => p.id === id) || { n: '', label: id }).n} \u00b7 ${(PHASES.find(p => p.id === id) || { label: id }).label}</div>
-      <h1 class="ch-title">${title}</h1>
+      <div class="stage-label">Step ${P.n} of 5</div>
+      <h1 class="ch-title">${P.label}</h1>
       ${lead ? `<p class="ch-lead">${lead}</p>` : ''}
       ${preview ? `<figure class="preview">
         <canvas id="pv-canvas" width="216" height="270" role="img" aria-label="Your artwork so far"></canvas>
         <figcaption><span class="pv-kicker">Your artwork so far</span><span id="pv-cap" aria-live="polite">${preview}</span></figcaption>
       </figure>` : ''}
     </header>`;
+  };
   // Redraw the header preview from the current choices; optionally say what just changed (in visual terms).
   function drawPreview(caption) {
     const c = document.getElementById('pv-canvas');
@@ -138,7 +144,7 @@ window.OracleChapters = (() => {
   // the Next button is the screen's filled action; in-chapter actions are outlined.
   const chapterNav = (next) => {
     const N = PHASES.find(p => p.id === next);
-    return N ? `<nav class="ch-nav" aria-label="Next chapter"><button type="button" class="btn-primary btn-fill" data-goto="${N.id}">Next \u00b7 ${N.n} ${N.label} \u2192</button></nav>` : '';
+    return N ? `<nav class="ch-nav" aria-label="Next chapter"><button type="button" class="btn-primary btn-fill" data-goto="${N.id}">Next: ${N.label} \u2192</button></nav>` : '';
   };
   const slider = (id, name, value, hint, extra) => `
     <div class="slider">
@@ -148,7 +154,9 @@ window.OracleChapters = (() => {
     </div>`;
   const simNote = (text) => `<p class="sim-note">${E.badge('SIMULATED')} ${text || 'Illustrative model \u2014 not a measurement of you or any company\u2019s system.'}</p>`;
   // Progressive disclosure: detail lives in <details>; the summary shows the evidence labels inside.
-  const more = (summary, body, id, labels) => `<details class="more"${id ? ` id="${id}"` : ''}><summary>${summary}${labels ? ' ' + [...new Set(labels)].map(l => E.badge(l)).join(' ') : ''}</summary><div class="more-body">${body}</div></details>`;
+  // WP6: provenance badges appear only inside disclosures, next to the claim they label, not on the summary.
+  // (`labels` is kept in the signature so callers still document what a disclosure holds.)
+  const more = (summary, body, id, labels) => `<details class="more"${id ? ` id="${id}"` : ''}${labels ? ` data-labels="${[...new Set(labels)].join(' ')}"` : ''}><summary>${summary}</summary><div class="more-body">${body}</div></details>`;
 
   // v3: one list-row pattern (checkbox + title + one line + chevron disclosure), like a settings checklist.
   const chevron = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
@@ -219,10 +227,10 @@ window.OracleChapters = (() => {
   });
   function buildDrawer() {
     const btn = document.createElement('button');
-    btn.type = 'button'; btn.id = 'btn-sources'; btn.className = 'hud-sources';
-    btn.textContent = 'SOURCES'; btn.setAttribute('aria-haspopup', 'dialog');
+    btn.type = 'button'; btn.id = 'btn-sources'; btn.className = 'foot-btn';
+    btn.textContent = 'Sources'; btn.setAttribute('aria-haspopup', 'dialog');
     btn.onclick = () => openDrawer(null, btn);
-    document.querySelector('.hud-bar').appendChild(btn);
+    document.getElementById('sitefoot').prepend(btn); // WP6: out of the top bar, into the footer
 
     const d = document.createElement('div');
     d.id = 'sources-drawer'; d.className = 'drawer'; d.hidden = true;

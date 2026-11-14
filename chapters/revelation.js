@@ -146,8 +146,8 @@
     const hist = readHist();
     const canNative = typeof navigator.share === 'function';
     app.innerHTML = `<article class="chapter ch-revelation">
-      ${U.chapterHead('revelation', 'Your composition',
-        'Your choices from 01\u201304 \u2014 never sensor readings \u2014 became this one reproducible artwork.')}
+      ${U.chapterHead('revelation',
+        'Your choices from steps 1\u20134 \u2014 never sensor readings \u2014 became this one reproducible artwork.')}
       <div class="rev-grid">
         <div class="art-frame"><canvas id="art-canvas" role="img" aria-label="Generative artwork ${esc(p.s)}: ${esc(A.interpret(p))}"></canvas></div>
         <div class="rev-controls">

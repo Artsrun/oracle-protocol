@@ -66,7 +66,7 @@
     const sliders = [['e', 'Emotion'], ['r', 'Relevance'], ['w', 'Recency'], ['t', 'Repetition'], ['k', 'Social proof'], ['a', 'Amplification']];
     const cur = presetOf(L), S = sentence(L);
     app.innerHTML = `<article class="chapter ch-loop">
-      ${U.chapterHead('loop', 'Attention lab',
+      ${U.chapterHead('loop',
         'A toy ranker over ten fictional posts. Pick what it rewards, run rounds, watch attention concentrate.',
         'Pick a ranking or run a round to reshape it.')}
       ${U.simNote('Toy model \u2014 not any real algorithm, not evidence of manipulation, not a measurement of you.')}
@@ -78,8 +78,8 @@
         <p class="lab-sentence" id="lab-sentence" aria-live="polite" data-top3="${S.top3}">${S.html}</p>
         <div id="lab-feed">${feedHtml(L)}</div>
         <div class="btn-row">
-          <button type="button" class="btn-sm" id="lab-step">RUN A ROUND</button>
-          <button type="button" class="btn-sm" id="lab-reset">RESET ROUNDS</button>
+          <button type="button" class="btn-sm" id="lab-step">Run a round</button>
+          <button type="button" class="btn-sm" id="lab-reset">Reset rounds</button>
         </div>
         ${U.more('Adjust the ranker yourself', `<div class="lab-sliders">${sliders.map(([k, n]) => U.slider(k, n, L[k])).join('')}</div>`, 'lab-adjust')}
         ${U.more('Model rules', `<div id="lab-formula">${formulaHtml(L)}</div>`, null, ['SIMULATED'])}

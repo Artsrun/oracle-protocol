@@ -134,32 +134,51 @@ pixel-identical. Instrument because long evidence text in Plex Sans is markedly 
 without Syne 800's loudness; Plex Mono stays for data so the "instrument" texture survives. Almanac is the runner-up
 (beautiful, but a serif pulls the piece toward an editorial magazine rather than an observatory).
 
-## 5b. Simplification rules (iteration 3)
+## 5b. Simplification rules (iteration 3, revised by the handover UX pass WP1–WP6, 2026-11-14)
 
 1. **One colour, one meaning.**
-   * signal = interactive / observed / VERIFIED
+   * signal = interactive / VERIFIED / current position
    * trace (amber) = INFERRED only
-   * alert = DENIED
+   * alert = DENIED (and the artwork's red shards, one per trade)
    * sim = SIMULATED
    * dashed ink = UNKNOWN / UNAVAILABLE
    * focus = ink-hi
-2. **One primary action per screen**, shown as the only filled button. Everything else is outlined or a text link.
-3. **One navigation pattern**: the phase rail plus a forward-only `Next · NN LABEL →`. There are no Back buttons; going back is done from the rail.
-4. **Progressive disclosure**: evidence, formulas, model rules and reference tables go in `<details class="more">` (`U.more`).
-   The summary always shows the evidence badges of what is inside.
-5. **Copy budget**: a chapter lead is at most 2 short sentences. Headings are 1–4 words. Slider rows carry no hints.
-6. **The v1.2 demo is part of 02**: it is labelled `02 · LIVE DEMO · …` and reached only from 02 (`#sensors`). Identity (`#protocol`) is optional.
-7. **Badges are honest**: LIVE only after a real event. DENIED = refused. UNAVAILABLE = no such sensor, device or API. OK = read. TAP = not asked yet.
+   * The information kinds in step 2 (Recorded / Guessed / Hidden) are plain ink words, never coloured like provenance badges.
+2. **One primary action per screen**, shown as the only filled button. In steps 1–4 it is always the Next button
+   (`Next: Name →`, same style everywhere); in-chapter actions (Run a round, Reset rounds) are outlined. In step 5 it is Save image.
+3. **One navigation pattern**: the chapter nav in the app bar plus a forward-only Next button. No Back buttons.
+   On phones the nav is one in-flow button reading "Step N of 5 · Name" with a five-segment progress meter; it opens the
+   list of chapters below it (pushing content down, never overlaying). Visited chapters carry a tick; the current one has `aria-current="step"`.
+4. **Show the result from the first tick.** The seed exists from the first chapter. Steps 1, 2 and 4 show a small in-flow
+   preview of the artwork in the header, redrawn on every input, with one `aria-live` line naming the change in visual terms.
+5. **One job per screen.** Prefer removing or relocating over collapsing: the company directory and relations live in the
+   Sources drawer ("Who is in this loop?"); the lab leads with three presets and one result sentence, raw weights in a disclosure;
+   the artwork screen shows two actions and a legend, everything else under Options.
+6. **Progressive disclosure**: evidence, formulas, model rules and reference tables go in `<details class="more">` (`U.more`)
+   or behind a row chevron. Provenance badges sit next to the claim they label, inside the disclosure; summaries carry no badges.
+   Visible exceptions, kept on purpose: the SIMULATED note on a toy model, and the lab's two headline claims.
+7. **Copy budget**: a chapter lead is at most 2 short sentences. Headings are 1–4 words. Slider rows carry no hints.
+8. **Type and targets**: theme tokens only; at most 6 font sizes per screen; nothing under 12 px (badges 12 px too);
+   uppercase tracked mono only for provenance badges and the chapter kicker. Buttons, selects, nav items and row controls
+   ≥ 44 px; inline citation links ≥ 24 px.
+9. **Chrome**: the app bar (≤ 56 px) holds the brand and chapter nav only; theme switch and Sources sit in an in-flow footer.
+   Nothing fixed or sticky over content.
+10. **The v1.2 demo is part of step 2**: it is labelled `Step 2 of 5 · Footprint · live demo · …` and reached only from Footprint (`#sensors`). Identity (`#protocol`) is optional.
+11. **Badges are honest**: LIVE only after a real event. DENIED = refused. UNAVAILABLE = no such sensor, device or API. OK = read. TAP = not asked yet.
 
-Glossary (same words in every chapter, the HUD and the v1.2 screens):
-* **Exchange**: something you give for a service (01).
-* **Observed / Inferred / Unknown**: what is collected, what is guessed from it, and what cannot be known (02).
-* **The loop**: collect → combine → infer → recommend → attention (03).
-* **Round**: one ranking pass in the attention lab (04).
-* **Composition**: the artwork. It has a **seed** (`ORACLE-XXXX-XXXX`) and a **composition id** (`C-…`) (05).
-* **Look**: palette · Night/Day · type.
-* **Dials**: Disclosure, Convenience, Personalization, Dependency, Exposure, Influence (01); Emotion, Relevance, Recency,
-  Repetition, Social proof, Amplification (04).
+Glossary (one name per thing; the same words in the nav, the kicker, the H1 and the v1.2 screens):
+* **Chapters**: Start, then Trade (1, `#offer`), Footprint (2, `#extraction`), Loop (3, `#machine`), Feed (4, `#loop`),
+  Artwork (5, `#revelation`). Route ids are unchanged so old links work.
+* **Trade**: something you give for a service (step 1). Each one adds a red shard to the artwork.
+* **Recorded / Guessed / Hidden**: what is collected, what is computed from it, and what no outsider can know (step 2).
+  These are kinds of information, not provenance labels.
+* **VERIFIED / INFERRED / SIMULATED / UNKNOWN**: provenance labels only — how sure this site is of a claim and why.
+* **Loop**: the seven steps activity → collection → combination → inference → recommendation → attention allocation → further activity (step 3).
+* **Feed presets**: Newest first, For you, Most engaging (step 4). **Round**: one ranking pass in the toy feed.
+* **Artwork**: the composition. It has a **seed** (`ORACLE-XXXX-XXXX`) and a **composition id** (`C-…`), both under Options (step 5).
+* **Look**: palette · Night/Day · type (under Options).
+* **Dials**: Disclosure, Convenience, Personalization, Dependency, Exposure, Influence (step 1, derived from trades;
+  sliders only with `?simulator=1`); Emotion, Relevance, Recency, Repetition, Social proof, Amplification (step 4, "Adjust the ranker yourself").
 
 ## 6. Privacy guarantees (handover §2, §9)
 

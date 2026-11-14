@@ -314,3 +314,62 @@ details.more.quiet{border-top:0;margin-top:6px}
 .legend-list{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}
 .legend-list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-family:var(--font-body);font-size:var(--fs-sm);line-height:1.45;color:var(--ink)}
 .legend-list .cite{flex:0 0 auto}
+
+/* ── WP6: names, chrome, type ──────────────────────────────────────────────
+ * App bar = brand + chapter nav only (≤ 56 px). Theme switch + Sources live in an in-flow footer.
+ * Type: tokens only (12 xs · 13 sm · body · lead · h3 · h1); nothing under 12 px; uppercase tracked mono only
+ * for provenance badges and the chapter kicker. Touch targets ≥ 44 px (inline citations ≥ 24 px). */
+body{display:flex;flex-direction:column}
+#app{flex:1 0 auto;min-height:0}
+.appbar{flex-wrap:nowrap;align-items:center;gap:10px 14px;padding:calc(var(--safe-t) + 6px) clamp(12px,3vw,24px) 5px}
+.hud-brand{font-size:var(--fs-xs);letter-spacing:.2em;color:var(--ink-2)}
+.appbar .phase-rail{order:1;flex:1 1 auto;flex-basis:auto;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:0;min-width:0}
+.rail-toggle{flex:1 1 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:0 12px;font-family:var(--font-body);font-size:var(--fs-sm);color:var(--ink);background:transparent;border:1px solid var(--line);cursor:pointer;text-align:left}
+.rail-toggle:focus-visible{outline:2px solid var(--ink-hi);outline-offset:2px}
+.rail-meter{display:flex;gap:3px;flex:0 0 auto}
+.rail-meter i{display:block;width:14px;height:4px;background:color-mix(in srgb,var(--ink) 22%,transparent)}
+.rail-meter i.done{background:var(--ink-2)}
+.rail-meter i.on{background:var(--signal)}
+.rail-list{display:none;list-style:none;margin:0;padding:0}
+.phase-rail.open .rail-list{display:flex;flex-direction:column;flex-basis:100%;margin-top:6px;border:1px solid var(--line)}
+.appbar .phase-pip{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:0 12px;font-family:var(--font-body);font-size:var(--fs-sm);letter-spacing:0;text-transform:none;color:var(--ink);background:transparent;border:0;border-radius:0;flex:none}
+.appbar .phase-pip.on{flex:none;color:var(--bg);background:var(--signal)}
+.appbar .phase-pip.done{color:var(--ink)}
+.appbar .phase-pip .pip-l{display:inline}
+.pip-mark{color:var(--signal);font-weight:600}
+@media(min-width:760px){
+  .rail-toggle{display:none}
+  .rail-list,.phase-rail.open .rail-list{display:flex;flex-direction:row;flex-basis:auto;margin:0;border:0;gap:2px}
+  .appbar .phase-pip{width:auto}
+}
+.sitefoot{position:relative;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:12px clamp(12px,3vw,24px) calc(var(--safe-b) + 12px);border-top:1px solid var(--line);background:var(--bg);font-family:var(--font-body);font-size:var(--fs-sm);color:var(--ink-2)}
+.foot-note{margin-right:auto}
+.foot-btn{font-family:var(--font-body);font-size:var(--fs-sm);color:var(--ink);background:transparent;border:1px solid color-mix(in srgb,var(--ink) 40%,transparent);min-height:44px;padding:0 14px;cursor:pointer}
+.foot-btn:hover{border-color:var(--ink)}
+.foot-btn:focus-visible{outline:2px solid var(--ink-hi);outline-offset:2px}
+.sitefoot .theme-switch select{font-family:var(--font-body);font-size:var(--fs-sm);letter-spacing:0;text-transform:none;min-height:44px;padding:0 10px;color:var(--ink);border-color:color-mix(in srgb,var(--ink) 40%,transparent)}
+body[data-stage=art] .sitefoot{display:none}
+/* type */
+.prov{font-size:var(--fs-xs)}
+.ch-head .stage-label{font-family:var(--font-mono);font-size:var(--fs-xs);letter-spacing:.2em;text-transform:uppercase}
+.kinds dt,.kv dt{font-family:var(--font-body);font-size:var(--fs-sm);letter-spacing:0;font-weight:600;color:var(--ink);padding-top:0}
+.mini-label{font-family:var(--font-body);font-size:var(--fs-xs);letter-spacing:0;text-transform:none;color:var(--ink-2)}
+details.more>summary{font-family:var(--font-body);font-size:var(--fs-sm);letter-spacing:0;text-transform:none;min-height:44px}
+.btn-sm{letter-spacing:.03em}
+#app .btn-primary{font-size:var(--fs-sm);letter-spacing:.06em;text-transform:none}
+.rel-table th{font-size:var(--fs-xs);letter-spacing:0}
+.oracle-sub{font-size:var(--fs-xs)}
+.seg button,.check{min-height:44px}
+input[type=range]{min-height:44px}
+.ch-machine .ring .loopviz{max-width:208px}
+.loopviz text{font-size:19px}
+@media(max-width:859px){.ch-machine .machine-grid{gap:10px}}
+@media(min-width:860px){.ch-machine .ring .loopviz{max-width:380px}}
+/* the whole row is the checkbox's label: ≥ 44 px tall target */
+.row-main{padding:0 8px 0 16px;align-items:stretch}
+.row-main>.row-check,.row-main>.row-exp,.row-main>.row-num{align-self:center}
+.row-text{padding:12px 0;justify-content:center}
+@media(max-width:480px){.row-main{padding-left:12px}}
+.cite{min-width:24px}
+#app{padding-bottom:calc(var(--safe-b) + 24px)}
+@media(max-width:480px){.foot-note{display:none}}

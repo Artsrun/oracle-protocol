@@ -4,9 +4,9 @@
   const E = OracleEvidence, C = OracleContent, U = OracleChapters.ui;
 
   const detail = (c) => `<dl class="kv">
-      <dt class="c-obs">OBSERVED</dt><dd>${c.observed}</dd>
-      <dt class="c-der">INFERRED</dt><dd>${c.derived}</dd>
-      <dt class="c-unk">UNKNOWN</dt><dd>${c.unknown}</dd>
+      <dt>Recorded</dt><dd>${c.observed}</dd>
+      <dt>Guessed</dt><dd>${c.derived}</dd>
+      <dt>Hidden</dt><dd>${c.unknown}</dd>
     </dl>
     ${E.claim('INFERRED', '<b>Possible uses:</b> ' + c.use)}
     ${E.claim(c.doc.label, c.doc.text, c.doc.src)}
@@ -17,19 +17,19 @@
     const denied = Object.values(state.collected || {}).filter(g => g && g.error).length;
     const tried = granted || denied;
     app.innerHTML = `<article class="chapter ch-extraction">
-      ${U.chapterHead('extraction', 'Observed, inferred, unknown',
-        'Systems record a little and infer a lot. Some of it no outsider can know.',
+      ${U.chapterHead('extraction',
+        'Systems record a little and guess a lot. Some of it no outsider can know.',
         'Tick a category to make the lattice denser.')}
       <dl class="kinds" aria-label="Three kinds of information">
-        <div><dt class="c-obs">OBSERVED</dt><dd>Recorded directly: clicks, searches, location.</dd></div>
-        <div><dt class="c-der">INFERRED</dt><dd>Computed from that: interests, traits, ties.</dd></div>
-        <div><dt class="c-unk">UNKNOWN</dt><dd>Who holds copies, for how long, how models weigh you.</dd></div>
+        <div><dt>Recorded</dt><dd>Taken directly: clicks, searches, location.</dd></div>
+        <div><dt>Guessed</dt><dd>Computed from that: interests, traits, ties.</dd></div>
+        <div><dt>Hidden</dt><dd>Who holds copies, for how long, how models weigh you.</dd></div>
       </dl>
       ${U.more('Evidence',
         E.claim('VERIFIED', 'Facebook Likes alone told Democrats from Republicans with 85% accuracy (58,000+ volunteers).', ['kosinski13']) +
         E.claim('VERIFIED', 'No company in the FTC\u2019s 2024 study gave a full list of the third parties it shared personal data with.', ['ftc6b']), 'ex-evidence')}
 
-      <h2 id="fp-title" class="section-title">Your footprint</h2>
+      <h2 id="fp-title" class="section-title">What have you shared?</h2>
       <p class="list-hint">Tick what you\u2019ve shared online. Nothing is read from your device.</p>
       ${U.tally('fp-count', 'shared')}
       <ul class="rows" aria-labelledby="fp-title">
@@ -47,8 +47,8 @@
           <p>See what this browser exposes, one permission at a time. Readings stay in this tab and never reach the artwork.
           ${tried ? `<br><b>So far:</b> ${granted} read, ${denied} denied or unavailable.` : ''}</p>
           <div class="btn-row">
-            <button type="button" class="btn-sm" id="btn-live">OPEN SENSOR DEMO</button>
-            ${granted ? `<button type="button" class="btn-sm" id="btn-witness">VIEW PORTRAIT</button>` : ''}
+            <button type="button" class="btn-sm" id="btn-live">Open sensor demo</button>
+            ${granted ? `<button type="button" class="btn-sm" id="btn-witness">View portrait</button>` : ''}
           </div>
         </div>
       </details>

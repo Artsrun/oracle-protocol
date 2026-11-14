@@ -404,3 +404,70 @@ Environment: headless Google Chrome (`/usr/bin/google-chrome`), Playwright-core,
 
 Outputs: `/workspace/oracle-qa/handover-ux/before/` (`load-{dark,light}/` screenshots + `load.json`,
 `qa-{dark,light}/`, `contrast.json`).
+
+### WP1–WP6 results (after WP6, same machine and tools as WP0)
+
+- Unit tests: **14/14** (unchanged; no engine or content-model change).
+- `qa.mjs`: **119/119** dark, **119/119** light (85 → 119: 40 checks added, 6 replaced, listed below).
+- Contrast: **0 failing of 4,476** text elements (now also the footer and the drawer's opened directory/relations),
+  minimum **5.09** (unchanged).
+- axe-core WCAG 2.1 A/AA: **0 violations on 15 screens** per scheme.
+- Determinism: all fixed-reference PNGs (portrait, story, square, hi-res, mobile story) are **byte-identical to WP0** in
+  both schemes. `art/oracle-art.js` untouched. Zero non-localhost requests in every run.
+- Preview redraw at 216 × 270, every parameter at maximum (25 draws, headless desktop CPU): median **7.6 ms**, worst
+  **28.9 ms** (dark); **8.4 / 34.5 ms** (light).
+
+`load.mjs` before → after, 390 × 844, Night:
+
+| Screen | Words | Controls | App-bar controls | Disclosures | Targets < 44 px | Font sizes (px) | Smallest px | Uppercase labels | App bar px | Page length (viewports) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 00-approach mobile | 27 → **47** | 1 | 8 → **1** | 0 | 8 → **0** | 11/13/16/43 → **12/13/14/16/43** | 11 → **12** | 3 → **2** | 87 → **56** | 1.1 → **1** |
+| 01-offer mobile | 80 → **90** | 13 | 8 → **1** | 6 | 13 → **0** | 11/13/14/16/30 → **12/13/14/16/30** | 11 → **12** | 2 → **1** | 87 → **56** | 1.1 → **1.2** |
+| 02-extraction mobile | 114 → **127** | 19 | 8 → **1** | 10 | 18 → **0** | 10/11/12/13/14/16/18/30 → **12/13/14/16/18/30** | 10 → **12** | 7 → **1** | 87 → **56** | 1.6 → **1.8** |
+| 03-machine mobile | 236 → **103** | 31 → **9** | 8 → **1** | 1 → **7** | 30 → **1** | 9/10/11/12/13/14/16/18/30 → **12/13/14/16/19/30** | 9 → **12** | 7 → **1** | 87 → **56** | 2.7 → **1.5** |
+| 04-loop mobile | 200 → **215** | 14 → **11** | 8 → **1** | 2 → **3** | 18 → **2** | 10/11/12/13/14/16/18/24/30 → **12/13/14/16/18/30** | 10 → **12** | 17 → **4** | 91 → **56** | 2.5 → **2** |
+| 05-revelation mobile | 96 → **99** | 11 → **9** | 8 → **1** | 2 → **1** | 15 → **6** | 11/12/13/14/16/30 → **12/13/16/18/30** | 11 → **12** | 10 → **1** | 87 → **56** | 1.7 → **1.5** |
+| 02b-sensors mobile | 52 → **56** | 16 | 8 → **1** | 1 | 11 → **3** | 10/11/12/13/25 | 10 | 26 → **25** | 87 → **56** | 1.4 |
+
+1280 × 860, Night:
+
+| Screen | Words | Controls | App-bar controls | Disclosures | Targets < 44 px | Font sizes (px) | Smallest px | Uppercase labels | App bar px | Page length (viewports) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 00-approach desktop | 27 → **47** | 1 | 8 → **6** | 0 | 8 → **0** | 11/12/13/18/67 → **12/13/16/18/67** | 11 → **12** | 3 → **2** | 49 → **56** | 1.1 → **1** |
+| 01-offer desktop | 80 → **90** | 13 | 8 → **6** | 6 | 14 → **0** | 11/12/13/16/18/48 → **12/13/16/18/48** | 11 → **12** | 2 → **1** | 49 → **56** | 1.1 → **1.3** |
+| 02-extraction desktop | 114 → **127** | 19 | 8 → **6** | 10 | 18 → **0** | 10/11/12/13/16/18/20/48 → **12/13/16/18/20/48** | 10 → **12** | 7 → **1** | 49 → **56** | 1.4 → **1.7** |
+| 03-machine desktop | 236 → **103** | 31 → **9** | 8 → **6** | 1 → **7** | 31 → **1** | 9/10/11/12/13/16/18/20/48 → **12/13/16/18/19/48** | 9 → **12** | 7 → **1** | 49 → **56** | 1.9 → **1.1** |
+| 04-loop desktop | 200 → **215** | 14 → **11** | 8 → **6** | 2 → **3** | 18 → **2** | 10/11/12/13/16/18/20/24/48 → **12/13/16/18/20/48** | 10 → **12** | 17 → **4** | 49 → **56** | 1.6 → **2** |
+| 05-revelation desktop | 96 → **99** | 11 → **9** | 8 → **6** | 2 → **1** | 15 → **6** | 11/12/13/16/18/48 → **12/13/18/20/48** | 11 → **12** | 10 → **1** | 49 → **56** | 1.2 |
+| 02b-sensors desktop | 52 → **56** | 16 | 8 → **6** | 1 | 11 → **3** | 10/11/12/13/25 | 10 | 26 → **25** | 49 → **56** | 1.1 → **1** |
+
+Targets under 44 px after WP6 are inline citation links only (`.cite`: "edit", "Who is in this loop? →", citations);
+none is under 24 px. Against the §9 aims (worst chapter): font sizes 9 → **6** (aim 6), smallest text 9 → **12 px**
+(aim 12), uppercase labels 17 → **4** (aim 6), app bar 87 → **56 px** (aim 56), controls 31 → **19** (aim 12; 02 has
+8 checkboxes + 8 chevrons), page length 2.7 → **2.0** (Feed; aim 2.0 for the lab), but 02 Footprint grew 1.6 → **1.8**
+(aim 1.5) because of the preview and the footer, and visible words 236 → **215** (aim 100; Feed: ten feed rows with
+shares, the result sentence and the two headline claims).
+
+Checks replaced (design changed on purpose; none is a privacy, determinism, contrast or axe check):
+
+| Old check | New check | Why |
+|---|---|---|
+| machine: node stepping + relation filter | machine: step disclosure shows its sourced claim and marks the ring; relation filter (now in the drawer) | WP4 replaced the button list + detail panel with a stepper; relations moved to the drawer |
+| loop: chronological baseline lowers concentration | loop: Newest first preset (the chronological baseline) lowers concentration | WP3: the CHRONOLOGICAL button became the Newest first preset |
+| reduced motion: PLAY THE LOOP disabled | reduced motion: nothing animates on 03 Machine | WP4 removed PLAY THE LOOP |
+| mobile: phase-rail targets ≥ 24px tall | mobile: chapter-nav target ≥ 44px tall | WP6 raised the target size |
+| names match: chapter kicker "NN · LABEL" equals HUD "NN LABEL" | names match: nav label = H1; kicker "Step N of 5"; HUD "Step N of 5 · Name" | WP6: one plain name per chapter |
+| v1.2 demo screens are labelled as part of 02 | … labelled as part of step 2 | WP6 rename |
+
+Changed in place: the lab flow reads the top-3 share from the result sentence (`data-top3`) instead of the removed
+metric tiles; export/format/clean-view steps open Options first (WP5); the mobile journey opens the phone nav before
+tapping a chapter (WP6); the extraction accordion check looks for "Recorded" instead of "OBSERVED" (WP6); the WP1 ring
+label check measures rendered font size (SVG font-size × scale) rather than bounding-box height (stricter).
+`contrast.mjs` now also measures the footer and opens the drawer's disclosures.
+
+Screenshots: `/workspace/oracle-qa/handover-ux/{before,after}/load-{dark,light}/` (every chapter, 390 and 1280,
+first viewport `*-fold.png` and full page), side-by-side sheets `/workspace/oracle-qa/handover-ux/compare/{mobile,desktop}-{dark,light}-{fold,full}.png`.
+
+Not done / not verified: WP7 (needs the owner's go-ahead). Real phones, Safari, Firefox and Brave are still untested
+(headless Chromium only). Native share is still only exercised with a stubbed `navigator.share`. The v1.2 sensor
+screens (`#sensors`, `#protocol`) were only renamed; their 10–11 px uppercase labels remain (out of scope).

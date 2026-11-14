@@ -114,31 +114,42 @@ const state = {
   fingerprint: null
 };
 
-// v2: five chapters + approach. The v1.2 protocol (handshake → harvest → witness) lives inside 02 EXTRACTION.
+// v2: five chapters + approach. The v1.2 protocol (handshake → harvest → witness) lives inside step 2 (Footprint).
+// WP6: one plain name per chapter, used by the nav, the kicker ("Step N of 5") and the H1. Route ids do not change.
 const PHASES = [
-  { id: 'approach', n: '00', label: 'APPROACH' },
-  { id: 'offer', n: '01', label: 'OFFER' },
-  { id: 'extraction', n: '02', label: 'EXTRACTION' },
-  { id: 'machine', n: '03', label: 'MACHINE' },
-  { id: 'loop', n: '04', label: 'FEEDBACK LOOP' },
-  { id: 'revelation', n: '05', label: 'REVELATION' }
+  { id: 'approach', n: '0', label: 'Start' },
+  { id: 'offer', n: '1', label: 'Trade' },
+  { id: 'extraction', n: '2', label: 'Footprint' },
+  { id: 'machine', n: '3', label: 'Loop' },
+  { id: 'loop', n: '4', label: 'Feed' },
+  { id: 'revelation', n: '5', label: 'Artwork' }
 ];
 const LEGACY_PARENT = { handshake: 'extraction', permissions: 'extraction', portrait: 'extraction', art: 'revelation' };
+const stepName = (P) => P.id === 'approach' ? P.label : `Step ${P.n} of 5 \u00b7 ${P.label}`;
+const visited = new Set();
 
 const syncHud = () => {
   if (state.stage !== 'approach' && cosmosRaf) settleCosmos(); // chapters: static background, no motion
-  // One naming scheme everywhere: "NN LABEL" (HUD, rail, chapter kicker). The v1.2 demo is part of 02.
-  const P = PHASES.find(p => p.id === (LEGACY_PARENT[state.stage] || state.stage));
+  const cur = LEGACY_PARENT[state.stage] || state.stage;
+  const P = PHASES.find(p => p.id === cur);
+  if (P && P.id !== 'approach') visited.add(P.id);
   const el = document.getElementById('hud-phase');
-  if (el) el.textContent = state.stage === 'art' ? 'ARTWORK' : P ? (P.id === 'approach' ? P.label : `${P.n} ${P.label}`) + (LEGACY_PARENT[state.stage] === 'extraction' ? ' \u00b7 LIVE DEMO' : '') : state.stage;
+  if (el) el.textContent = state.stage === 'art' ? 'Artwork' : P ? stepName(P) + (LEGACY_PARENT[state.stage] === 'extraction' ? ' \u00b7 live demo' : '') : state.stage;
   const rail = document.getElementById('phase-rail');
   if (!rail) return;
-  const cur = LEGACY_PARENT[state.stage] || state.stage;
-  const idx = PHASES.findIndex(p => p.id === cur);
-  rail.innerHTML = PHASES.map((p, i) => {
-    const cls = i === idx ? 'on' : i < idx ? 'done' : '';
-    return `<button type="button" class="phase-pip ${cls}" data-go="${p.id}" ${i === idx ? 'aria-current="step"' : ''} aria-label="${p.n} ${p.label}"><span class="pip-n">${p.n}</span><span class="pip-l"> ${p.label}</span></button>`;
-  }).join('');
+  rail.classList.remove('open');
+  // Phone: one in-flow button reads "Step 2 of 5 · Footprint" and opens the list below it (pushes content down,
+  // never overlays). Wider screens show the list inline. Visited chapters carry a tick.
+  const chapters = PHASES.filter(p => p.id !== 'approach');
+  rail.innerHTML = `<button type="button" class="rail-toggle" aria-expanded="false" aria-controls="rail-list">
+      <span class="rail-now">${P ? stepName(P) : 'Chapters'}</span>
+      <span class="rail-meter" aria-hidden="true">${chapters.map(p => `<i class="${p.id === cur ? 'on' : visited.has(p.id) ? 'done' : ''}"></i>`).join('')}</span>
+      <span class="vh">, all chapters</span>
+    </button>
+    <ol class="rail-list" id="rail-list">${PHASES.map(p => {
+      const on = p.id === cur, done = !on && visited.has(p.id);
+      return `<li><button type="button" class="phase-pip ${on ? 'on' : done ? 'done' : ''}" data-go="${p.id}" ${on ? 'aria-current="step"' : ''}>${done ? '<span class="pip-mark" aria-hidden="true">\u2713</span>' : ''}<span class="pip-l">${p.label}</span>${done ? '<span class="vh"> (visited)</span>' : ''}</button></li>`;
+    }).join('')}</ol>`;
 };
 
 const getCanvasFingerprint = () => {

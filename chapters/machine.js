@@ -26,7 +26,7 @@
   OracleChapters.register('machine', (app) => {
     active = -1;
     app.innerHTML = `<article class="chapter ch-machine">
-      ${U.chapterHead('machine', 'The loop',
+      ${U.chapterHead('machine',
         'A conceptual flow, not any one company\u2019s system. Seven steps, then it starts again.')}
       <div class="machine-grid">
         <div class="ring" id="loop-svg">${loopSvg()}</div>

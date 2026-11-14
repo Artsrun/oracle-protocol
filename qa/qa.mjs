@@ -146,7 +146,7 @@ let seed1, id1, params1;
   check('extraction: footprint is a vertical checklist (8 rows), details collapsed', await page.evaluate(() => document.querySelectorAll('#app [data-fp]').length === 8 && [...document.querySelectorAll('#app .row-more')].every(m => m.hidden) && !document.querySelector('.cat-list')));
   await page.click('[data-fp="1"]'); await page.click('[data-fp="3"]');
   await page.click('.row:has(#fp-purchases) .row-exp');
-  check('extraction: footprint checkboxes + inline accordion details', await page.evaluate(() => state.v2.footprint === 0b1010 && !document.getElementById('fp-purchases-more').hidden && document.getElementById('fp-purchases-more').textContent.includes('OBSERVED') && document.querySelector('.tally').textContent.trim().startsWith('2 of 8')));
+  check('extraction: footprint checkboxes + inline accordion details', await page.evaluate(() => state.v2.footprint === 0b1010 && !document.getElementById('fp-purchases-more').hidden && document.getElementById('fp-purchases-more').textContent.includes('Recorded') && document.querySelector('.tally').textContent.trim().startsWith('2 of 8')));
   check('extraction: live sensor demo collapsed by default', await page.evaluate(() => !document.getElementById('live-more').open));
   await page.screenshot({ path: `${QA}/shots/desktop/02-extraction.png`, fullPage: true });
   await axe(page, 'extraction');
@@ -263,6 +263,7 @@ let seed1, id1, params1;
   await page.screenshot({ path: `${QA}/shots/mobile/00-approach.png` });
   const overflow = {};
   for (const [i, ch] of ['offer', 'extraction', 'machine', 'loop', 'revelation'].entries()) {
+    await page.tap('.rail-toggle'); await settle(page, 150); // WP6: phone nav = "Step N of 5 · Name" button that opens the list
     await page.tap(`[data-go="${ch}"]`); await settle(page, ch === 'revelation' ? 1800 : 500);
     overflow[ch] = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     await page.screenshot({ path: `${QA}/shots/mobile/0${i + 1}-${ch}.png`, fullPage: true });
@@ -270,7 +271,7 @@ let seed1, id1, params1;
     await axe(page, 'mobile-' + ch);
   }
   check('mobile: no horizontal overflow in any chapter', Object.values(overflow).every(v => v <= 0), overflow);
-  const pipH = await page.$eval('.phase-pip', e => e.getBoundingClientRect().height);
+  const pipH = await page.$eval('.rail-toggle', e => e.getBoundingClientRect().height);
   await page.tap('#btn-sources'); await settle(page);
   check('mobile: sources drawer usable full-width', await page.$eval('.drawer-panel', e => e.getBoundingClientRect().width) >= 380);
   await page.screenshot({ path: `${QA}/shots/mobile/06-sources-drawer.png` });
@@ -284,7 +285,7 @@ let seed1, id1, params1;
   check('mobile: story export 1080×1920 works', R.exports['mobile-story'].w === 1080 && R.exports['mobile-story'].h === 1920, { exportMs });
   const perf = await page.evaluate(() => { const p = OracleArt.normalize({ ...OracleChapters.artParams(), d: 100, f: 255, o: 63, e: 100, r: 100, t: 100, k: 100, a: 100, n: 12 }); const c = document.createElement('canvas'); c.width = 1080; c.height = 1920; const t = performance.now(); const s = OracleArt.compose(p, 1080 / 1920); const t1 = performance.now(); OracleArt.render(c.getContext('2d'), s, 1080, 1920, {}); return { compose: +(t1 - t).toFixed(1), render: +(performance.now() - t1).toFixed(1), prims: s.layers.reduce((a, L) => a + L.items.length, 0) }; });
   check('perf (desktop CPU, mobile emulation – not a real phone): max-density story compose+render', perf.compose + perf.render < 1000, perf);
-  check('mobile: phase-rail targets ≥ 24px tall', pipH >= 24, { pipH });
+  check('mobile: chapter-nav target ≥ 44px tall (WP6; was ≥ 24 px)', pipH >= 44, { pipH });
   await ctx.close();
 }
 
@@ -363,12 +364,14 @@ let seed1, id1, params1;
   for (const r of ['', '#offer', '#extraction', '#machine', '#loop', '#revelation', '#sensors', '#protocol']) {
     await page.goto(BASE + r); await settle(page, 500);
     per[r || '#approach'] = await page.evaluate(() => ({ filled: [...document.querySelectorAll('#app .btn-fill, #app .btn-sm.primary')].filter(b => b.getClientRects().length).length,
-      backNav: document.querySelectorAll('#app .ch-nav button').length, kicker: document.querySelector('#app .stage-label')?.textContent || '', hud: document.getElementById('hud-phase').textContent }));
+      backNav: document.querySelectorAll('#app .ch-nav button').length, kicker: document.querySelector('#app .stage-label')?.textContent || '', hud: document.getElementById('hud-phase').textContent,
+      h1: document.querySelector('#app h1')?.textContent || '', nav: document.querySelector('.phase-pip[aria-current]')?.textContent.replace(/\s*\(visited\)/, '').replace('\u2713', '').trim() }));
   }
   check('one filled (primary) action per screen at most', Object.values(per).every(v => v.filled <= 1), per);
   check('chapters: forward-only chapter nav (back = phase rail)', ['#offer', '#extraction', '#machine', '#loop'].every(k => per[k].backNav === 1) && per['#revelation'].backNav === 0, Object.fromEntries(Object.entries(per).map(([k, v]) => [k, v.backNav])));
-  check('names match: chapter kicker "NN · LABEL" equals HUD "NN LABEL"', ['#offer', '#extraction', '#machine', '#loop', '#revelation'].every(k => per[k].kicker.replace(' \u00b7 ', ' ') === per[k].hud), Object.fromEntries(Object.entries(per).map(([k, v]) => [k, [v.kicker, v.hud]])));
-  check('v1.2 demo screens are labelled as part of 02 (no competing PHASE numbering)', per['#sensors'].kicker.startsWith('02') && per['#protocol'].kicker.startsWith('02') && per['#sensors'].hud.includes('02 EXTRACTION'), [per['#sensors'], per['#protocol']]);
+  // WP6: one name per chapter — nav label = H1, kicker = "Step N of 5", HUD = "Step N of 5 · Name".
+  check('names match: nav label = H1; kicker "Step N of 5"; HUD "Step N of 5 · Name"', ['#offer', '#extraction', '#machine', '#loop', '#revelation'].every((k, i) => per[k].h1 === per[k].nav && per[k].kicker === `Step ${i + 1} of 5` && per[k].hud === `Step ${i + 1} of 5 \u00b7 ${per[k].h1}`) && ['Trade', 'Footprint', 'Loop', 'Feed', 'Artwork'].join() === ['#offer', '#extraction', '#machine', '#loop', '#revelation'].map(k => per[k].h1).join(), Object.fromEntries(Object.entries(per).map(([k, v]) => [k, [v.kicker, v.h1, v.nav, v.hud]])));
+  check('v1.2 demo screens are labelled as part of step 2 (no competing numbering)', per['#sensors'].kicker.startsWith('Step 2 of 5 \u00b7 Footprint') && per['#protocol'].kicker.startsWith('Step 2 of 5 \u00b7 Footprint') && per['#sensors'].hud.includes('Footprint'), [per['#sensors'], per['#protocol']]);
   await ctx.close();
 }
 
@@ -415,11 +418,12 @@ let seed1, id1, params1;
     await page.goto(BASE + '#machine'); await settle(page, 400);
     out['diagram-' + w] = await page.evaluate(() => {
       const svg = document.querySelector('.loopviz'), sr = svg.getBoundingClientRect();
-      return [...svg.querySelectorAll('text')].map(t => { const r = t.getBoundingClientRect(); return { t: t.textContent, px: +(r.height).toFixed(1), inside: r.left >= sr.left - 0.5 && r.right <= sr.right + 0.5 && r.top >= sr.top - 0.5 && r.bottom <= sr.bottom + 0.5 }; });
+      const k = sr.width / svg.viewBox.baseVal.width; // rendered font size = SVG font-size × scale (WP6: stricter than bbox height)
+      return [...svg.querySelectorAll('text')].map(t => { const r = t.getBoundingClientRect(); return { t: t.textContent, px: +(parseFloat(getComputedStyle(t).fontSize) * k).toFixed(1), inside: r.left >= sr.left - 0.5 && r.right <= sr.right + 0.5 && r.top >= sr.top - 0.5 && r.bottom <= sr.bottom + 0.5 }; });
     });
     await ctx.close();
   }
-  check('WP1 machine: ring labels unclipped and at least 12 px tall at 390 and 1280', Object.values(out).every(L => L.length === 7 && L.every(l => l.inside && l.px >= 12)), out);
+  check('WP1 machine: ring labels unclipped, rendered at 12 px or more at 390 and 1280', Object.values(out).every(L => L.length === 7 && L.every(l => l.inside && l.px >= 12)), out);
   const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 800 } });
   const page = await ctx.newPage(); instrument(page, 'handover-desktop');
   const navs = {};
@@ -500,6 +504,57 @@ let seed1, id1, params1;
     await pg.tap('#rv-legend [data-goto="offer"]'); await settle(pg, 400);
     check('WP5 revelation: legend edit link goes back to its chapter with the answers kept', await pg.evaluate(() => state.stage === 'offer' && state.v2.offers === 21 && document.querySelectorAll('[data-offer]:checked').length === 3));
     await c7.close();
+  }
+  // WP6: names, chrome, type
+  {
+    const res = {};
+    for (const [w, h] of [[390, 844], [1280, 800]]) {
+      const c8 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: w, height: h }, isMobile: w < 600, hasTouch: w < 600 });
+      const pg = await c8.newPage(); instrument(pg, 'handover-type-' + w);
+      for (const ch of ['offer', 'extraction', 'machine', 'loop', 'revelation']) {
+        await pg.goto(BASE + (ch === 'revelation' ? '#revelation?' + FIXED : '#' + ch)); await settle(pg, ch === 'revelation' ? 900 : 350);
+        res[w + '-' + ch] = await pg.evaluate(() => {
+          const app = document.getElementById('app');
+          const seen = (el) => el.getClientRects().length && !el.closest('details:not([open]) > :not(summary), .vh, [hidden]');
+          const texts = [...app.querySelectorAll('*')].filter(seen).filter(el => [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()));
+          const sizes = [...new Set(texts.map(el => Math.round(parseFloat(getComputedStyle(el).fontSize))))].sort((a, b) => a - b);
+          const k = (el) => { const s = el.closest('svg'); return s ? s.getBoundingClientRect().width / s.viewBox.baseVal.width : 1; };
+          const small = texts.filter(el => parseFloat(getComputedStyle(el).fontSize) * k(el) < 11.5).map(el => el.className.baseVal ?? el.className);
+          const caps = texts.filter(el => getComputedStyle(el).textTransform === 'uppercase' || /^[^a-z]*[A-Z]{2}[^a-z]*$/.test(el.textContent.trim()));
+          const capsBad = caps.filter(el => !el.closest('.prov, .stage-label')).map(el => el.textContent.trim().slice(0, 30));
+          const box = (el) => { const r = el.getBoundingClientRect(); let wd = r.width, ht = r.height; if (/^(checkbox|radio)$/.test(el.type || '')) for (const l of el.labels || []) { const q = l.getBoundingClientRect(); wd = Math.max(wd, q.width); ht = Math.max(ht, q.height); } return Math.min(wd, ht); };
+          const ctrls = [...document.querySelectorAll('#app button:not([disabled]), #app a[href], #app input, #app select, #app summary, .appbar button, .sitefoot button, .sitefoot select')].filter(seen);
+          const tiny = ctrls.filter(el => el.classList.contains('cite') ? box(el) < 24 : box(el) < 44).map(el => (el.id || el.className || el.tagName) + ':' + Math.round(box(el)));
+          return { sizes: sizes.length, list: sizes.join('/'), smallest: sizes[0], small, capsBad, tiny };
+        });
+      }
+      await c8.close();
+    }
+    check('WP6 type: at most 6 font sizes per chapter screen, nothing under 12 px', Object.values(res).every(v => v.sizes <= 6 && v.small.length === 0 && v.smallest >= 12), Object.fromEntries(Object.entries(res).map(([k, v]) => [k, v.list + (v.small.length ? ' small:' + v.small.join(',') : '')])));
+    check('WP6 type: uppercase only on provenance badges and the chapter kicker', Object.values(res).every(v => v.capsBad.length === 0), Object.fromEntries(Object.entries(res).filter(([, v]) => v.capsBad.length).map(([k, v]) => [k, v.capsBad])));
+    check('WP6 targets: buttons, selects, nav items, row controls ≥ 44 px; inline citations ≥ 24 px', Object.values(res).every(v => v.tiny.length === 0), Object.fromEntries(Object.entries(res).filter(([, v]) => v.tiny.length).map(([k, v]) => [k, v.tiny])));
+    const c9 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const pg = await c9.newPage(); instrument(pg, 'handover-chrome');
+    await pg.goto(BASE + '#offer'); await settle(pg, 300); await pg.goto(BASE + '#extraction'); await settle(pg, 300);
+    const ch = await pg.evaluate(() => { const bar = document.querySelector('.appbar'), foot = document.getElementById('sitefoot'), t = document.querySelector('.rail-toggle');
+      return { bar: Math.round(bar.getBoundingClientRect().height), themeInFoot: foot.contains(document.getElementById('theme-select')), srcInFoot: foot.contains(document.getElementById('btn-sources')), barHasThem: !!bar.querySelector('select, #btn-sources'),
+        footFlow: ['static', 'relative'].includes(getComputedStyle(foot).position), toggle: t.textContent.replace(/\s+/g, ' ').trim(), expanded: t.getAttribute('aria-expanded'),
+        meter: [...document.querySelectorAll('.rail-meter i')].map(i => i.className).join(','), numbersOnly: [...document.querySelectorAll('.phase-pip')].some(b => /^\s*\d+\s*$/.test(b.textContent)) }; });
+    check('WP6 chrome: app bar ≤ 56 px; theme switch + Sources in an in-flow footer, not the top bar', ch.bar <= 56 && ch.themeInFoot && ch.srcInFoot && !ch.barHasThem && ch.footFlow, ch);
+    check('WP6 phone nav: progress in words ("Step 2 of 5 · Footprint") with visited chapters marked, no bare numbers', /^Step 2 of 5 · Footprint/.test(ch.toggle) && ch.meter === 'done,on,,,' && !ch.numbersOnly, ch);
+    await pg.focus('.rail-toggle'); await pg.keyboard.press('Enter'); await settle(pg, 100);
+    const open = await pg.evaluate(() => ({ exp: document.querySelector('.rail-toggle').getAttribute('aria-expanded'), list: getComputedStyle(document.getElementById('rail-list')).display, cur: document.querySelector('.phase-pip[aria-current=step]')?.dataset.go,
+      visited: [...document.querySelectorAll('.phase-pip.done')].map(b => b.dataset.go), fixed: getComputedStyle(document.querySelector('.appbar')).position }));
+    await pg.keyboard.press('Tab'); await pg.keyboard.press('Tab'); await pg.keyboard.press('Enter'); await settle(pg, 300);
+    const went = await pg.evaluate(() => state.stage);
+    check('WP6 phone nav: keyboard opens the list in page flow; aria-current on the current step; visited marked; Tab + Enter navigates', open.exp === 'true' && open.list === 'flex' && open.cur === 'extraction' && open.visited.join() === 'offer' && open.fixed === 'relative' && went === 'offer', { open, went });
+    await pg.goto(BASE + '#extraction'); await settle(pg, 300);
+    const kinds = await pg.evaluate(() => ({ dt: [...document.querySelectorAll('#app .kinds dt')].map(d => d.textContent), rowDt: [...document.querySelectorAll('#fp-identity-more .kv dt')].map(d => d.textContent),
+      badgesOutside: [...document.querySelectorAll('#app .prov')].filter(b => b.getClientRects().length && !b.closest('details, .row-more')).length }));
+    check('WP6 02: information kinds are plain words (Recorded, Guessed, Hidden), not provenance labels; badges only inside disclosures', kinds.dt.join() === 'Recorded,Guessed,Hidden' && kinds.rowDt.join() === 'Recorded,Guessed,Hidden' && kinds.badgesOutside === 0, kinds);
+    await pg.tap('#btn-sources'); await settle(pg, 200);
+    check('WP6 Sources still opens the drawer from the footer', await pg.isVisible('#sources-drawer'));
+    await c9.close();
   }
   // WP2: live preview
   {

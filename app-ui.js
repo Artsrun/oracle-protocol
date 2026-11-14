@@ -26,7 +26,7 @@ const renderApproach = () => {
     <div class="oracle-sub">THE ANATOMY OF ATTENTION</div>
     ${window.OracleChapters ? `<p class="approach-lead">Answer a few questions about your digital life. Get a one-of-a-kind artwork made from your answers.</p>` : ''}
     <div class="btn-group">
-      ${window.OracleChapters ? `<button type="button" class="btn-primary btn-fill" id="btn-investigate">BEGIN</button>` : `<button type="button" class="btn-primary" id="btn-enter">INITIATE PROTOCOL</button>`}
+      ${window.OracleChapters ? `<button type="button" class="btn-primary btn-fill" id="btn-investigate">Begin</button>` : `<button type="button" class="btn-primary" id="btn-enter">INITIATE PROTOCOL</button>`}
     </div>
     ${window.OracleChapters ? `<p class="approach-note">About three minutes \u00b7 no permissions needed \u00b7 nothing leaves this tab.</p>` : ''}
     <p class="oracle-verse">We are all made of data.<br><em>Let the machine witness you \u2014 willingly.</em></p>
@@ -41,7 +41,7 @@ const renderHandshake = () => {
   const cryptoDone = !!state.cryptoAddr;
   const bioDone = state.bioAuth;
   app.innerHTML = `<div class="stage-handshake">
-    <div class="stage-label">02 \u00b7 LIVE DEMO \u00b7 IDENTITY (OPTIONAL)</div>
+    <div class="stage-label">Step 2 of 5 \u00b7 Footprint \u00b7 live demo \u00b7 identity (optional)</div>
     <div class="handshake-options">
       <div class="auth-card ${cryptoDone ? 'done' : 'active'}">
         <div class="auth-icon">\u26d3\ufe0f</div>
@@ -142,7 +142,7 @@ let permJust = null; // v3: only the tile that just changed plays its settle ani
 const renderPermissions = () => {
   const just = permJust; permJust = null;
   app.innerHTML = `<div class="stage-permissions">
-    <div class="stage-label">02 \u00b7 LIVE DEMO \u00b7 SENSORS</div>
+    <div class="stage-label">Step 2 of 5 \u00b7 Footprint \u00b7 live demo \u00b7 sensors</div>
     <div class="harvest-lead"><span>Each tile asks once. Nothing leaves this tab.</span></div>
     <div class="perm-grid">${permsConfig.map(p => {
       const g = state.collected[p.id];
@@ -165,7 +165,7 @@ const renderPermissions = () => {
       <dl>${permsConfig.map(p => `<dt>${p.name}</dt><dd id="reads-${p.id}">${permReads[p.id]}</dd>`).join('')}</dl>
       <p>DENIED = refused; UNAVAILABLE = this device has no such sensor or API. All tiles are optional and never reach the artwork.</p>
     </details>
-    <p class="approach-note"><button type="button" class="cite" id="btn-identity">Add an identity</button>${window.OracleChapters ? ` \u00b7 <button type="button" class="cite" id="btn-back-extraction">Back to 02</button>` : ''}</p>
+    <p class="approach-note"><button type="button" class="cite" id="btn-identity">Add an identity</button>${window.OracleChapters ? ` \u00b7 <button type="button" class="cite" id="btn-back-extraction">Back to Footprint</button>` : ''}</p>
   </div>`;
 
   const runOne = async (p) => {
@@ -222,7 +222,7 @@ const renderPortrait = () => {
   const memLine = cpu.deviceMem ? cpu.deviceMem + ' GB' : (base.memory ? base.memory + ' GB' : (cpu.jsHeap ? cpu.jsHeap.used + ' MB heap' : '\u2014'));
   app.innerHTML = `<div class="stage-portrait">
     <div class="portrait-header">
-      <div class="stage-label">02 \u00b7 LIVE DEMO \u00b7 PORTRAIT</div>
+      <div class="stage-label">Step 2 of 5 \u00b7 Footprint \u00b7 live demo \u00b7 portrait</div>
       <h1 class="oracle-title glitch" data-text="WITNESSED" style="font-size:clamp(1.6rem,8vw,2.6rem)">WITNESSED</h1>
       <div class="identity-hash">ORACLE_HASH // ${state.fingerprint}</div>
     </div>
@@ -239,7 +239,7 @@ const renderPortrait = () => {
       ${mic.avgFreq ? `<div class="data-panel"><div class="panel-header">MIC</div><div class="panel-body">${row('AVG', mic.avgFreq + ' Hz', 'accent')}</div></div>` : ''}
       <div class="closing-verse">You have been witnessed.<br><em>Close or reload the tab to discard every reading.</em>
         <div class="btn-group" style="margin-top:28px">
-          ${window.OracleChapters ? `<button type="button" class="btn-primary btn-fill" id="btn-continue-machine">Next \u00b7 03 MACHINE \u2192</button>` : ''}
+          ${window.OracleChapters ? `<button type="button" class="btn-primary btn-fill" id="btn-continue-machine">Next: Loop \u2192</button>` : ''}
           <button type="button" class="btn-primary" id="btn-copy">COPY HASH</button>
           <button type="button" class="btn-primary" id="btn-reset">RESET</button>
         </div>
