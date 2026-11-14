@@ -39,6 +39,7 @@ async function axe(page, label) {
   return res;
 }
 async function exportFmt(page, fmt, dir) {
+  await openMore(page, 'rv-more'); // WP5: format lives in Options
   await page.click(`[data-fmt="${fmt}"]`); await settle(page, 500);
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#rv-download')]);
   const file = `${dir}/${dl.suggestedFilename()}`;
@@ -198,7 +199,7 @@ let seed1, id1, params1;
   check('PNG tEXt metadata holds seed + abstract params only', meta.startsWith('oracle:s=' + seed1) && !/lat|lng|ua=|gpu/i.test(meta), meta);
   // share fallback (headless Linux Chrome: navigator.share unavailable)
   const hasShare = await page.evaluate(() => typeof navigator.share === 'function');
-  await page.click('[data-fmt="portrait"]'); await settle(page, 400);
+  await openMore(page, 'rv-more'); await page.click('[data-fmt="portrait"]'); await settle(page, 400);
   const [sdl] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('#rv-share')]);
   await settle(page, 400);
   const shareStatus = await page.textContent('#rv-status');
@@ -208,7 +209,7 @@ let seed1, id1, params1;
   await page.click('#rv-share'); await page.waitForFunction(() => window.__shared, null, { timeout: 10000 }).catch(() => {});
   const shared = await page.evaluate(() => window.__shared);
   check('share native path (stubbed navigator.share) receives PNG file + caption', shared && shared.files[0][1] === 'image/png' && shared.text.includes(seed1), shared && { file: shared.files[0], text: shared.text.slice(0, 80) });
-  await page.click('#rv-clean'); await settle(page, 800);
+  await openMore(page, 'rv-more'); await page.click('#rv-clean'); await settle(page, 800);
   check('clean view hides app chrome', await page.evaluate(() => getComputedStyle(document.querySelector('.hud-bar')).display === 'none' && !!document.getElementById('art-clean')));
   await page.screenshot({ path: `${QA}/shots/desktop/06-clean-view.png` });
   await axe(page, 'clean-view');
@@ -477,6 +478,28 @@ let seed1, id1, params1;
     await pg.tap('#drawer-who .cite >> nth=0'); await settle(pg, 200);
     check('WP4 drawer: a citation inside the directory highlights its source', await pg.evaluate(() => document.querySelectorAll('.src-hit').length === 1));
     await c6.close();
+  }
+  // WP5: Revelation
+  {
+    const c7 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const pg = await c7.newPage(); instrument(pg, 'handover-revelation');
+    await pg.goto(BASE + '#revelation?' + FIXED); await settle(pg, 900);
+    const r = await pg.evaluate(() => {
+      const vis = (el) => el.getClientRects().length && !el.closest('details:not([open]) > :not(summary)');
+      const actions = [...document.querySelectorAll('#app button')].filter(vis).filter(b => !b.classList.contains('cite'));
+      const more = document.getElementById('rv-more'), inMore = (sel) => !!more.querySelector(sel);
+      const canvasTop = document.getElementById('art-canvas').getBoundingClientRect().top, actTop = document.getElementById('rv-download').getBoundingClientRect().top;
+      return { actions: actions.map(b => b.id + (b.classList.contains('primary') ? '*' : '')), moreClosed: !more.open,
+        inOptions: ['[data-fmt]', '#rv-title', '#rv-link', '#rv-clean', '#seed-line', '#rv-caption', '.history', '#rv-look'].every(inMore), fmt: document.querySelector('[data-fmt][aria-pressed=true]').dataset.fmt,
+        why: !!document.getElementById('rv-why'), artFirst: canvasTop < actTop, legend: [...document.querySelectorAll('#rv-legend li')].map(li => [li.querySelector('span').textContent, li.querySelector('[data-goto]')?.dataset.goto]), legendVisible: vis(document.getElementById('rv-legend')) };
+    });
+    check('WP5 revelation: artwork first, then exactly two visible actions (Save image filled, Share); format defaults to portrait', r.artFirst && r.actions.join() === 'rv-download*,rv-share' && r.fmt === 'portrait', r.actions);
+    check('WP5 revelation: format, title, copy link, clean view, seed, caption, history and Look line all inside one closed "Options"', r.moreClosed && r.inOptions, r);
+    // FIXED: o=21 (3 trades), f=77 (4 categories incl. relationships), k=60, e=75, r=60, t=50, n=4, a=70
+    check('WP5 revelation: visible personal legend from the answers, each line with an edit link to its chapter', !r.why && r.legendVisible && r.legend.length === 6 && r.legend[0][0] === '3 red shards: the 3 trades you ticked' && /lattice: 4 of 8 footprint categories, plus your trades$/.test(r.legend[1][0]) && /social relationships ticked, social proof 60$/.test(r.legend[2][0]) && /4 rounds$/.test(r.legend[4][0]) && r.legend.map(l => l[1]).join() === 'offer,extraction,extraction,loop,loop,loop', r.legend);
+    await pg.tap('#rv-legend [data-goto="offer"]'); await settle(pg, 400);
+    check('WP5 revelation: legend edit link goes back to its chapter with the answers kept', await pg.evaluate(() => state.stage === 'offer' && state.v2.offers === 21 && document.querySelectorAll('[data-offer]:checked').length === 3));
+    await c7.close();
   }
   // WP2: live preview
   {

@@ -306,3 +306,11 @@ details.more.quiet{border-top:0;margin-top:6px}
 .who .roles{grid-template-columns:1fr 1fr}
 .role h4{font-family:var(--font-body);font-size:var(--fs-sm);font-weight:600;color:var(--ink);margin-bottom:4px}
 @media(max-width:480px){.who .roles{grid-template-columns:1fr}}
+
+/* ── WP5: revelation — two visible actions, a personal legend, everything else in Options ── */
+.rev-actions{margin-top:0}
+.rev-actions .btn-sm{flex:1 1 0;min-width:120px}
+.rev-controls .legend-title{letter-spacing:0;font-family:var(--font-display);font-weight:700;font-size:var(--fs-h3);color:var(--ink);margin:18px 0 6px}
+.legend-list{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}
+.legend-list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-family:var(--font-body);font-size:var(--fs-sm);line-height:1.45;color:var(--ink)}
+.legend-list .cite{flex:0 0 auto}

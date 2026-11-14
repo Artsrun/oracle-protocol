@@ -120,14 +120,21 @@
     return null;
   }
 
-  function paramSummary(p) {
-    const C = OracleContent, bits = (n, list) => list.filter((_, i) => (n >> i) & 1).map(x => x.title || x.name).join(', ') || 'none';
-    return `<div class="param-sum">
-      <div><b>Exchanges:</b> ${bits(p.o, C.OFFERS)} <button type="button" class="cite" data-goto="offer">edit</button></div>
-      <div><b>Disclosed categories:</b> ${bits(p.f, C.FOOTPRINT)} <button type="button" class="cite" data-goto="extraction">edit</button></div>
-      <div><b>Exchange dials:</b> disclosure ${p.d} \u00b7 convenience ${p.c} \u00b7 personalization ${p.p} \u00b7 dependency ${p.y} \u00b7 exposure ${p.x} \u00b7 influence ${p.i} <button type="button" class="cite" data-goto="offer">edit</button></div>
-      <div><b>Attention lab:</b> emotion ${p.e} \u00b7 relevance ${p.r} \u00b7 repetition ${p.t} \u00b7 social ${p.k} \u00b7 amplification ${p.a} \u00b7 rounds ${p.n} <button type="button" class="cite" data-goto="loop">edit</button></div>
-    </div>`;
+  // WP5: a short, visible legend written from the visitor's own answers (engine factors in art/oracle-art.js).
+  function legend(p) {
+    const C = OracleContent, F = A.factors(p), b = (v) => v < 0.34 ? 0 : v < 0.67 ? 1 : 2, cap = (t) => t[0].toUpperCase() + t.slice(1);
+    const pl = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+    const rel = (p.f >> C.FOOTPRINT.findIndex(c => c.id === 'relationships')) & 1;
+    const echoes = 1 + Math.round(F.feedback * 5 + p.n / 4);
+    const items = [
+      [F.offers ? `${pl(F.offers, 'red shard', 'red shards')}: the ${pl(F.offers, 'trade', 'trades')} you ticked` : 'No red shards: you ticked no trades', 'offer'],
+      [`${cap(['sparse', 'measured', 'dense'][b(F.disclosure)])} lattice: ${F.cats} of 8 footprint categories${F.offers ? ', plus your trades' : ''}`, 'extraction'],
+      [`${cap(['few', 'some', 'many'][b(F.relations)])} network links: social relationships ${rel ? 'ticked' : 'not ticked'}, social proof ${p.k}`, 'extraction'],
+      [`${cap(['scattered', 'directed', 'captured'][b(F.attention)])} flow lines: emotion ${p.e}, relevance ${p.r} in the lab`, 'loop'],
+      [`${pl(echoes, 'echo', 'echoes')} around the core: repetition ${p.t}, ${pl(p.n, 'round', 'rounds')}`, 'loop'],
+      [`${cap(['little', 'some', 'strong'][b(F.influence)])} swirl: amplification ${p.a}`, 'loop']
+    ];
+    return `<ul class="legend-list">${items.map(([t, ch]) => `<li><span>${esc(t)}</span> <button type="button" class="cite" data-goto="${ch}">edit</button></li>`).join('')}</ul>`;
   }
 
   OracleChapters.register('revelation', (app) => {
@@ -140,41 +147,38 @@
     const canNative = typeof navigator.share === 'function';
     app.innerHTML = `<article class="chapter ch-revelation">
       ${U.chapterHead('revelation', 'Your composition',
-        'Your choices from 01\u201304 \u2014 never sensor readings \u2014 become one reproducible artwork.')}
+        'Your choices from 01\u201304 \u2014 never sensor readings \u2014 became this one reproducible artwork.')}
       <div class="rev-grid">
         <div class="art-frame"><canvas id="art-canvas" role="img" aria-label="Generative artwork ${esc(p.s)}: ${esc(A.interpret(p))}"></canvas></div>
         <div class="rev-controls">
-          <h2>ORACLE SEED</h2>
-          <div class="seed-line" id="seed-line">${esc(p.s)}<small>composition ${esc(id)}</small></div>
-          <p class="interp" id="interp">${esc(A.interpret(p))}</p>
-
-          <h2>FORMAT</h2>
-          <div class="seg" role="group" aria-label="Export format">${Object.entries(A.FORMATS).map(([k, f]) => `<button type="button" data-fmt="${k}" aria-pressed="${k === fmt}">${f.label}</button>`).join('')}</div>
-          <label class="check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}> Editorial title on artwork</label>
-          <p class="param-sum" id="rv-look">Look: ${esc(lookLabel(lookNow()))} \u00b7 ${state.v2.look ? 'from the link' : 'follows site theme'}
-          ${state.v2.look ? '<button type="button" class="cite" id="rv-unpin">use site theme</button>' : ''}</p>
-
-          <h2>EXPORT</h2>
-          <div class="btn-row">
-            <button type="button" class="btn-sm primary" id="rv-download">DOWNLOAD PNG</button>
-            <button type="button" class="btn-sm" id="rv-share">${canNative ? 'SHARE\u2026' : 'SHARE'}</button>
-            <button type="button" class="btn-sm" id="rv-link">COPY LINK</button>
-            <button type="button" class="btn-sm" id="rv-clean">CLEAN VIEW</button>
+          <div class="btn-row rev-actions">
+            <button type="button" class="btn-sm primary" id="rv-download">Save image</button>
+            <button type="button" class="btn-sm" id="rv-share">${canNative ? 'Share\u2026' : 'Share'}</button>
           </div>
           <div class="status-line" id="rv-status" role="status" aria-live="polite"></div>
           <p class="sim-note">Link and file hold only the seed and dial values. History stays in this browser.</p>
+          <h2 class="legend-title" id="rv-legend-title">What you made it from</h2>
+          <div id="rv-legend" aria-labelledby="rv-legend-title">${legend(p)}</div>
 
-          ${U.more('Seed, caption &amp; history', `
-          <div class="btn-row"><button type="button" class="btn-sm" id="rv-new">NEW SEED</button><button type="button" class="btn-sm" id="rv-vary">VARY</button><button type="button" class="btn-sm" id="rv-copy">COPY CAPTION</button></div>
+          ${U.more('Options', `
+          <p class="mini-label">Format</p>
+          <div class="seg" role="group" aria-label="Export format">${Object.entries(A.FORMATS).map(([k, f]) => `<button type="button" data-fmt="${k}" aria-pressed="${k === fmt}">${f.label}</button>`).join('')}</div>
+          <label class="check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}> Editorial title on artwork</label>
+          <div class="btn-row"><button type="button" class="btn-sm" id="rv-link">Copy link</button><button type="button" class="btn-sm" id="rv-clean">Clean view</button></div>
+          <p class="mini-label">Seed</p>
+          <div class="seed-line" id="seed-line">${esc(p.s)}<small>composition ${esc(id)}</small></div>
+          <p class="interp" id="interp">${esc(A.interpret(p))}</p>
+          <p class="param-sum" id="rv-look">Look: ${esc(lookLabel(lookNow()))} \u00b7 ${state.v2.look ? 'from the link' : 'follows site theme'}
+          ${state.v2.look ? '<button type="button" class="cite" id="rv-unpin">use site theme</button>' : ''}</p>
+          <div class="btn-row"><button type="button" class="btn-sm" id="rv-new">New seed</button><button type="button" class="btn-sm" id="rv-vary">Vary</button><button type="button" class="btn-sm" id="rv-copy">Copy caption</button></div>
           <label for="rv-caption" class="mini-label">Caption</label>
           <textarea id="rv-caption" class="caption" readonly>${esc(A.caption(p, id, shareLink(p, fmt)))}</textarea>
           <label for="rv-restore" class="mini-label">Restore a seed or link</label>
-          <div class="restore"><input id="rv-restore" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="ORACLE-XXXX-XXXX or a shared link"><button type="button" class="btn-sm" id="rv-restore-btn">RESTORE</button></div>
+          <div class="restore"><input id="rv-restore" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="ORACLE-XXXX-XXXX or a shared link"><button type="button" class="btn-sm" id="rv-restore-btn">Restore</button></div>
           <p class="mini-label" id="rv-hist-label">Recent (this browser)</p><ul class="history" aria-labelledby="rv-hist-label">${hist.map((h, i) => `<li><span>${esc(h.s)} \u00b7 ${esc(h.id)}</span><button type="button" class="cite" data-hist="${i}">restore</button></li>`).join('')}</ul>
-          ${hist.length ? `<button type="button" class="btn-sm" id="rv-clear">CLEAR HISTORY</button>` : ''}`, 'rv-more')}
+          ${hist.length ? `<button type="button" class="btn-sm" id="rv-clear">Clear history</button>` : ''}`, 'rv-more')}
         </div>
       </div>
-      ${U.more('What made this composition', paramSummary(p) + `<p class="sim-note">Identity \u2192 central triangle \u00b7 disclosure \u2192 lattice density \u00b7 relationships \u2192 network \u00b7 attention \u2192 flow field \u00b7 feedback \u2192 echoes \u00b7 influence \u2192 swirl \u00b7 each exchange \u2192 a shard.</p>`, 'rv-why')}
     </article>`;
 
     const canvas = document.getElementById('art-canvas');
