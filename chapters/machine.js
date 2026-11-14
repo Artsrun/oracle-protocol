@@ -1,7 +1,9 @@
-/* 03 THE MACHINE — transparent systems map + ecosystem roles with typed, sourced relations. */
+/* 03 THE MACHINE — the loop as one vertical stepper beside a ring illustration.
+ * WP4: each step shows its name and one line; its sourced claim sits behind the row chevron. The company
+ * directory ("Who is in this loop") and the documented relations moved to the Sources drawer (app-shell.js). */
 (() => {
   const E = OracleEvidence, C = OracleContent, U = OracleChapters.ui;
-  let active = 0, filter = 'all', timer = 0;
+  let active = -1;
 
   const N = C.MACHINE.length, CX = 160, CY = 160, R = 118;
   const pos = (i) => { const a = -Math.PI / 2 + i * 2 * Math.PI / N; return [CX + R * Math.cos(a), CY + R * Math.sin(a)]; };
@@ -18,70 +20,28 @@
       const [x, y] = pos(i), a = -Math.PI / 2 + i * 2 * Math.PI / N, lx = CX + (R + 24) * Math.cos(a), ly = CY + (R + 24) * Math.sin(a);
       return `<polygon class="nd ${i === active ? 'on' : ''}" points="${triPts(x, y, 9, true)}"/><text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="central">${String(i + 1).padStart(2, '0')}</text>`;
     }).join('');
-    const [px, py] = pos(active);
-    return `<svg viewBox="0 0 320 320" class="loopviz" aria-hidden="true">${edges}${nodes}<polygon class="pulse" points="${triPts(px, py, 4, true)}"/></svg>`;
-  }
-
-  function nodeDetail() {
-    const m = C.MACHINE[active];
-    return `<h3>${String(active + 1).padStart(2, '0')} \u2014 ${m.name}</h3><p>${m.text}</p>${E.claim(m.claim.label, m.claim.text, m.claim.src)}`;
-  }
-
-  function relRows() {
-    return C.RELATIONS.filter(r => filter === 'all' || r.type === filter).map(r => {
-      const name = (id) => (C.ENTITIES.find(e => e.id === id) || { name: id }).name;
-      return `<tr><td>${name(r.from)}${r.to ? ' \u2192 ' + name(r.to) : ''}</td><td>${r.type}</td><td>${E.badge(r.label)}</td><td>${r.note} ${r.src ? E.cite(r.src) : ''}</td></tr>`;
-    }).join('') || `<tr><td colspan="4">No relation of this type is documented in the sources used.</td></tr>`;
+    return `<svg viewBox="0 0 320 320" class="loopviz" aria-hidden="true">${edges}${nodes}</svg>`;
   }
 
   OracleChapters.register('machine', (app) => {
-    clearInterval(timer);
-    const types = ['all', ...new Set(C.RELATIONS.map(r => r.type))];
+    active = -1;
     app.innerHTML = `<article class="chapter ch-machine">
       ${U.chapterHead('machine', 'The loop',
-        'A conceptual flow, not any one company\u2019s system. Pick a step.')}
-      <section class="panel" aria-label="Systems map">
-        <div class="machine-grid">
-          <div><div id="loop-svg">${loopSvg()}</div>
-            <div class="btn-row"><button type="button" class="btn-sm" id="m-play" ${OracleChapters.reduceMotion() ? 'disabled title="Disabled: reduced motion preferred"' : ''}>PLAY THE LOOP</button></div></div>
-          <div><ol class="node-list">${C.MACHINE.map((m, i) => `<li><button type="button" class="node-btn" data-node="${i}" aria-pressed="${i === active}">${String(i + 1).padStart(2, '0')} ${m.name}</button></li>`).join('')}</ol>
-            <div class="node-detail" id="node-detail" aria-live="polite">${nodeDetail()}</div></div>
-        </div>
-      </section>
-
-      <section class="panel" aria-labelledby="eco-title">
-        <h2 id="eco-title" class="panel-title">Who does what</h2>
-        <p class="sim-note">Roles come from each company\u2019s own documents or a regulator. Two roles do not mean data moves between them.</p>
-        <div class="roles">${C.ROLES.map(r => {
-          const ents = C.ENTITIES.filter(e => e.roles.includes(r.id));
-          return `<div class="role"><h3>${r.name}</h3><ul>${ents.length ? ents.map(e => `<li>${e.name} ${E.cite(e.src)}</li>`).join('') : '<li class="empty">none listed</li>'}</ul></div>`;
-        }).join('')}</div>
-        ${U.more(`Documented relations (${C.RELATIONS.length})`, `<div class="seg" role="group" aria-label="Relation type">${types.map(t => `<button type="button" data-filter="${t}" aria-pressed="${t === filter}">${t}</button>`).join('')}</div>
-        <table class="rel-table"><thead><tr><th>Relation</th><th>Type</th><th>Label</th><th>Evidence</th></tr></thead><tbody id="rel-body">${relRows()}</tbody></table>`, 'm-rel', C.RELATIONS.map(r => r.label))}
-      </section>
+        'A conceptual flow, not any one company\u2019s system. Seven steps, then it starts again.')}
+      <div class="machine-grid">
+        <div class="ring" id="loop-svg">${loopSvg()}</div>
+        <ol class="rows steps" aria-label="The seven steps">
+          ${C.MACHINE.map((m, i) => U.row({ id: 'step-' + m.id, i, num: String(i + 1).padStart(2, '0'), title: m.name, sub: m.text,
+            body: E.claim(m.claim.label, m.claim.text, m.claim.src) })).join('')}
+        </ol>
+      </div>
+      <p class="who-link"><button type="button" class="cite" id="m-who" aria-haspopup="dialog">Who is in this loop? \u2192</button></p>
       ${U.chapterNav('loop')}
     </article>`;
-
-    const setActive = (i) => {
-      active = (i + N) % N;
+    U.bindRows(app, 'data-step', () => {}, null, (i, open) => {
+      active = open ? i : -1;
       document.getElementById('loop-svg').innerHTML = loopSvg();
-      document.getElementById('node-detail').innerHTML = nodeDetail();
-      app.querySelectorAll('.node-btn').forEach((b, j) => b.setAttribute('aria-pressed', j === active));
-    };
-    app.querySelectorAll('.node-btn').forEach(b => b.onclick = () => { clearInterval(timer); setActive(+b.dataset.node); });
-    const play = document.getElementById('m-play');
-    play.onclick = () => {
-      clearInterval(timer);
-      let steps = 0;
-      timer = setInterval(() => {
-        if (state.stage !== 'machine' || ++steps > N) { clearInterval(timer); return; }
-        setActive(active + 1);
-      }, 1400);
-    };
-    app.querySelectorAll('[data-filter]').forEach(b => b.onclick = () => {
-      filter = b.dataset.filter;
-      app.querySelectorAll('[data-filter]').forEach(x => x.setAttribute('aria-pressed', x.dataset.filter === filter));
-      document.getElementById('rel-body').innerHTML = relRows();
     });
+    document.getElementById('m-who').onclick = (e) => OracleChapters.openDrawer('@who', e.currentTarget);
   });
 })();

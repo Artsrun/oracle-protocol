@@ -152,17 +152,20 @@ window.OracleChapters = (() => {
 
   // v3: one list-row pattern (checkbox + title + one line + chevron disclosure), like a settings checklist.
   const chevron = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
-  const row = ({ id, data, i, on, title, sub, body, checkLabel }) => `
-    <li class="row ${on ? 'on' : ''}">
+  // A row without `data` is a plain step (number instead of a checkbox), e.g. the Machine stepper (WP4).
+  const row = ({ id, data, i, on, title, sub, body, checkLabel, num }) => `
+    <li class="row ${on ? 'on' : ''}${data ? '' : ' step'}">
       <div class="row-main">
-        <input type="checkbox" class="row-check" id="${id}" ${data}="${i}" ${on ? 'checked' : ''} aria-describedby="${id}-sub">
-        <label class="row-text" for="${id}"><span class="row-title">${title}</span><span class="vh"> \u2014 ${checkLabel}</span><span class="row-sub" id="${id}-sub">${sub}</span></label>
-        ${body ? `<button type="button" class="row-exp" aria-expanded="false" aria-controls="${id}-more" aria-label="Details: ${title.replace(/<[^>]+>/g, '')}">${chevron}</button>` : ''}
+        ${data ? `<input type="checkbox" class="row-check" id="${id}" ${data}="${i}" ${on ? 'checked' : ''} aria-describedby="${id}-sub">
+        <label class="row-text" for="${id}"><span class="row-title">${title}</span><span class="vh"> \u2014 ${checkLabel}</span><span class="row-sub" id="${id}-sub">${sub}</span></label>`
+        : `<span class="row-num" aria-hidden="true">${num || ''}</span>
+        <div class="row-text" id="${id}"><span class="row-title">${title}</span><span class="row-sub">${sub}</span></div>`}
+        ${body ? `<button type="button" class="row-exp" aria-expanded="false" aria-controls="${id}-more" data-row="${i}" aria-label="Details: ${title.replace(/<[^>]+>/g, '')}">${chevron}</button>` : ''}
       </div>
       ${body ? `<div class="row-more" id="${id}-more" hidden>${body}</div>` : ''}
     </li>`;
-  // Accordion: one row open at a time. onCheck(i, on) runs on every checkbox change.
-  function bindRows(root, data, onCheck, onCount) {
+  // Accordion: one row open at a time. onCheck(i, on) runs on every checkbox change; onToggle(i, open) on disclosure.
+  function bindRows(root, data, onCheck, onCount, onToggle) {
     const boxes = [...root.querySelectorAll('[' + data + ']')];
     const count = () => onCount && onCount(boxes.filter(b => b.checked).length, boxes.length);
     boxes.forEach(b => b.addEventListener('change', () => {
@@ -174,6 +177,7 @@ window.OracleChapters = (() => {
       root.querySelectorAll('.row-exp[aria-expanded=true]').forEach(o => { if (o !== btn) { o.setAttribute('aria-expanded', 'false'); document.getElementById(o.getAttribute('aria-controls')).hidden = true; } });
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
       document.getElementById(btn.getAttribute('aria-controls')).hidden = !open;
+      if (onToggle) onToggle(+btn.dataset.row, open);
     }));
     count();
   }
@@ -185,7 +189,34 @@ window.OracleChapters = (() => {
   };
 
   // ── sources drawer ──────────────────────────────────────────────────────
-  let lastFocus = null;
+  let lastFocus = null, relFilter = 'all';
+  // WP4: the company directory and documented relations live here (moved from 03 Machine). Nothing deleted.
+  const C = window.OracleContent;
+  function relRows() {
+    const name = (id) => (C.ENTITIES.find(e => e.id === id) || { name: id }).name;
+    return C.RELATIONS.filter(r => relFilter === 'all' || r.type === relFilter).map(r =>
+      `<tr><td>${name(r.from)}${r.to ? ' \u2192 ' + name(r.to) : ''}</td><td>${r.type}</td><td>${E.badge(r.label)}</td><td>${r.note} ${r.src ? E.cite(r.src) : ''}</td></tr>`).join('')
+      || `<tr><td colspan="4">No relation of this type is documented in the sources used.</td></tr>`;
+  }
+  function whoSection() {
+    if (!C || !C.ROLES) return '';
+    const types = ['all', ...new Set(C.RELATIONS.map(r => r.type))];
+    return `<section class="who" id="drawer-who" tabindex="-1" aria-labelledby="who-title">
+      <h3 id="who-title" class="who-title">Who is in this loop</h3>
+      <p class="drawer-meta">Roles come from each company\u2019s own documents or a regulator. Two roles do not mean data moves between them.</p>
+      <div class="roles">${C.ROLES.map(r => {
+        const ents = C.ENTITIES.filter(e => e.roles.includes(r.id));
+        return `<div class="role"><h4>${r.name}</h4><ul>${ents.length ? ents.map(e => `<li>${e.name} ${E.cite(e.src)}</li>`).join('') : '<li class="empty">none listed</li>'}</ul></div>`;
+      }).join('')}</div>
+      ${more(`Documented relations (${C.RELATIONS.length})`, `<div class="seg" role="group" aria-label="Relation type">${types.map(t => `<button type="button" data-filter="${t}" aria-pressed="${t === relFilter}">${t}</button>`).join('')}</div>
+      <table class="rel-table"><thead><tr><th>Relation</th><th>Type</th><th>Label</th><th>Evidence</th></tr></thead><tbody id="rel-body">${relRows()}</tbody></table>`, 'm-rel', C.RELATIONS.map(r => r.label))}
+    </section>`;
+  }
+  const bindWho = (d) => d.querySelectorAll('[data-filter]').forEach(b => b.onclick = () => {
+    relFilter = b.dataset.filter;
+    d.querySelectorAll('[data-filter]').forEach(x => x.setAttribute('aria-pressed', x.dataset.filter === relFilter));
+    d.querySelector('#rel-body').innerHTML = relRows();
+  });
   function buildDrawer() {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.id = 'btn-sources'; btn.className = 'hud-sources';
@@ -206,9 +237,11 @@ window.OracleChapters = (() => {
         <a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.url)}</a>
         ${s.verifiedVia !== s.url ? `<div class="src-via">read via <a href="${esc(s.verifiedVia)}" target="_blank" rel="noopener noreferrer">${esc(s.verifiedVia.replace(/^https?:\/\//, '').slice(0, 64))}\u2026</a></div>` : ''}
         <p class="src-supports">${esc(s.supports)}</p></li>`).join('')}</ol>
+      ${whoSection()}
       <p class="drawer-meta">Opening a source link leaves Oracle and loads that publisher\u2019s site; Oracle itself never makes network requests with your data.</p>
     </div>`;
     document.body.appendChild(d);
+    bindWho(d);
     d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('.drawer-close')) closeDrawer(); });
     d.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeDrawer();
@@ -225,8 +258,9 @@ window.OracleChapters = (() => {
     lastFocus = from || document.activeElement;
     d.hidden = false; document.body.classList.add('drawer-open');
     d.querySelectorAll('.src-hit').forEach(n => n.classList.remove('src-hit'));
-    const target = sourceId && document.getElementById('src-' + sourceId);
-    if (target) { target.classList.add('src-hit'); target.scrollIntoView({ block: 'center' }); target.focus({ preventScroll: true }); }
+    const target = sourceId && document.getElementById(sourceId === '@who' ? 'drawer-who' : 'src-' + sourceId);
+    if (target && sourceId === '@who') { target.scrollIntoView({ block: 'start' }); target.focus({ preventScroll: true }); }
+    else if (target) { target.classList.add('src-hit'); target.scrollIntoView({ block: 'center' }); target.focus({ preventScroll: true }); }
     else d.querySelector('.drawer-close').focus();
   }
   function closeDrawer() {

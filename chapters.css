@@ -94,11 +94,6 @@ input[type=range]{width:100%;accent-color:var(--cyan);min-height:28px;background
 .loopviz .ln{stroke:color-mix(in srgb,var(--signal) 35%,transparent);stroke-width:1;fill:none}
 .loopviz .nd{fill:var(--bg);stroke:var(--signal);stroke-width:1.2}.loopviz .nd.on{fill:var(--ink-hi);stroke:var(--ink-hi)}
 .loopviz text{font:600 15px var(--font-mono);fill:color-mix(in srgb,var(--ink) calc(100% - 15% * var(--tf)),transparent)}.loopviz .pulse{fill:var(--signal)}
-.node-list{list-style:none;padding:0;margin:0;counter-reset:n}
-.node-btn{font:inherit;width:100%;text-align:left;font-size:var(--fs-body);padding:10px 12px;min-height:44px;background:transparent;color:var(--ink);border:0;border-left:2px solid color-mix(in srgb,var(--signal) 25%,transparent);cursor:pointer}.node-btn[aria-pressed=true]{border-left-color:var(--signal);background:color-mix(in srgb,var(--signal) 8%,transparent);color:var(--ink-hi)}
-.node-detail{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
-.node-detail h3{font-family:var(--font-display);font-size:var(--fs-h3);margin-bottom:6px}
-.node-detail>p{font-size:var(--fs-body);line-height:1.55;color:var(--ink-2)}
 .roles{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));margin:10px 0 18px}
 .role{border:1px solid color-mix(in srgb,var(--signal) 20%,transparent);padding:10px 12px}
 .role h3{font-size:var(--fs-xs);letter-spacing:.16em;color:var(--cyan);margin-bottom:6px}
@@ -297,3 +292,17 @@ details.more.quiet{border-top:0;margin-top:6px}
 .lab-sentence{font-family:var(--font-body);font-size:var(--fs-body);line-height:1.5;color:var(--ink);margin:8px 0 6px}
 .lab-sentence b{color:var(--ink-hi)}
 .feed li{padding:5px 0}
+
+/* ── WP4: machine stepper (row pattern without the checkbox) + ring illustration; directory in the drawer ── */
+.ch-machine{max-width:960px}
+.ch-machine .machine-grid{align-items:start}
+.ch-machine .ring .loopviz{max-width:208px}
+@media(min-width:860px){.ch-machine .ring .loopviz{max-width:380px}}
+.row-num{flex:0 0 auto;width:22px;font-family:var(--font-mono);font-size:var(--fs-sm);color:var(--ink-2);font-variant-numeric:tabular-nums}
+.row.step .row-text{cursor:default}
+.who-link{margin:14px 0 0}
+.who{margin:24px 0 8px;padding-top:16px;border-top:1px solid var(--line);outline:none;scroll-margin-top:72px}
+.who-title{font-family:var(--font-display);font-size:var(--fs-h3);font-weight:700;color:var(--ink);margin-bottom:6px}
+.who .roles{grid-template-columns:1fr 1fr}
+.role h4{font-family:var(--font-body);font-size:var(--fs-sm);font-weight:600;color:var(--ink);margin-bottom:4px}
+@media(max-width:480px){.who .roles{grid-template-columns:1fr}}

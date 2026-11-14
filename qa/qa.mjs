@@ -156,10 +156,14 @@ let seed1, id1, params1;
   await page.click('#btn-back-extraction'); await settle(page);
   check('extraction ↔ live harvest round trip (denied camera recorded)', (await page.textContent('.live-box')).includes('denied'));
   await page.click('[data-goto="machine"]'); await settle(page);
-  await page.click('[data-node="5"]');
-  await openMore(page, 'm-rel'); await page.click('[data-filter="ownership"]');
+  // WP4: one stepper (row pattern, no checkbox); the directory + relations moved to the Sources drawer.
+  await page.click('.row:has(#step-allocation) .row-exp');
+  const stepOpen = await page.evaluate(() => ({ claim: document.getElementById('step-allocation-more').textContent, open: !document.getElementById('step-allocation-more').hidden, node: [...document.querySelectorAll('.loopviz .nd')].findIndex(n => n.classList.contains('on')) }));
+  await page.click('#m-who'); await settle(page);
+  await openMore(page, 'm-rel'); await page.click('#sources-drawer [data-filter="ownership"]');
   const rows = await page.$$eval('#rel-body tr', t => t.length);
-  check('machine: node stepping + relation filter', (await page.textContent('#node-detail')).includes('Attention allocation') && rows === 5, { rows });
+  check('machine: step disclosure shows its sourced claim and marks the ring; relation filter (now in the drawer)', stepOpen.open && stepOpen.claim.includes('chronological feed') && stepOpen.node === 5 && rows === 5, { rows, stepOpen });
+  await page.keyboard.press('Escape'); await settle(page);
   await page.screenshot({ path: `${QA}/shots/desktop/03-machine.png`, fullPage: true });
   await axe(page, 'machine');
   await page.click('[data-goto="loop"]'); await settle(page);
@@ -292,7 +296,8 @@ let seed1, id1, params1;
   await settle(page, 500);
   const raf2 = await page.evaluate(() => cosmosRaf);
   check('reduced motion: starfield loop not running (static frame)', raf1 === 0 && raf2 === 0, { raf1, raf2 });
-  check('reduced motion: PLAY THE LOOP disabled', await page.$eval('#m-play', b => b.disabled));
+  // WP4 removed PLAY THE LOOP (the step list replaced the auto-stepping detail panel); assert nothing on 03 animates instead.
+  check('reduced motion: nothing animates on 03 Machine (no PLAY button, no running animation)', await page.evaluate(() => !document.getElementById('m-play') && document.getAnimations().filter(a => a.playState === 'running').length === 0));
   await page.goto(BASE + '#revelation'); await settle(page, 400);
   const drawn = await page.$eval('#art-canvas', c => { const L = OracleExport.lookNow(), bg = OracleArt.PALETTES[L.pal + '-' + L.th].bg, v = parseInt(bg.slice(1), 16), B = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
     const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let lit = 0; for (let i = 0; i < d.length; i += 4 * 97) if (Math.abs(d[i] - B[0]) + Math.abs(d[i + 1] - B[1]) + Math.abs(d[i + 2] - B[2]) > 60) lit++; return lit; });
@@ -452,6 +457,26 @@ let seed1, id1, params1;
     await pg.focus('[name=lab-preset][value=newest]'); await pg.keyboard.press('ArrowRight'); await settle(pg, 100);
     check('WP3 lab: presets keyboard-operable (arrow keys move the radio)', await pg.evaluate(() => document.querySelector('[name=lab-preset][value=foryou]').checked && state.v2.lab.r === 90));
     await c5.close();
+  }
+  // WP4: Machine
+  {
+    const c6 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const pg = await c6.newPage(); instrument(pg, 'handover-machine');
+    await pg.goto(BASE + '#machine'); await settle(pg, 400);
+    const m = await pg.evaluate(() => ({ rows: [...document.querySelectorAll('#app .steps > .row')].map(r => [r.querySelector('.row-title').textContent, r.querySelector('.row-sub').textContent, !!r.querySelector('.row-exp'), !!r.querySelector('input')]),
+      want: OracleContent.MACHINE.map(x => [x.name, x.text]), dup: !!document.querySelector('.node-list, .node-btn, #node-detail'), dir: !!document.querySelector('#app .roles, #app .rel-table'),
+      link: document.getElementById('m-who')?.textContent, vp: +(document.documentElement.scrollHeight / innerHeight).toFixed(2) }));
+    check('WP4 machine: one vertical list of 7 steps, name + one line always visible, claim behind a chevron, no checkbox; no duplicate list or detail panel', m.rows.length === 7 && m.rows.every((r, i) => r[0] === m.want[i][0] && r[1] === m.want[i][1] && r[2] && !r[3]) && !m.dup, m.rows.map(r => r[0]));
+    check('WP4 machine: directory + relations out of the chapter, one link "Who is in this loop? →"', !m.dir && /Who is in this loop\?/.test(m.link), m.link);
+    check('WP4 machine: chapter at most 1.5 viewports on a phone', m.vp <= 1.5, m.vp);
+    await pg.tap('#m-who'); await settle(pg, 300);
+    const d = await pg.evaluate(() => { const w = document.getElementById('drawer-who'), r = w.getBoundingClientRect();
+      return { open: !document.getElementById('sources-drawer').hidden, inView: r.top >= 0 && r.top < innerHeight, focus: document.activeElement === w, entries: w.querySelectorAll('.roles li:not(.empty)').length, cites: w.querySelectorAll('.cite').length,
+        rel: w.querySelectorAll('#rel-body tr').length, claims: OracleContent.MACHINE.every(x => !x.claim.src || x.claim.src.every(id => document.getElementById('src-' + id))) }; });
+    check('WP4 drawer: "Who is in this loop" section (18 entries, 30 citation links, 9 relations) opens in view; every step claim source is in the drawer', d.open && d.inView && d.focus && d.entries === 18 && d.cites === 30 && d.rel === 9 && d.claims, d);
+    await pg.tap('#drawer-who .cite >> nth=0'); await settle(pg, 200);
+    check('WP4 drawer: a citation inside the directory highlights its source', await pg.evaluate(() => document.querySelectorAll('.src-hit').length === 1));
+    await c6.close();
   }
   // WP2: live preview
   {
