@@ -72,8 +72,8 @@ data/evidence.js  data/content.js            sources + labelled claims
 chapters/{offer,extraction,machine,loop,revelation}.js
 art/oracle-art.js                            generative module
 tests/art.test.cjs                           node --test tests/*.test.cjs
-qa/                                          Playwright + axe harness: qa.mjs (COLOR_SCHEME=dark|light), contrast.mjs, theme.mjs (dev only)
-docs/AUDIT.md  docs/PLAN.md  docs/QA.md  docs/SOURCES.md
+qa/                                          Playwright + axe harness: qa.mjs (COLOR_SCHEME=dark|light), contrast.mjs, theme.mjs, load.mjs (dev only)
+docs/AUDIT.md  docs/PLAN.md  docs/QA.md  docs/SOURCES.md  docs/HANDOVER-UX.md
 ```
 
 Settings → Pages → Source: Deploy from a branch → prod / root.
