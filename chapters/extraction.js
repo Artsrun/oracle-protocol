@@ -18,7 +18,8 @@
     const tried = granted || denied;
     app.innerHTML = `<article class="chapter ch-extraction">
       ${U.chapterHead('extraction', 'Observed, inferred, unknown',
-        'Systems record a little and infer a lot. Some of it no outsider can know.')}
+        'Systems record a little and infer a lot. Some of it no outsider can know.',
+        'Tick a category to make the lattice denser.')}
       <dl class="kinds" aria-label="Three kinds of information">
         <div><dt class="c-obs">OBSERVED</dt><dd>Recorded directly: clicks, searches, location.</dd></div>
         <div><dt class="c-der">INFERRED</dt><dd>Computed from that: interests, traits, ties.</dd></div>
@@ -56,6 +57,9 @@
 
     U.bindRows(app, 'data-fp', (i, on) => {
       if (on) state.v2.footprint |= (1 << i); else state.v2.footprint &= ~(1 << i);
+      const c = C.FOOTPRINT[i], n = C.FOOTPRINT.filter((_, k) => (state.v2.footprint >> k) & 1).length;
+      // The engine: every category densifies the lattice; Social relationships also add network links.
+      U.drawPreview(`${c.name}: lattice ${on ? 'denser' : 'thinner'}${c.id === 'relationships' ? (on ? ', more network links' : ', fewer network links') : ''} (${n} of 8).`);
     }, U.setTally('fp-count'));
     document.getElementById('btn-live').onclick = () => { history.pushState(null, '', '#sensors'); state.stage = 'permissions'; render(); };
     const w = document.getElementById('btn-witness');

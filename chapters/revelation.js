@@ -251,5 +251,13 @@
     if (state.v2.look || !['revelation', 'art'].includes(state.stage)) return;
     skipRemember = true; OracleChapters.go(state.stage, { push: false, focus: false });
   });
-  window.OracleExport = { exportBlob, withMetadata, crc32, parseRestore, lookNow, renderOpts }; // exposed for QA
+  // WP2: the small live preview shown in the headers of 01, 02 and 04 — same engine, same look as the 05 canvas,
+  // portrait aspect, no overlay text. Drawn instantly (no draw-in), so nothing animates.
+  function paintPreview(canvas) {
+    const p = params(), w = canvas.width, h = canvas.height, scene = A.compose(p, A.FORMATS.portrait.w / A.FORMATS.portrait.h);
+    A.render(canvas.getContext('2d'), scene, w, h, { ...renderOpts(lookNow()), overlay: null });
+    canvas.setAttribute('aria-label', 'Your artwork so far: ' + A.interpret(p));
+  }
+  if (window.OracleTheme) OracleTheme.onChange(() => { const c = document.getElementById('pv-canvas'); if (c) paintPreview(c); });
+  window.OracleExport = { paintPreview, exportBlob, withMetadata, crc32, parseRestore, lookNow, renderOpts }; // exposed for QA
 })();

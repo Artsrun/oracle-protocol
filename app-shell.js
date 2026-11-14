@@ -116,12 +116,24 @@ window.OracleChapters = (() => {
 
   // ── shared templates ────────────────────────────────────────────────────
   const esc = E.esc;
-  const chapterHead = (id, title, lead) => `
-    <header class="ch-head">
+  // preview: caption text for the live artwork preview (WP2). The preview sits in the header, in page flow.
+  const chapterHead = (id, title, lead, preview) => `
+    <header class="ch-head${preview ? ' has-preview' : ''}">
       <div class="stage-label">${(PHASES.find(p => p.id === id) || { n: '', label: id }).n} \u00b7 ${(PHASES.find(p => p.id === id) || { label: id }).label}</div>
       <h1 class="ch-title">${title}</h1>
       ${lead ? `<p class="ch-lead">${lead}</p>` : ''}
+      ${preview ? `<figure class="preview">
+        <canvas id="pv-canvas" width="216" height="270" role="img" aria-label="Your artwork so far"></canvas>
+        <figcaption><span class="pv-kicker">Your artwork so far</span><span id="pv-cap" aria-live="polite">${preview}</span></figcaption>
+      </figure>` : ''}
     </header>`;
+  // Redraw the header preview from the current choices; optionally say what just changed (in visual terms).
+  function drawPreview(caption) {
+    const c = document.getElementById('pv-canvas');
+    if (!c || !window.OracleExport || !OracleExport.paintPreview) return;
+    OracleExport.paintPreview(c);
+    if (caption) document.getElementById('pv-cap').textContent = caption;
+  }
   // Forward only: going back is the phase rail (one navigation pattern, not two). One style in every chapter:
   // the Next button is the screen's filled action; in-chapter actions are outlined.
   const chapterNav = (next) => {
@@ -231,8 +243,14 @@ window.OracleChapters = (() => {
   return {
     register: (id, fn) => { registry[id] = fn; },
     handles: (stage) => !!registry[stage],
-    renderStage: (stage, app) => registry[stage](app),
+    renderStage: (stage, app) => {
+      // WP2: the seed exists from the first chapter on, so every choice can show up in the preview.
+      // Random (crypto), never derived from device data.
+      if (ROUTES.includes(stage) && !state.v2.seed && window.OracleArt) state.v2.seed = OracleArt.newSeed();
+      registry[stage](app);
+      drawPreview();
+    },
     go, boot, openDrawer, closeDrawer, artParams, reduceMotion, simulatorOn,
-    ui: { chapterHead, chapterNav, slider, simNote, more, esc, row, bindRows, tally, setTally }
+    ui: { chapterHead, drawPreview, chapterNav, slider, simNote, more, esc, row, bindRows, tally, setTally }
   };
 })();

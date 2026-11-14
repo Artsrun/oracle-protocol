@@ -48,13 +48,17 @@
     </div>`;
   }
 
+  // What each lab weight does to the artwork (art/oracle-art.js factors). Recency only feeds the toy ranker.
+  const LAB_EFFECT = { e: 'Emotion: flow lines reshaped.', r: 'Relevance: flow lines pulled harder.', w: 'Recency changes the feed, not the artwork.',
+    t: 'Repetition: echoes around the core.', k: 'Social proof: network links changed.', a: 'Amplification: swirl changed.' };
   OracleChapters.register('loop', (app) => {
     const L = state.v2.lab;
     if (!sim) { sim = fresh(); for (let i = 0; i < L.n; i++) step(sim, L); }
     const sliders = [['e', 'Emotion'], ['r', 'Relevance'], ['w', 'Recency'], ['t', 'Repetition'], ['k', 'Social proof'], ['a', 'Amplification']];
     app.innerHTML = `<article class="chapter ch-loop">
       ${U.chapterHead('loop', 'Attention lab',
-        'A toy ranker over ten fictional posts. Set what it rewards, run rounds, watch attention concentrate.')}
+        'A toy ranker over ten fictional posts. Set what it rewards, run rounds, watch attention concentrate.',
+        'Move a weight or run a round to reshape it.')}
       ${U.simNote('Toy model \u2014 not any real algorithm, not evidence of manipulation, not a measurement of you.')}
       <section class="panel lab-grid" aria-labelledby="lab-title">
         <div>
@@ -91,15 +95,15 @@
     app.querySelectorAll('.lab-grid input[type=range]').forEach(inp => inp.oninput = () => {
       L[inp.dataset.key] = +inp.value;
       document.getElementById('out-' + inp.dataset.key).textContent = inp.value;
-      refresh();
+      refresh(); U.drawPreview(LAB_EFFECT[inp.dataset.key]);
     });
-    const run = (k) => { for (let i = 0; i < k; i++) { step(sim, L); L.n = Math.min(12, L.n + 1); } refresh(); };
+    const run = (k) => { for (let i = 0; i < k; i++) { step(sim, L); L.n = Math.min(12, L.n + 1); } refresh(); U.drawPreview(`Round ${L.n}: more echoes around the core.`); };
     document.getElementById('lab-step').onclick = () => run(1);
-    document.getElementById('lab-reset').onclick = () => { sim = fresh(); L.n = 0; refresh(); };
+    document.getElementById('lab-reset').onclick = () => { sim = fresh(); L.n = 0; refresh(); U.drawPreview('Rounds reset: echoes cleared.'); };
     document.getElementById('lab-chrono').onclick = () => {
       Object.assign(L, { e: 0, r: 0, w: 100, t: 0, k: 0, a: 0 });
       app.querySelectorAll('.lab-grid input[type=range]').forEach(inp => { inp.value = L[inp.dataset.key]; document.getElementById('out-' + inp.dataset.key).textContent = inp.value; });
-      refresh();
+      refresh(); U.drawPreview('Newest first: calmer flow lines, no swirl.');
     };
   });
   window.OracleLab = { rank, step, metrics, fresh }; // exposed for QA

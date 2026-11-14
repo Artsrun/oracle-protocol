@@ -44,7 +44,8 @@
     const v = state.v2, sim = OracleChapters.simulatorOn;
     app.innerHTML = `<article class="chapter ch-offer">
       ${U.chapterHead('offer', 'What do you trade?',
-        'Free apps cost data and attention. Tick the trades you make \u2014 each one shapes your artwork.')}
+        'Free apps cost data and attention. Tick the trades you make \u2014 each one shapes your artwork.',
+        'Tick a trade to add a red shard.')}
       ${U.tally('of-count', 'trades')}
       <ul class="rows" aria-label="Everyday trades">
         ${C.OFFERS.map((o, i) => U.row({
@@ -62,12 +63,15 @@
       if (on) v.offers |= (1 << i); else v.offers &= ~(1 << i);
       // Without the simulator the six art dials follow the ticked trades (deterministic, see OracleContent.deriveEx).
       if (!sim) v.ex = C.deriveEx(v.offers);
+      const n = C.OFFERS.filter((_, k) => (v.offers >> k) & 1).length;
+      U.drawPreview(`${C.OFFERS[i].title}: ${on ? 'added a red shard' : 'removed its shard'} (${n} ${n === 1 ? 'shard' : 'shards'}).`);
     }, U.setTally('of-count'));
     if (sim) app.querySelectorAll('.sliders input[type=range]').forEach(inp => inp.oninput = () => {
       v.ex[inp.dataset.key] = +inp.value;
       document.getElementById('out-' + inp.dataset.key).textContent = inp.value;
       document.getElementById('hex-wrap').innerHTML = hexSvg(v.ex);
       document.getElementById('model-wrap').innerHTML = modelRows(v.ex);
+      U.drawPreview('Exchange dials reshaped the artwork.');
     });
   });
 })();

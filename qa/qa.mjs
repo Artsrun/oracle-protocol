@@ -420,6 +420,45 @@ let seed1, id1, params1;
   await page.goto(BASE); await settle(page, 300);
   const ap = (await page.textContent('#app')).replace(/\s+/g, ' ');
   check('WP1 approach says what you do, what you get, how long, and that nothing leaves the tab', /answer a few questions/i.test(ap) && /artwork made from your answers/i.test(ap) && /three minutes/i.test(ap) && /nothing leaves this tab/i.test(ap), ap.slice(0, 200));
+  // WP2: live preview
+  {
+    const c3 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 });
+    const pg = await c3.newPage(); instrument(pg, 'handover-preview');
+    await pg.goto(BASE); await settle(pg, 300);
+    await pg.tap('#btn-investigate'); await settle(pg, 400);
+    const seed = await pg.evaluate(() => state.v2.seed);
+    check('WP2 seed is created on BEGIN (random ORACLE-XXXX-XXXX), not on arriving at 05', /^ORACLE-[0-9A-Z]{4}-[0-9A-Z]{4}$/.test(seed || '') && (await pg.evaluate(() => state.stage)) === 'offer', seed);
+    const snap = () => pg.evaluate(() => { const c = document.getElementById('pv-canvas'), r = c.getBoundingClientRect(), cap = document.getElementById('pv-cap'), cr = cap.getBoundingClientRect();
+      const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let h = 0; for (let i = 0; i < d.length; i += 4 * 7) h = (h * 31 + d[i] + d[i + 1] * 3 + d[i + 2] * 7) >>> 0;
+      return { h, cap: cap.textContent, label: c.getAttribute('aria-label'), live: cap.getAttribute('aria-live'), inView: r.top >= 0 && r.bottom <= innerHeight && cr.bottom <= innerHeight, scrollY, bg: [...d.slice(0, 3)] }; });
+    const s0 = await snap();
+    const rowBox = await pg.$eval('[data-offer="0"]', e => { const r = e.closest('.row').getBoundingClientRect(); return r.bottom <= innerHeight; });
+    await pg.tap('label[for="offer-social"]'); await settle(pg, 150);
+    const s1 = await snap();
+    check('WP2 tick a trade on a phone: preview + caption change, both in view, no scrolling', rowBox && s0.inView && s1.inView && s1.scrollY === 0 && s0.h !== s1.h && s1.cap !== s0.cap && /shard/.test(s1.cap), { before: { h: s0.h, cap: s0.cap }, after: { h: s1.h, cap: s1.cap, scrollY: s1.scrollY } });
+    check('WP2 preview has a text alternative and an aria-live caption', /^Your artwork so far: /.test(s1.label) && s1.live === 'polite', { label: s1.label, live: s1.live });
+    const look = await pg.evaluate(() => { const L = OracleExport.lookNow(); return OracleArt.PALETTES[L.pal + '-' + L.th].bg; });
+    const hex = '#' + s1.bg.map(v => v.toString(16).padStart(2, '0')).join('');
+    check('WP2 preview uses the same look as the 05 canvas (palette background matches lookNow)', hex === look, { hex, look });
+    const where = {};
+    for (const ch of ['offer', 'extraction', 'machine', 'loop', 'revelation']) { await pg.goto(BASE + '#' + ch); await settle(pg, 300); where[ch] = await pg.evaluate(() => !!document.querySelector('.ch-head #pv-canvas')); }
+    check('WP2 preview in the header of 01, 02 and 04 only', where.offer && where.extraction && where.loop && !where.machine && !where.revelation, where);
+    await pg.goto(BASE + '#extraction'); await settle(pg, 300);
+    const e0 = await snap(); await pg.tap('label[for="fp-relationships"]'); await settle(pg, 150); const e1 = await snap();
+    check('WP2 footprint tick redraws the preview and names the change', e0.h !== e1.h && /lattice denser, more network links/.test(e1.cap), e1.cap);
+    await pg.goto(BASE + '#loop'); await settle(pg, 300);
+    const perf = await pg.evaluate(() => { const c = document.getElementById('pv-canvas'); Object.assign(state.v2, { offers: 63, footprint: 255 }); Object.assign(state.v2.lab, { e: 100, r: 100, t: 100, k: 100, a: 100, n: 12 }); Object.assign(state.v2.ex, { d: 100, c: 100, p: 100, y: 100, x: 100, i: 100 });
+      const t = []; for (let i = 0; i < 25; i++) { const t0 = performance.now(); OracleExport.paintPreview(c); t.push(performance.now() - t0); } t.sort((a, b) => a - b); return { median: +t[12].toFixed(1), worst: +t[24].toFixed(1) }; });
+    check('WP2 preview redraw at 216×270, every parameter at maximum: fast enough for every input event (median < 50 ms)', perf.median < 50, perf);
+    R.previewPerf = perf;
+    await c3.close();
+    const c4 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
+    const p4 = await c4.newPage(); instrument(p4, 'handover-preview-reduced');
+    await p4.goto(BASE + '#offer'); await settle(p4, 300);
+    const lit = await p4.$eval('#pv-canvas', c => { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data, b = [d[0], d[1], d[2]]; let n = 0; for (let i = 0; i < d.length; i += 4 * 13) if (Math.abs(d[i] - b[0]) + Math.abs(d[i + 1] - b[1]) + Math.abs(d[i + 2] - b[2]) > 60) n++; return n; });
+    check('WP2 reduced motion: preview drawn immediately', lit > 30, { lit });
+    await c4.close();
+  }
   await ctx.close();
 }
 
