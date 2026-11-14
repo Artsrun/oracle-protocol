@@ -114,8 +114,6 @@ input[type=range]{width:100%;accent-color:var(--cyan);min-height:28px;background
 @media(max-width:640px){.rel-table thead{display:none}.rel-table tr{display:block;border-bottom:1px solid var(--line);padding:8px 0}.rel-table td{display:block;border:0;padding:2px 0}.rel-table td:first-child{white-space:normal}}
 
 /* loop */
-.lab-grid{display:grid;gap:22px;grid-template-columns:1fr}
-@media(min-width:900px){.lab-grid{grid-template-columns:minmax(260px,360px) 1fr}}
 .feed{list-style:none;padding:0;margin:0}
 .feed li{display:grid;grid-template-columns:28px 1fr 56px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid color-mix(in srgb,var(--signal) 8%,transparent);font-size:var(--fs-body)}
 .feed .rk{color:var(--ink-3);font-size:var(--fs-xs)}
@@ -124,10 +122,6 @@ input[type=range]{width:100%;accent-color:var(--cyan);min-height:28px;background
 .feed .sh{text-align:right;color:var(--ink-hi);font-weight:600}
 .feed .bar{grid-column:2/4;margin:0}
 .feed .bar i{background:var(--signal)}
-.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0}
-.metric{border:1px solid color-mix(in srgb,var(--signal) 20%,transparent);padding:10px}
-.metric span{display:block;font-size:var(--fs-label);letter-spacing:.16em;color:color-mix(in srgb,var(--signal) calc(100% - 15% * var(--tf)),transparent)}
-.metric b{font-family:var(--font-display);font-size:1.5rem;color:var(--ink)}
 .formula{font-size:var(--fs-sm);line-height:1.7;color:var(--ink-2);background:color-mix(in srgb,var(--signal) 4%,transparent);border:1px solid color-mix(in srgb,var(--signal) 14%,transparent);padding:10px 12px;overflow-x:auto}
 .formula code{color:var(--ink)}
 .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
@@ -286,3 +280,20 @@ details.more.quiet{border-top:0;margin-top:6px}
 .preview figcaption{display:flex;flex-direction:column;gap:4px;font-family:var(--font-body);font-size:var(--fs-sm);line-height:1.45;color:var(--ink)}
 .pv-kicker{font-size:var(--fs-xs);color:var(--ink-2)}
 @media(min-width:760px){.preview canvas{width:144px;height:180px}.preview figcaption{font-size:var(--fs-body)}}
+
+/* ── WP3: attention lab — presets (native radios as a segmented control), one sentence, the feed ── */
+.ch-loop{max-width:720px}
+.ch-loop .ch-head{max-width:none}
+.lab{margin:8px 0 0}
+.presets{border:0;margin:0 0 10px;padding:0;min-width:0}
+.presets legend{font-family:var(--font-body);font-size:var(--fs-sm);color:var(--ink-2);margin-bottom:6px;padding:0}
+.preset-row{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line)}
+.preset{position:relative;display:flex}
+.preset+.preset{border-left:1px solid var(--line)}
+.preset input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.preset span{flex:1;display:grid;place-content:center;text-align:center;min-height:44px;padding:6px 4px;font-family:var(--font-body);font-size:var(--fs-sm);color:var(--ink);cursor:pointer}
+.preset input:checked+span{background:var(--ink);color:var(--bg);font-weight:600}
+.preset input:focus-visible+span{outline:2px solid var(--ink-hi);outline-offset:-4px}
+.lab-sentence{font-family:var(--font-body);font-size:var(--fs-body);line-height:1.5;color:var(--ink);margin:8px 0 6px}
+.lab-sentence b{color:var(--ink-hi)}
+.feed li{padding:5px 0}

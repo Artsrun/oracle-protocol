@@ -29,19 +29,28 @@
   }
 
   const pct = (x) => (x * 100).toFixed(1) + '%';
-  function feedHtml(L) {
+  const pct0 = (x) => Math.round(x * 100) + '%';
+  // WP3: three presets first; the six raw weights are for the curious. Values measured with window.OracleLab
+  // (top-3 share round 0 → 4): Newest first 46% → 46%, For you 42% → 48%, Most engaging 69% → 92%.
+  const PRESETS = [
+    { id: 'newest', name: 'Newest first', v: { e: 0, r: 0, w: 100, t: 0, k: 0, a: 0 }, art: 'Newest first: fewer flow lines, less swirl.' },
+    { id: 'foryou', name: 'For you', v: { e: 20, r: 90, w: 30, t: 20, k: 30, a: 30 }, art: 'For you: flow lines pulled toward one point.' },
+    { id: 'engaging', name: 'Most engaging', v: { e: 90, r: 30, w: 30, t: 60, k: 80, a: 80 }, art: 'Most engaging: dense flow lines, strong swirl.' }
+  ];
+  const presetOf = (L) => PRESETS.find(p => Object.keys(p.v).every(k => L[k] === p.v[k]));
+  function sentence(L) {
     const r = rank(sim, L), m = metrics(r);
-    return `<div class="metrics">
-        <div class="metric"><span>TOP-3 SHARE</span><b>${pct(m.top3)}</b></div>
-        <div class="metric"><span>GINI</span><b>${m.gini.toFixed(2)}</b></div>
-        <div class="metric"><span>EMOTIONAL LOAD</span><b>${pct(m.emo)}</b></div>
-        <div class="metric"><span>ROUNDS</span><b>${L.n}</b></div>
-      </div>
-      <ol class="feed">${r.map((s, i) => `<li title="emotion ${s.it.emo.toFixed(2)} \u00b7 relevance ${s.it.rel.toFixed(2)} \u00b7 recency ${s.it.rec.toFixed(2)} \u00b7 repetition ${s.it.rep.toFixed(2)} \u00b7 social ${s.it.soc.toFixed(2)}"><span class="rk">#${i + 1}</span><span class="tt">${s.it.title}</span><span class="sh">${pct(s.share)}</span><span class="bar"><i style="width:${Math.min(100, s.share * 100 * 2.5)}%"></i></span></li>`).join('')}</ol>`;
+    const lead = L.n === 0 ? 'Before any rounds' : `After ${L.n} ${L.n === 1 ? 'round' : 'rounds'}`;
+    return { top3: m.top3, html: `${lead}, the top 3 posts take <b>${pct0(m.top3)}</b> of all attention. Top post: ${r[0].it.title}.` };
+  }
+  function feedHtml(L) {
+    const r = rank(sim, L);
+    return `<ol class="feed">${r.map((s, i) => `<li title="emotion ${s.it.emo.toFixed(2)} \u00b7 relevance ${s.it.rel.toFixed(2)} \u00b7 recency ${s.it.rec.toFixed(2)} \u00b7 repetition ${s.it.rep.toFixed(2)} \u00b7 social ${s.it.soc.toFixed(2)}"><span class="rk">#${i + 1}</span><span class="tt">${s.it.title}</span><span class="sh">${pct(s.share)}</span><span class="bar"><i style="width:${Math.min(100, s.share * 100 * 2.5)}%"></i></span></li>`).join('')}</ol>`;
   }
   function formulaHtml(L) {
-    const W = weights(L);
-    return `<div class="formula">
+    const W = weights(L), m = metrics(rank(sim, L));
+    return `<p class="claim">Top-3 share ${pct(m.top3)} \u00b7 Gini ${m.gini.toFixed(2)} (0 = attention spread evenly, 1 = one post takes all) \u00b7 emotional load ${pct(m.emo)} (attention-weighted emotion of what is shown) \u00b7 rounds ${L.n}</p>
+      <div class="formula">
       <code>score = 0.01 + ${W.we.toFixed(2)}\u00b7emotion + ${W.wr.toFixed(2)}\u00b7relevance + ${W.wc.toFixed(2)}\u00b7recency + ${W.wt.toFixed(2)}\u00b7repetition + ${W.wk.toFixed(2)}\u00b7social</code><br>
       <code>attention share = score^${W.g.toFixed(2)} / \u03a3 score^${W.g.toFixed(2)}</code> &nbsp;(amplification exponent)<br>
       each feedback round: <code>social \u2190 \u00bd\u00b7social + \u00bd\u00b7min(1, share\u00b7N/3)</code>, <code>repetition \u2190 min(1, repetition + 2\u00b7share)</code>, <code>recency \u2190 0.85\u00b7recency</code>
@@ -55,31 +64,30 @@
     const L = state.v2.lab;
     if (!sim) { sim = fresh(); for (let i = 0; i < L.n; i++) step(sim, L); }
     const sliders = [['e', 'Emotion'], ['r', 'Relevance'], ['w', 'Recency'], ['t', 'Repetition'], ['k', 'Social proof'], ['a', 'Amplification']];
+    const cur = presetOf(L), S = sentence(L);
     app.innerHTML = `<article class="chapter ch-loop">
       ${U.chapterHead('loop', 'Attention lab',
-        'A toy ranker over ten fictional posts. Set what it rewards, run rounds, watch attention concentrate.',
-        'Move a weight or run a round to reshape it.')}
+        'A toy ranker over ten fictional posts. Pick what it rewards, run rounds, watch attention concentrate.',
+        'Pick a ranking or run a round to reshape it.')}
       ${U.simNote('Toy model \u2014 not any real algorithm, not evidence of manipulation, not a measurement of you.')}
-      <section class="panel lab-grid" aria-labelledby="lab-title">
-        <div>
-          <h2 id="lab-title" class="panel-title">What it rewards</h2>
-          ${sliders.map(([k, n]) => U.slider(k, n, L[k])).join('')}
-          <div class="btn-row">
-            <button type="button" class="btn-sm" id="lab-step">RUN A ROUND</button>
-            <button type="button" class="btn-sm" id="lab-chrono">CHRONOLOGICAL</button>
-            <button type="button" class="btn-sm" id="lab-reset">RESET</button>
-          </div>
+      <section class="lab" aria-labelledby="lab-title">
+        <fieldset class="presets">
+          <legend id="lab-title">Rank the feed by</legend>
+          <div class="preset-row">${PRESETS.map(p => `<label class="preset"><input type="radio" name="lab-preset" value="${p.id}" ${cur && cur.id === p.id ? 'checked' : ''}><span>${p.name}</span></label>`).join('')}</div>
+        </fieldset>
+        <p class="lab-sentence" id="lab-sentence" aria-live="polite" data-top3="${S.top3}">${S.html}</p>
+        <div id="lab-feed">${feedHtml(L)}</div>
+        <div class="btn-row">
+          <button type="button" class="btn-sm" id="lab-step">RUN A ROUND</button>
+          <button type="button" class="btn-sm" id="lab-reset">RESET ROUNDS</button>
         </div>
-        <div>
-          <h2 class="panel-title">Fictional feed</h2>
-          <div id="lab-feed" aria-live="polite">${feedHtml(L)}</div>
-          ${U.more('Model rules', `<div id="lab-formula">${formulaHtml(L)}</div>`, null, ['SIMULATED'])}
-        </div>
+        ${U.more('Adjust the ranker yourself', `<div class="lab-sliders">${sliders.map(([k, n]) => U.slider(k, n, L[k])).join('')}</div>`, 'lab-adjust')}
+        ${U.more('Model rules', `<div id="lab-formula">${formulaHtml(L)}</div>`, null, ['SIMULATED'])}
       </section>
       <section class="panel" aria-labelledby="lab-ev">
         <h2 id="lab-ev" class="panel-title">What the evidence says</h2>
         ${E.claim('VERIFIED', 'A randomized experiment on ~2 million Twitter accounts: personalised ranking amplified some political content versus a chronological feed.', ['huszar22'])}
-        ${E.claim('VERIFIED', 'EU very large platforms must offer a feed not based on profiling \u2014 the real-world CHRONOLOGICAL.', ['dsa38'])}
+        ${E.claim('VERIFIED', 'EU very large platforms must offer a feed not based on profiling \u2014 a real-world counterpart to Newest first.', ['dsa38'])}
         ${U.more('More evidence', E.claim('VERIFIED', 'The same study did not find far-left or far-right groups amplified more than moderates.', ['huszar22']) +
           E.claim('VERIFIED', 'Each moral-emotional word was linked to ~20% more diffusion across 563,312 posts \u2014 an association, not proof a ranker causes it.', ['brady17']) +
           E.claim('VERIFIED', 'X\u2019s published For You pipeline uses explicit (likes, replies) and implicit (profile visits, clicks) signals.', ['x-algo']) +
@@ -89,22 +97,26 @@
     </article>`;
 
     const refresh = () => {
+      const S = sentence(L), el = document.getElementById('lab-sentence');
+      el.innerHTML = S.html; el.dataset.top3 = S.top3;
       document.getElementById('lab-feed').innerHTML = feedHtml(L);
       document.getElementById('lab-formula').innerHTML = formulaHtml(L);
+      const p = presetOf(L);
+      app.querySelectorAll('[name=lab-preset]').forEach(r => { r.checked = !!p && r.value === p.id; });
     };
-    app.querySelectorAll('.lab-grid input[type=range]').forEach(inp => inp.oninput = () => {
+    const syncSliders = () => app.querySelectorAll('.lab-sliders input[type=range]').forEach(inp => { inp.value = L[inp.dataset.key]; document.getElementById('out-' + inp.dataset.key).textContent = inp.value; });
+    app.querySelectorAll('.lab-sliders input[type=range]').forEach(inp => inp.oninput = () => {
       L[inp.dataset.key] = +inp.value;
       document.getElementById('out-' + inp.dataset.key).textContent = inp.value;
       refresh(); U.drawPreview(LAB_EFFECT[inp.dataset.key]);
     });
+    app.querySelectorAll('[name=lab-preset]').forEach(r => r.onchange = () => {
+      const p = PRESETS.find(x => x.id === r.value); if (!p || !r.checked) return;
+      Object.assign(L, p.v); syncSliders(); refresh(); U.drawPreview(p.art);
+    });
     const run = (k) => { for (let i = 0; i < k; i++) { step(sim, L); L.n = Math.min(12, L.n + 1); } refresh(); U.drawPreview(`Round ${L.n}: more echoes around the core.`); };
     document.getElementById('lab-step').onclick = () => run(1);
     document.getElementById('lab-reset').onclick = () => { sim = fresh(); L.n = 0; refresh(); U.drawPreview('Rounds reset: echoes cleared.'); };
-    document.getElementById('lab-chrono').onclick = () => {
-      Object.assign(L, { e: 0, r: 0, w: 100, t: 0, k: 0, a: 0 });
-      app.querySelectorAll('.lab-grid input[type=range]').forEach(inp => { inp.value = L[inp.dataset.key]; document.getElementById('out-' + inp.dataset.key).textContent = inp.value; });
-      refresh(); U.drawPreview('Newest first: calmer flow lines, no swirl.');
-    };
   });
-  window.OracleLab = { rank, step, metrics, fresh }; // exposed for QA
+  window.OracleLab = { rank, step, metrics, fresh, PRESETS }; // exposed for QA
 })();

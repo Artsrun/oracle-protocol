@@ -163,15 +163,17 @@ let seed1, id1, params1;
   await page.screenshot({ path: `${QA}/shots/desktop/03-machine.png`, fullPage: true });
   await axe(page, 'machine');
   await page.click('[data-goto="loop"]'); await settle(page);
-  const before = await page.textContent('.metric b');
+  // WP3: the four metric tiles became one sentence; its top-3 share is in data-top3. Raw sliders live in a disclosure.
+  const top3 = () => page.$eval('#lab-sentence', e => +e.dataset.top3 * 100);
+  const before = await top3();
   await setRange(page, '#sl-a', 85); await setRange(page, '#sl-e', 80);
   for (let i = 0; i < 5; i++) await page.click('#lab-step');
   await settle(page);
-  const after = await page.textContent('.metric b');
-  check('loop: amplification + feedback rounds raise top-3 concentration', parseFloat(after) > parseFloat(before), { before, after });
-  await page.click('#lab-chrono'); await settle(page);
-  const chrono = await page.textContent('.metric b');
-  check('loop: chronological baseline lowers concentration', parseFloat(chrono) < parseFloat(after), { chrono });
+  const after = await top3();
+  check('loop: amplification + feedback rounds raise top-3 concentration', after > before, { before, after });
+  await page.click('label.preset:has([value=newest])'); await settle(page);
+  const chrono = await top3();
+  check('loop: Newest first preset (the chronological baseline) lowers concentration', chrono < after, { chrono });
   await setRange(page, '#sl-a', 60); await setRange(page, '#sl-e', 70); await setRange(page, '#sl-k', 55);
   await page.screenshot({ path: `${QA}/shots/desktop/04-loop.png`, fullPage: true });
   await axe(page, 'loop');
@@ -420,6 +422,37 @@ let seed1, id1, params1;
   await page.goto(BASE); await settle(page, 300);
   const ap = (await page.textContent('#app')).replace(/\s+/g, ' ');
   check('WP1 approach says what you do, what you get, how long, and that nothing leaves the tab', /answer a few questions/i.test(ap) && /artwork made from your answers/i.test(ap) && /three minutes/i.test(ap) && /nothing leaves this tab/i.test(ap), ap.slice(0, 200));
+  // WP3: attention lab presets
+  {
+    const c5 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const pg = await c5.newPage(); instrument(pg, 'handover-lab');
+    await pg.goto(BASE + '#loop'); await settle(pg, 400);
+    const struct = await pg.evaluate(() => ({ radios: [...document.querySelectorAll('#app .presets input[type=radio][name=lab-preset]')].map(r => r.labels[0].textContent.trim()),
+      legend: document.querySelector('#app .presets legend')?.textContent, tiles: document.querySelectorAll('#app .metric').length,
+      slidersHidden: [...document.querySelectorAll('#app input[type=range]')].every(i => i.closest('details') && !i.closest('details').open) && document.querySelectorAll('#app input[type=range]').length === 6,
+      chrono: !!document.getElementById('lab-chrono'), claims: [...document.querySelectorAll('.ch-loop .panel > .claim')].filter(c => c.getClientRects().length).length,
+      rules: document.querySelector('#lab-formula')?.textContent.includes('Gini') && document.querySelector('#lab-formula')?.textContent.includes('emotional load') }));
+    check('WP3 lab: three presets as a native radio group; metric tiles gone; Gini + emotional load in Model rules; sliders in a closed disclosure', struct.radios.join() === 'Newest first,For you,Most engaging' && struct.tiles === 0 && struct.slidersHidden && !struct.chrono && struct.rules, struct);
+    check('WP3 lab: evidence panel keeps its two visible claims', struct.claims === 2, struct.claims);
+    const view = {};
+    for (const id of ['newest', 'foryou', 'engaging']) {
+      await pg.evaluate(() => window.scrollTo(0, 0));
+      await pg.tap(`label.preset:has([value=${id}])`); await settle(pg, 150);
+      view[id] = await pg.evaluate(() => { const s = document.getElementById('lab-sentence').getBoundingClientRect(), rows = [...document.querySelectorAll('#lab-feed li')].slice(0, 5).map(li => li.getBoundingClientRect().bottom);
+        return { scrollY, sentence: s.top >= 0 && s.bottom <= innerHeight, top5: rows.every(b => b <= innerHeight), text: document.getElementById('lab-sentence').textContent }; });
+    }
+    check('WP3 lab: after tapping a preset at 390×844 the sentence and top five feed rows are in view without scrolling', Object.values(view).every(v => v.scrollY === 0 && v.sentence && v.top5), view);
+    const table = await pg.evaluate(() => { const L0 = OracleLab; const out = {}; for (const p of L0.PRESETS) { const L = { ...p.v }; const it = L0.fresh(); const t0 = L0.metrics(L0.rank(it, L)).top3; let r; for (let i = 0; i < 4; i++) L0.step(it, L); r = L0.rank(it, L); out[p.id] = [Math.round(t0 * 100), Math.round(L0.metrics(r).top3 * 100), L0.rank(L0.fresh(), L)[0].it.title]; } return out; });
+    check('WP3 lab: presets reproduce the handover table (top-3 share round 0 → 4, #1 post)', table.newest.slice(0, 2).join() === '46,46' && table.foryou.slice(0, 2).join() === '42,48' && table.engaging.slice(0, 2).join() === '69,92' && table.newest[2] === 'Breaking rumour, unverified' && table.foryou[2] === 'Meme in your niche' && table.engaging[2] === 'Outraged thread about a rival group', table);
+    await pg.tap('label.preset:has([value=engaging])'); await settle(pg, 100);
+    const pr = await pg.evaluate(() => OracleArt.normalize(OracleChapters.artParams()));
+    await setRange(pg, '#sl-a', 20); await settle(pg, 100);
+    const pr2 = await pg.evaluate(() => ({ p: OracleArt.normalize(OracleChapters.artParams()), checked: [...document.querySelectorAll('[name=lab-preset]')].filter(r => r.checked).length }));
+    check('WP3 lab: presets and raw sliders both feed the artwork; moving a slider off a preset clears the selection', pr.e === 90 && pr.a === 80 && pr2.p.a === 20 && pr2.checked === 0, { preset: [pr.e, pr.a], slider: pr2.p.a, checked: pr2.checked });
+    await pg.focus('[name=lab-preset][value=newest]'); await pg.keyboard.press('ArrowRight'); await settle(pg, 100);
+    check('WP3 lab: presets keyboard-operable (arrow keys move the radio)', await pg.evaluate(() => document.querySelector('[name=lab-preset][value=foryou]').checked && state.v2.lab.r === 90));
+    await c5.close();
+  }
   // WP2: live preview
   {
     const c3 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 });
