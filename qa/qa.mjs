@@ -6,6 +6,7 @@ import { PNG } from 'pngjs';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const Art = require(new URL('../art/oracle-art.js', import.meta.url).pathname);
+const Lay = require(new URL('../art/layers.js', import.meta.url).pathname); // v4 WP2: new artworks use the layered engine
 const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 
 const BASE = (process.env.BASE || 'http://127.0.0.1:8765/oracle-protocol/');
@@ -187,8 +188,9 @@ let seed1, id1, params1;
   id1 = (await page.textContent('#seed-line')).match(/C-[0-9A-F]{10}/)[0];
   params1 = await page.evaluate(() => OracleArt.normalize(OracleChapters.artParams()));
   check('revelation: seed + composition id shown; URL holds only abstract params', /^#revelation\?s=ORACLE-/.test(await page.evaluate(() => location.hash)), await page.evaluate(() => location.hash));
-  const nodeId = Art.compositionId(params1);
-  check('cross-engine determinism: Node compositionId === browser compositionId', nodeId === id1, { node: nodeId, browser: id1 });
+  // v4 WP2 (intended change): a new artwork is drawn by the layered engine and its link carries v=2.
+  const nodeId = Lay.compositionId(params1);
+  check('cross-engine determinism: Node compositionId === browser compositionId (layered engine, link has v=2)', nodeId === id1 && /&v=2(&|$)/.test(await page.evaluate(() => location.hash)), { node: nodeId, browser: id1 });
   check('artwork params reflect visitor choices (offers/footprint/derived dials/rounds)', params1.o === 37 && params1.f === 10 && params1.d === 56 && params1.n === 5, params1);
   await page.screenshot({ path: `${QA}/shots/desktop/05-revelation.png`, fullPage: true });
   await axe(page, 'revelation');
@@ -232,7 +234,7 @@ let seed1, id1, params1;
 {
   const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1440, height: 900 }, acceptDownloads: true, deviceScaleFactor: 2 });
   const page = await ctx.newPage(); instrument(page, 'determinism');
-  await page.goto(BASE + '#art?' + Art.encode(params1) + '&fmt=portrait&pal=observatory&th=' + SCHEME + '&ty=instrument'); await settle(page, 900); // as produced by COPY LINK
+  await page.goto(BASE + '#art?' + Art.encode(params1) + '&v=2&fmt=portrait&pal=observatory&th=' + SCHEME + '&ty=instrument'); await settle(page, 900); // as produced by COPY LINK (v4: carries v=2)
   await page.screenshot({ path: `${QA}/shots/desktop/07-shared-link-clean-view.png` });
   await page.click('#ac-back'); await settle(page, 800);
   const id2 = (await page.textContent('#seed-line')).match(/C-[0-9A-F]{10}/)[0];
@@ -566,7 +568,7 @@ let seed1, id1, params1;
     check('WP2 seed is created on BEGIN (random ORACLE-XXXX-XXXX), not on arriving at 05', /^ORACLE-[0-9A-Z]{4}-[0-9A-Z]{4}$/.test(seed || '') && (await pg.evaluate(() => state.stage)) === 'offer', seed);
     const snap = () => pg.evaluate(() => { const c = document.getElementById('pv-canvas'), r = c.getBoundingClientRect(), cap = document.getElementById('pv-cap'), cr = cap.getBoundingClientRect();
       const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let h = 0; for (let i = 0; i < d.length; i += 4 * 7) h = (h * 31 + d[i] + d[i + 1] * 3 + d[i + 2] * 7) >>> 0;
-      return { h, cap: cap.textContent, label: c.getAttribute('aria-label'), live: cap.getAttribute('aria-live'), inView: r.top >= 0 && r.bottom <= innerHeight && cr.bottom <= innerHeight, scrollY, bg: [...d.slice(0, 3)] }; });
+      return { h, cap: cap.textContent, label: c.getAttribute('aria-label'), live: cap.getAttribute('aria-live'), inView: r.top >= 0 && r.bottom <= innerHeight && cr.bottom <= innerHeight, scrollY, bg: (() => { const n = {}; for (let i = 0; i < d.length; i += 4 * 13) { const k = d[i] + ',' + d[i + 1] + ',' + d[i + 2]; n[k] = (n[k] || 0) + 1; } return Object.entries(n).sort((a, b) => b[1] - a[1])[0][0].split(',').map(Number); })() }; }); // v4: most common colour = background (a corner pixel can sit under a line)
     const s0 = await snap();
     const rowBox = await pg.$eval('[data-offer="0"]', e => { const r = e.closest('.row').getBoundingClientRect(); return r.bottom <= innerHeight; });
     await pg.tap('label[for="offer-social"]'); await settle(pg, 150);

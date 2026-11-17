@@ -5,6 +5,9 @@
   const HKEY = 'oracle.v2.history';
   let raf = 0, skipRemember = false, moreOpen = false;
 
+  // v4: new artworks use the layered engine (v=2 in the link); older links keep the legacy engine (art/engine.js).
+  const E = () => OracleEngine.get(state.v2.engine);
+  const enc = (p) => A.encode(p) + E().q;
   const ensureSeed = () => { if (!state.v2.seed) state.v2.seed = A.newSeed(); };
   const params = () => A.normalize(OracleChapters.artParams());
   const baseUrl = () => location.origin + location.pathname;
@@ -23,7 +26,7 @@
   const lookQuery = (L) => `&pal=${L.pal}&th=${L.th}&ty=${L.ty}`;
   const lookLabel = (L) => `${LABEL[L.pal]} \u00b7 ${LABEL[L.th]} \u00b7 ${LABEL[L.ty]}`;
   const renderOpts = (L) => ({ palette: L.pal + '-' + L.th, fonts: TYPEFACES[L.ty] || TYPEFACES.signal });
-  const shareLink = (p, fmt) => `${baseUrl()}#art?${A.encode(p)}&fmt=${fmt}${lookQuery(lookNow())}`;
+  const shareLink = (p, fmt) => `${baseUrl()}#art?${enc(p)}&fmt=${fmt}${lookQuery(lookNow())}`;
   const fmtOf = () => A.FORMATS[state.v2.format] ? state.v2.format : 'portrait';
   const fileName = (p, fmt) => `oracle-${p.s.replace(/^ORACLE-/, "").toLowerCase()}-${A.FORMATS[fmt].w}x${A.FORMATS[fmt].h}.png`;
 
@@ -34,11 +37,11 @@
   }
   const overlay = (p, id) => ({
     title: state.v2.title ? 'ORACLE // DIGITAL REMAINS' : '', subtitle: state.v2.title ? 'THE ANATOMY OF ATTENTION' : '',
-    seed: p.s, id, text: A.interpret(p), signature: 'ORACLE PROTOCOL'
+    seed: p.s, id, text: E().interpret(p), signature: 'ORACLE PROTOCOL'
   });
 
   function draw(canvas, p, fmt, animate) {
-    const F = A.FORMATS[fmt], scene = A.compose(p, F.w / F.h), id = A.compositionId(p);
+    const F = A.FORMATS[fmt], scene = E().compose(p, F.w / F.h), id = E().compositionId(p);
     canvas.width = F.w; canvas.height = F.h;
     const ctx = canvas.getContext('2d'), RO = renderOpts(lookNow());
     cancelAnimationFrame(raf);
@@ -68,7 +71,7 @@
   async function withMetadata(blob, p, id) {
     const buf = new Uint8Array(await blob.arrayBuffer());
     const iend = buf.length - 12; // IEND is always the final 12-byte chunk
-    const chunks = [textChunk('Software', 'Oracle Protocol v2 / ORACLE // DIGITAL REMAINS v' + A.VERSION), textChunk('Comment', `oracle:${A.encode(p)};id=${id};look=${lookNow().pal}-${lookNow().th}-${lookNow().ty}`)];
+    const chunks = [textChunk('Software', E().software), textChunk('Comment', `oracle:${enc(p)};id=${id};look=${lookNow().pal}-${lookNow().th}-${lookNow().ty}`)];
     const total = chunks.reduce((a, c) => a + c.length, 0);
     const out = new Uint8Array(buf.length + total);
     out.set(buf.subarray(0, iend), 0);
@@ -102,8 +105,8 @@
   const readHist = () => { try { return JSON.parse(localStorage.getItem(HKEY) || '[]'); } catch (e) { return []; } };
   function remember(p, id) {
     try {
-      const enc = A.encode(p), h = readHist().filter(x => x.enc !== enc);
-      h.unshift({ enc, s: p.s, id }); localStorage.setItem(HKEY, JSON.stringify(h.slice(0, 12)));
+      const e = enc(p), h = readHist().filter(x => x.enc !== e);
+      h.unshift({ enc: e, s: p.s, id }); localStorage.setItem(HKEY, JSON.stringify(h.slice(0, 12)));
     } catch (e) { /* storage unavailable: history is optional */ }
   }
   function apply(p) {
@@ -115,7 +118,7 @@
   function parseRestore(str) {
     str = String(str || '').trim();
     const m = /#(art|revelation)\?(.*)$/.exec(str);
-    if (m) return A.decode(m[2]);
+    if (m) { state.v2.engine = OracleEngine.of(m[2]); return A.decode(m[2]); }
     if (/^ORACLE-[0-9A-Z]{4}-[0-9A-Z]{4}$/i.test(str)) return A.normalize({ ...OracleChapters.artParams(), s: str.toUpperCase() });
     return null;
   }
@@ -139,8 +142,8 @@
 
   OracleChapters.register('revelation', (app) => {
     ensureSeed();
-    const p = params(), fmt = fmtOf(), id = A.compositionId(p);
-    history.replaceState(null, '', '#revelation?' + A.encode(p) + '&fmt=' + fmt);
+    const p = params(), fmt = fmtOf(), id = E().compositionId(p);
+    history.replaceState(null, '', '#revelation?' + enc(p) + '&fmt=' + fmt);
     if (!skipRemember) remember(p, id);
     skipRemember = false;
     const hist = readHist();
@@ -149,7 +152,7 @@
       ${U.chapterHead('revelation',
         'Your choices from steps 1\u20134 \u2014 never sensor readings \u2014 became this one reproducible artwork.')}
       <div class="rev-grid">
-        <div class="art-frame"><canvas id="art-canvas" role="img" aria-label="Generative artwork ${esc(p.s)}: ${esc(A.interpret(p))}"></canvas></div>
+        <div class="art-frame"><canvas id="art-canvas" role="img" aria-label="Generative artwork ${esc(p.s)}: ${esc(E().interpret(p))}"></canvas></div>
         <div class="rev-controls">
           <div class="btn-row rev-actions">
             <button type="button" class="btn-sm primary" id="rv-download">Save image</button>
@@ -167,12 +170,12 @@
           <div class="btn-row"><button type="button" class="btn-sm" id="rv-link">Copy link</button><button type="button" class="btn-sm" id="rv-clean">Clean view</button></div>
           <p class="mini-label">Seed</p>
           <div class="seed-line" id="seed-line">${esc(p.s)}<small>composition ${esc(id)}</small></div>
-          <p class="interp" id="interp">${esc(A.interpret(p))}</p>
+          <p class="interp" id="interp">${esc(E().interpret(p))}</p>
           <p class="param-sum" id="rv-look">Look: ${esc(lookLabel(lookNow()))} \u00b7 ${state.v2.look ? 'from the link' : 'follows site theme'}
           ${state.v2.look ? '<button type="button" class="cite" id="rv-unpin">use site theme</button>' : ''}</p>
           <div class="btn-row"><button type="button" class="btn-sm" id="rv-new">New seed</button><button type="button" class="btn-sm" id="rv-vary">Vary</button><button type="button" class="btn-sm" id="rv-copy">Copy caption</button></div>
           <label for="rv-caption" class="mini-label">Caption</label>
-          <textarea id="rv-caption" class="caption" readonly>${esc(A.caption(p, id, shareLink(p, fmt)))}</textarea>
+          <textarea id="rv-caption" class="caption" readonly>${esc(E().caption(p, id, shareLink(p, fmt)))}</textarea>
           <label for="rv-restore" class="mini-label">Restore a seed or link</label>
           <div class="restore"><input id="rv-restore" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="ORACLE-XXXX-XXXX or a shared link"><button type="button" class="btn-sm" id="rv-restore-btn">Restore</button></div>
           <p class="mini-label" id="rv-hist-label">Recent (this browser)</p><ul class="history" aria-labelledby="rv-hist-label">${hist.map((h, i) => `<li><span>${esc(h.s)} \u00b7 ${esc(h.id)}</span><button type="button" class="cite" data-hist="${i}">restore</button></li>`).join('')}</ul>
@@ -187,7 +190,7 @@
     const status = (t) => { document.getElementById('rv-status').textContent = t; };
     const rerender = () => { OracleChapters.go('revelation', { push: false, focus: false }); };
 
-    document.getElementById('rv-new').onclick = () => { state.v2.seed = A.newSeed(); rerender(); };
+    document.getElementById('rv-new').onclick = () => { state.v2.seed = A.newSeed(); state.v2.engine = OracleEngine.LAYERED.v; rerender(); };
     document.getElementById('rv-vary').onclick = () => {
       const r = crypto.getRandomValues(new Uint8Array(11)), keys = ['d', 'c', 'p', 'y', 'x', 'i'], lk = ['e', 'r', 't', 'k', 'a'];
       keys.forEach((k, j) => { state.v2.ex[k] = Math.max(0, Math.min(100, state.v2.ex[k] + (r[j] % 25) - 12)); });
@@ -203,7 +206,7 @@
       status(`Downloaded ${fileName(p, fmt)} (${w}\u00d7${h}, ${(blob.size / 1024).toFixed(0)} KB).`);
     };
     document.getElementById('rv-share').onclick = async () => {
-      const caption = A.caption(p, id, shareLink(p, fmt));
+      const caption = E().caption(p, id, shareLink(p, fmt));
       status('Preparing image\u2026');
       const { blob } = await exportBlob(p, fmt);
       const file = typeof File === 'function' ? new File([blob], fileName(p, fmt), { type: 'image/png' }) : null;
@@ -217,9 +220,9 @@
       const ok = await copy(caption);
       status(`Native sharing is not available here \u2014 PNG downloaded${ok ? ' and caption copied' : '; copy the caption below'}.`);
     };
-    document.getElementById('rv-copy').onclick = async () => status((await copy(A.caption(p, id, shareLink(p, fmt)))) ? 'Caption copied.' : 'Copy blocked \u2014 select the caption text below.');
+    document.getElementById('rv-copy').onclick = async () => status((await copy(E().caption(p, id, shareLink(p, fmt)))) ? 'Caption copied.' : 'Copy blocked \u2014 select the caption text below.');
     document.getElementById('rv-link').onclick = async () => status((await copy(shareLink(p, fmt))) ? 'Link copied.' : 'Copy blocked.');
-    document.getElementById('rv-clean').onclick = () => OracleChapters.go('art', { hash: '#art?' + A.encode(p) + '&fmt=' + fmt + lookQuery(lookNow()) });
+    document.getElementById('rv-clean').onclick = () => OracleChapters.go('art', { hash: '#art?' + enc(p) + '&fmt=' + fmt + lookQuery(lookNow()) });
     const unpin = document.getElementById('rv-unpin');
     if (unpin) unpin.onclick = () => { state.v2.look = null; rerender(); };
     const doRestore = (q) => {
@@ -230,7 +233,7 @@
     document.getElementById('rv-restore').onkeydown = (e) => { if (e.key === 'Enter') doRestore(parseRestore(e.target.value)); };
     const clr = document.getElementById('rv-clear');
     if (clr) clr.onclick = () => { try { localStorage.removeItem(HKEY); } catch (e) { /* ignore */ } skipRemember = true; rerender(); status('History cleared from this browser.'); };
-    app.querySelectorAll('[data-hist]').forEach(b => b.onclick = () => doRestore(A.decode(hist[+b.dataset.hist].enc)));
+    app.querySelectorAll('[data-hist]').forEach(b => b.onclick = () => { state.v2.engine = OracleEngine.of(hist[+b.dataset.hist].enc); doRestore(A.decode(hist[+b.dataset.hist].enc)); });
   });
 
   // Clean artwork view: only the work, plus minimal controls.
@@ -246,7 +249,7 @@
       </div></div>`;
     fontsReady().then(() => draw(document.getElementById('art-clean'), p, fmt === 'hires' ? 'portrait' : fmt, false));
     document.getElementById('ac-back').onclick = () => OracleChapters.go('revelation');
-    app.querySelectorAll('[data-afmt]').forEach(b => b.onclick = () => { state.v2.format = b.dataset.afmt; OracleChapters.go('art', { hash: '#art?' + A.encode(p) + '&fmt=' + b.dataset.afmt + lookQuery(lookNow()), focus: false }); });
+    app.querySelectorAll('[data-afmt]').forEach(b => b.onclick = () => { state.v2.format = b.dataset.afmt; OracleChapters.go('art', { hash: '#art?' + enc(p) + '&fmt=' + b.dataset.afmt + lookQuery(lookNow()), focus: false }); });
     document.getElementById('ac-dl').onclick = async () => { const { blob } = await exportBlob(p, fmt); download(blob, fileName(p, fmt)); };
   });
 
@@ -258,9 +261,9 @@
   // WP2: the small live preview shown in the headers of 01, 02 and 04 — same engine, same look as the 05 canvas,
   // portrait aspect, no overlay text. Drawn instantly (no draw-in), so nothing animates.
   function paintPreview(canvas) {
-    const p = params(), w = canvas.width, h = canvas.height, scene = A.compose(p, A.FORMATS.portrait.w / A.FORMATS.portrait.h);
+    const p = params(), w = canvas.width, h = canvas.height, scene = E().compose(p, A.FORMATS.portrait.w / A.FORMATS.portrait.h);
     A.render(canvas.getContext('2d'), scene, w, h, { ...renderOpts(lookNow()), overlay: null });
-    canvas.setAttribute('aria-label', 'Your artwork so far: ' + A.interpret(p));
+    canvas.setAttribute('aria-label', 'Your artwork so far: ' + E().interpret(p));
   }
   if (window.OracleTheme) OracleTheme.onChange(() => { const c = document.getElementById('pv-canvas'); if (c) paintPreview(c); });
   window.OracleExport = { paintPreview, exportBlob, withMetadata, crc32, parseRestore, lookNow, renderOpts }; // exposed for QA

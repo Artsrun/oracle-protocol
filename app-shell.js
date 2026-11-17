@@ -8,7 +8,7 @@ window.OracleChapters = (() => {
 
   // Visitor choices that drive simulations + artwork. Abstract values only — never sensor readings.
   // v4: the initial values come from core/state.js (same field names as v2, so links and art read the same values).
-  state.v2 = (() => { const i = OracleState.initial(); return { offers: i.offers, footprint: i.footprint, ex: i.ex, lab: i.lab, seed: i.seed, format: i.format, title: i.title, fromUrl: i.fromUrl }; })();
+  state.v2 = (() => { const i = OracleState.initial(); return { engine: i.engine, offers: i.offers, footprint: i.footprint, ex: i.ex, lab: i.lab, seed: i.seed, format: i.format, title: i.title, fromUrl: i.fromUrl }; })();
 
   // v3: the Exchange simulator is hidden unless ?simulator=1. Without it the dials follow the marked exchanges.
   const simulatorOn = /[?&]simulator=1\b/.test(location.search);
@@ -38,7 +38,7 @@ window.OracleChapters = (() => {
       const p = L.params;
       Object.assign(state.v2.ex, { d: p.d, c: p.c, p: p.p, y: p.y, x: p.x, i: p.i });
       Object.assign(state.v2.lab, { e: p.e, r: p.r, t: p.t, k: p.k, a: p.a, n: p.n });
-      state.v2.offers = p.o; state.v2.footprint = p.f; state.v2.seed = p.s; state.v2.fromUrl = true;
+      state.v2.offers = p.o; state.v2.footprint = p.f; state.v2.seed = p.s; state.v2.fromUrl = true; state.v2.engine = L.engine;
       if (L.fmt) state.v2.format = L.fmt;
       state.v2.look = L.look; // a link's look; #art links without one get the legacy look; plain #revelation follows the site
       return route;
