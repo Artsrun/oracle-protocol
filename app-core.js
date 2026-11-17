@@ -116,14 +116,10 @@ const state = {
 
 // v2: five chapters + approach. The v1.2 protocol (handshake → harvest → witness) lives inside step 2 (Footprint).
 // WP6: one plain name per chapter, used by the nav, the kicker ("Step N of 5") and the H1. Route ids do not change.
-const PHASES = [
-  { id: 'approach', n: '0', label: 'Start' },
-  { id: 'offer', n: '1', label: 'Trade' },
-  { id: 'extraction', n: '2', label: 'Footprint' },
-  { id: 'machine', n: '3', label: 'Loop' },
-  { id: 'loop', n: '4', label: 'Feed' },
-  { id: 'revelation', n: '5', label: 'Artwork' }
-];
+// v4: the screen list lives in core/router.js; PHASES is derived from it (same ids and labels as before).
+const PHASES = OracleRouter.FLOW.filter(id => id !== 'reveal').map(id => {
+  const S = OracleRouter.byId(id); return { id, n: String(S.step), label: S.label };
+});
 const LEGACY_PARENT = { handshake: 'extraction', permissions: 'extraction', portrait: 'extraction', art: 'revelation' };
 const stepName = (P) => P.id === 'approach' ? P.label : `Step ${P.n} of 5 \u00b7 ${P.label}`;
 const visited = new Set();

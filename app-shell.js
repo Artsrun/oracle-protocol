@@ -7,18 +7,14 @@ window.OracleChapters = (() => {
   const reduceMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Visitor choices that drive simulations + artwork. Abstract values only — never sensor readings.
-  state.v2 = {
-    offers: 0, footprint: 0,
-    ex: { d: 50, c: 50, p: 50, y: 50, x: 50, i: 50 },
-    lab: { e: 50, r: 50, t: 30, k: 40, a: 40, n: 0, w: 30 }, // w = recency weight (model only, not artwork)
-    seed: null, format: 'portrait', title: true, fromUrl: false
-  };
+  // v4: the initial values come from core/state.js (same field names as v2, so links and art read the same values).
+  state.v2 = (() => { const i = OracleState.initial(); return { offers: i.offers, footprint: i.footprint, ex: i.ex, lab: i.lab, seed: i.seed, format: i.format, title: i.title, fromUrl: i.fromUrl }; })();
 
   // v3: the Exchange simulator is hidden unless ?simulator=1. Without it the dials follow the marked exchanges.
   const simulatorOn = /[?&]simulator=1\b/.test(location.search);
   if (!simulatorOn && window.OracleContent && OracleContent.deriveEx) state.v2.ex = OracleContent.deriveEx(0);
 
-  const ROUTES = ['offer', 'extraction', 'machine', 'loop', 'revelation'];
+  const ROUTES = PHASES.map(p => p.id).filter(id => id !== 'approach');
   const hashFor = (id) => id === 'approach' ? location.pathname + location.search : '#' + id;
 
   function go(id, opts) {
@@ -35,27 +31,20 @@ window.OracleChapters = (() => {
   }
 
   function fromLocation() {
-    const h = location.hash.replace(/^#/, '');
-    const [route, query] = h.split('?');
-    if ((route === 'art' || route === 'revelation') && query && window.OracleArt) {
-      const p = OracleArt.decode(query);
+    const T = window.OracleTheme || { PALETTES: ['observatory'], TYPES: ['signal'] };
+    const L = window.OracleArt ? OracleState.parseHash(location.hash, OracleArt.decode, T) : { route: location.hash.replace(/^#/, '').split('?')[0] };
+    const route = L.route;
+    if (L.params) {
+      const p = L.params;
       Object.assign(state.v2.ex, { d: p.d, c: p.c, p: p.p, y: p.y, x: p.x, i: p.i });
       Object.assign(state.v2.lab, { e: p.e, r: p.r, t: p.t, k: p.k, a: p.a, n: p.n });
       state.v2.offers = p.o; state.v2.footprint = p.f; state.v2.seed = p.s; state.v2.fromUrl = true;
-      const fm = /(?:^|&)fmt=(portrait|story|square|hires)/.exec(query);
-      if (fm) state.v2.format = fm[1];
-      // Artwork look carried by the link (palette-mode-type). Links without one predate theming: legacy look.
-      const g = (k, list) => { const m = new RegExp('(?:^|&)' + k + '=([a-z]+)').exec(query); return m && list.includes(m[1]) ? m[1] : null; };
-      const T = window.OracleTheme || { PALETTES: ['observatory'], TYPES: ['signal'] };
-      const pal = g('pal', T.PALETTES), th = g('th', ['dark', 'light']), ty = g('ty', T.TYPES);
-      if (pal || th || ty) state.v2.look = { pal: pal || 'observatory', th: th || 'dark', ty: ty || 'signal' };
-      else if (route === 'art') state.v2.look = { pal: 'observatory', th: 'dark', ty: 'signal' };
-      else state.v2.look = null; // plain #revelation?… follows the site theme
+      if (L.fmt) state.v2.format = L.fmt;
+      state.v2.look = L.look; // a link's look; #art links without one get the legacy look; plain #revelation follows the site
       return route;
     }
-    if (route === 'protocol') return 'handshake';
-    if (route === 'sensors') return 'permissions';
-    if (ROUTES.includes(route)) return route;
+    const S = OracleRouter.byRoute(route);
+    if (S && !['reveal', 'art', 'extras', 'portrait'].includes(S.id)) return S.id;
     return 'approach';
   }
 
