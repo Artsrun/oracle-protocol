@@ -144,3 +144,15 @@ body.v4:not([data-stage=approach]):not([data-stage=revelation]):not([data-stage=
 .sheet .claim .prov{margin-right:6px}
 .sheet a{color:var(--link)}
 .sheet .cite{font:inherit;font-size:var(--t-s);color:var(--link);background:none;border:0;padding:0 2px;min-height:var(--tap);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* ── story cards (Loop, Reveal) ─────────────────────────────────────── */
+.cards{display:flex;flex-direction:column;gap:12px}
+.story-card{display:flex;flex-direction:column;gap:8px;padding:18px;border:1px solid var(--v-line-2);border-radius:var(--r);background:var(--v-surface);min-height:180px}
+.story-card .card-title{font-family:var(--font-display);font-weight:var(--display-w);font-size:var(--t-l);margin:0;letter-spacing:0;text-transform:none;outline:none}
+.story-card .card-text{font-size:var(--t-b)}
+.story-card .btn-link{padding-left:0}
+.dots{display:flex;gap:6px;justify-content:center}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--v-line-2)}
+.dots i.done{background:color-mix(in srgb,var(--v-accent) 45%,transparent)}
+.dots i.on{background:var(--v-accent)}
+.screen-cta [hidden]{display:none}

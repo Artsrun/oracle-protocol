@@ -127,6 +127,28 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await ctx.close();
 }
 
+// ── WP5: Loop story cards ────────────────────────────────────────────────
+{
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await ctx.newPage(); instrument(page, 'wp5');
+  await page.goto(BASE + '#machine'); await page.reload(); await settle(page, 300);
+  const seen = [], maxWords = [];
+  for (let i = 0; i < 7; i++) {
+    const c = await page.evaluate(() => ({ t: document.getElementById('card-title').textContent, n: document.querySelector('.card-count').textContent,
+      w: (document.querySelector('.story-card').innerText.match(/[A-Za-z0-9'’]+/g) || []).length }));
+    seen.push(c.n); maxWords.push(c.w);
+    if (i === 2) { await page.click('#card-ev'); await settle(page, 200); }
+    if (i === 2) { const ok = await page.evaluate(() => document.getElementById('sheet').open && !!document.querySelector('#sheet .prov')); check('WP5 a card\'s Evidence opens the sheet with its labelled claim', ok); await page.keyboard.press('Escape'); await settle(page, 150); }
+    await page.click('#card-next'); await settle(page, 200);
+  }
+  check('WP5 seven tap-through cards (1 of 7 … 7 of 7), then the Feed', seen.join() === [1, 2, 3, 4, 5, 6, 7].map(n => n + ' of 7').join() && await page.evaluate(() => state.stage) === 'loop', seen);
+  check('WP5 ≤20 words per card (plus its count and Evidence link)', Math.max(...maxWords) <= 24, maxWords);
+  await page.goto(BASE + '#machine'); await page.reload(); await settle(page, 300);
+  await page.click('#card-skip'); await settle(page, 300);
+  check('WP5 Skip goes straight to the Feed', await page.evaluate(() => state.stage) === 'loop');
+  await ctx.close();
+}
+
 // @@SECTIONS@@
 
 // ── network + console (always last) ──────────────────────────────────────
