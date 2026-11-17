@@ -149,6 +149,34 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await ctx.close();
 }
 
+// ── WP6: Feed ────────────────────────────────────────────────────────────
+{
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await ctx.newPage(); instrument(page, 'wp6');
+  const groups = () => page.evaluate(() => { const p = OracleArt.normalize(OracleChapters.artParams()), sc = OracleLayers.compose(p, 0.8);
+    return Object.fromEntries(OracleLayers.GROUPS.map(g => [g, OracleArt.sceneHash({ layers: [{ items: OracleLayers.group(sc, g) }] })])); });
+  await page.goto(BASE + '#loop'); await page.reload(); await settle(page, 300);
+  const w = await page.evaluate(() => (document.getElementById('app').innerText.match(/[A-Za-z0-9'’]+/g) || []).length);
+  check('WP6 Feed: ≤60 words on screen', w <= 60, w);
+  const g0 = await groups();
+  await page.click('label.radio-card:has([value=engaging])'); await settle(page, 200);
+  const r0 = await page.textContent('#feed-result'); const g1 = await groups();
+  const ch = Object.keys(g0).filter(k => g0[k] !== g1[k]);
+  check('WP6 picking a feed changes only the flow lines and core echoes', ch.length && ch.every(k => k === 'flow' || k === 'core'), ch);
+  await page.click('#feed-run'); await settle(page, 300);
+  const r4 = await page.textContent('#feed-result');
+  check('WP6 Most engaging: top 3 get 69% → 92% after "Let it run" (4 rounds, handover values)', /69%/.test(r0) && /After 4 rounds/.test(r4) && /92%/.test(r4), { r0, r4 });
+  const lab = await page.evaluate(() => !!document.querySelector('.feed-result .prov-simulated'));
+  check('WP6 the result is labelled SIMULATED', lab);
+  await page.click('#feed-tune'); await settle(page, 300);
+  await page.$eval('#tune-e', (el) => { el.value = 10; el.dispatchEvent(new Event('input', { bubbles: true })); }); await settle(page, 150);
+  const t = await page.evaluate(() => ({ open: document.getElementById('sheet').open, n: document.querySelectorAll('#sheet [data-tune]').length, out: document.getElementById('tune-e-out').textContent, e: state.v2.lab.e }));
+  await page.keyboard.press('Escape'); await settle(page, 200);
+  const radios = await page.evaluate(() => [...document.querySelectorAll('[name=feed]')].filter(r => r.checked).length);
+  check('WP6 Tune opens six labelled sliders in the sheet; moving one leaves the presets (custom mix)', t.open && t.n === 6 && t.out === '10' && t.e === 10 && radios === 0, { ...t, radios });
+  await ctx.close();
+}
+
 // @@SECTIONS@@
 
 // ── network + console (always last) ──────────────────────────────────────

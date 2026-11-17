@@ -8,7 +8,7 @@ window.OracleChapters = (() => {
 
   // Visitor choices that drive simulations + artwork. Abstract values only — never sensor readings.
   // v4: the initial values come from core/state.js (same field names as v2, so links and art read the same values).
-  state.v2 = (() => { const i = OracleState.initial(); return { engine: i.engine, offers: i.offers, footprint: i.footprint, footprintEdited: i.footprintEdited, ex: i.ex, lab: i.lab, seed: i.seed, format: i.format, title: i.title, fromUrl: i.fromUrl }; })();
+  state.v2 = (() => { const i = OracleState.initial(); return { engine: i.engine, offers: i.offers, footprint: i.footprint, footprintEdited: i.footprintEdited, feed: i.feed, ex: i.ex, lab: i.lab, seed: i.seed, format: i.format, title: i.title, fromUrl: i.fromUrl }; })();
 
   // v3: the Exchange simulator is hidden unless ?simulator=1. Without it the dials follow the marked exchanges.
   const simulatorOn = /[?&]simulator=1\b/.test(location.search);

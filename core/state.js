@@ -38,6 +38,7 @@
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(+v || 0)));
   const bit = (mask, i, on) => (on == null ? !((mask >> i) & 1) : on) ? (mask | (1 << i)) : (mask & ~(1 << i)); // on omitted → toggle
 
+  const presetOf = (lab) => Object.keys(PRESETS).find(id => LAB_KEYS.every(k => PRESETS[id][k] === lab[k])) || null;
   function initial() {
     return {
       schema: SCHEMA, engine: ENGINE_NEW, seed: null,
@@ -128,7 +129,7 @@
     };
   }
 
-  const api = { OFFER_IDS, FOOTPRINT_IDS, TRADE_FOOTPRINT, prefillFootprint, SCHEMA, ENGINE_NEW, ENGINE_LEGACY, PRESETS, LAB_KEYS, initial, reduce, toParams, parseHash, create };
+  const api = { presetOf, OFFER_IDS, FOOTPRINT_IDS, TRADE_FOOTPRINT, prefillFootprint, SCHEMA, ENGINE_NEW, ENGINE_LEGACY, PRESETS, LAB_KEYS, initial, reduce, toParams, parseHash, create };
   root.OracleState = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

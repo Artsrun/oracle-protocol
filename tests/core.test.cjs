@@ -114,3 +114,13 @@ test('components: native controls, labelled, no inline handlers', () => {
   assert.doesNotMatch(html, /\son[a-z]+=/i, 'no inline handlers (CSP)');
   assert.equal(UI.esc('<a href="x">'), '&lt;a href=&quot;x&quot;&gt;');
 });
+
+test('toy ranker reproduces the handover values (top-3 share, round 0 → 4)', () => {
+  const K = require('../core/ranker.js');
+  const pct = (L, n) => Math.round(K.after({ ...L, n }).top3 * 100);
+  const want = { newest: [46, 46], foryou: [42, 48], engaging: [69, 92] };
+  for (const [id, [a, b]] of Object.entries(want)) {
+    assert.equal(pct(S.PRESETS[id], 0), a, id + ' round 0');
+    assert.equal(pct(S.PRESETS[id], 4), b, id + ' round 4');
+  }
+});
