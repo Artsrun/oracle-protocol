@@ -1,4 +1,29 @@
-# Oracle Protocol v2 — QA report
+# Oracle Protocol — QA report
+
+## v4 build (branch `oracle-v4`, from 2026-11-17, Asia/Yerevan)
+
+Plan: [docs/PLAN-v4.md](PLAN-v4.md). Branched from `ux-handover-wp0-6` @ 0aa162c (PR #3, still open; prod = 4526203).
+New harnesses: `qa/determinism.mjs` (the fixed reference must stay byte-identical, 16 checks) and `qa/v4.mjs`
+(the v4 end-to-end suite; it grows one section per work package).
+
+### WP0. Baseline (before any v4 change, same machine, Chrome via playwright-core, local server)
+
+| Suite | Dark | Light |
+|---|---|---|
+| Unit (`npm test`) | 14/14 | – |
+| Legacy end-to-end `qa/qa.mjs` | 119/119 | 118/119 (1) |
+| `qa/determinism.mjs` (portrait/story/square/hires × DPR 1 and 3) | 8/8 | 8/8 |
+| `qa/v4.mjs` invariants (overlay-free, motion, axe, CSP, network, console) | 11/11 | 11/11 |
+| Contrast `qa/contrast.mjs`, 6 looks × 9 views | 0 fails, lowest 5.18 | 0 fails |
+
+(1) Pre-existing on the base branch: "preview uses the same look as the 05 canvas" reads `#dee5e5` against
+`#eef1f0` in Day — the light preview background differs slightly from the look's paper colour. Not caused by v4;
+the WP7 artwork stage replaces this preview.
+
+Load at 390 px (Night; `qa/load.mjs`; Day matches): words 47 / 90 / 127 / 103 / 215 / 99 on Start, Trade,
+Footprint, Loop, Feed, Artwork (681 total); page length 1 / 1.2 / 1.8 / 1.5 / 2.0 / 1.5 viewports; up to 6 font
+sizes per screen; 10 px smallest text on the sensor demo. Before screenshots: `/workspace/oracle-qa/v4/before/`.
+
 
 Run on the build box, 2026-11-13 (Asia/Yerevan). **Local only — nothing was deployed.**
 
