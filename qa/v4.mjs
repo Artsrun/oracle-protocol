@@ -57,6 +57,33 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
 }
 
 // ── per-WP sections are appended below this line ─────────────────────────
+// ── WP3: frame — Back, progress, art in view, one primary action ──────────
+for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['desktop', { width: 1280, height: 860 }]]) {
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport, reducedMotion: 'reduce' });
+  const page = await ctx.newPage(); instrument(page, 'wp3-' + view);
+  const steps = [['offer', 1, 'approach'], ['extraction', 2, 'offer'], ['machine', 3, 'extraction'], ['loop', 4, 'machine']];
+  const bad = [];
+  for (const [id, n, prev] of steps) {
+    await page.goto(BASE + '#' + id); await page.reload(); await settle(page, 500);
+    const f = await page.evaluate(() => {
+      const c = document.getElementById('pv-canvas'), r = c && c.getBoundingClientRect();
+      const pb = document.querySelector('.progress[role=progressbar]');
+      return { art: !!r && r.width > 40 && r.top >= 0 && r.bottom <= innerHeight, now: pb && +pb.getAttribute('aria-valuenow'),
+        back: (document.querySelector('[data-back]') || {}).dataset?.back || null, primaries: document.querySelectorAll('#app .btn-primary').length };
+    });
+    if (!f.art || f.now !== n || f.back !== prev || f.primaries !== 1) bad.push([id, f]);
+  }
+  check(`${view}: WP3 every step screen has Back, "n of 5" progress, the artwork in view and one primary action`, !bad.length, bad);
+  await page.goto(BASE + '#extraction'); await page.reload(); await settle(page, 400);
+  await page.click('[data-back]'); await settle(page, 400);
+  check(`${view}: WP3 Back returns to the previous screen`, await page.evaluate(() => state.stage) === 'offer');
+  await page.goto(BASE); await page.reload(); await settle(page, 400);
+  const st = await page.evaluate(() => ({ h1: document.querySelector('h1').textContent, begin: !!document.getElementById('btn-begin') }));
+  await page.click('#btn-begin'); await settle(page, 400);
+  check(`${view}: WP3 Start has one question-free promise and Begin opens step 1`, st.begin && await page.evaluate(() => state.stage) === 'offer', st);
+  await ctx.close();
+}
+
 // @@SECTIONS@@
 
 // ── network + console (always last) ──────────────────────────────────────

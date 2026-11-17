@@ -49,7 +49,7 @@ for (const pal of PALETTES) for (const mode of MODES) {
   const page = await ctx.newPage();
   const B = `${BASE}?palette=${pal}`;
   const key = `${pal}-${mode}`; out[key] = {};
-  for (const [label, url, clicks] of [['approach', B, []], ['offer', B + '#offer', []], ['extraction', B + '#extraction', []], ['machine', B + '#machine', []], ['loop', B + '#loop', []], ['revelation', B + '#revelation', []], ['sources', B + '#offer', ['#btn-sources']], ['harvest', B + '#sensors', []], ['identity', B + '#protocol', ['#btn-crypto']]]) {
+  for (const [label, url, clicks] of [['approach', B, []], ['offer', B + '#offer', []], ['extraction', B + '#extraction', []], ['machine', B + '#machine', []], ['loop', B + '#loop', []], ['revelation', B + '#revelation', []], ['sources', B, ['#btn-sources']], ['harvest', B + '#sensors', []], ['identity', B + '#protocol', ['#btn-crypto']]]) {
     await page.goto(url); await page.waitForTimeout(label === 'approach' ? 1000 : 450);
     for (const c of clicks) { await page.click(c); await page.waitForTimeout(300); }
     if (clicks.length) { await page.mouse.move(0, 0); await page.waitForTimeout(700); } // no hover state, finished fade-in

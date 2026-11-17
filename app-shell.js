@@ -100,6 +100,8 @@ window.OracleChapters = (() => {
       if (c) { e.preventDefault(); openDrawer(c.dataset.source, c); }
       const g = e.target.closest('[data-goto]');
       if (g) { e.preventDefault(); go(g.dataset.goto); }
+      const bk = e.target.closest('[data-back]'); // v4: Back goes to the previous screen (and keeps the answers)
+      if (bk) { e.preventDefault(); go(bk.dataset.back); }
     });
     state.stage = fromLocation();
     render();
@@ -107,20 +109,35 @@ window.OracleChapters = (() => {
 
   // ── shared templates ────────────────────────────────────────────────────
   const esc = E.esc;
-  // preview: caption text for the live artwork preview (WP2). The preview sits in the header, in page flow.
-  // WP6: the H1 is the chapter's one name (same as the nav); the kicker says where you are.
+  // ── v4 frame (WP3): top bar (Back · progress · n of 5), art stage, question, body, one in-flow primary action ──
+  const backIcon = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4 6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function topBar(id) {
+    const R = OracleRouter, pr = R.progress(id), prev = R.prev(id);
+    return `<div class="screen-top">
+      ${prev ? `<button type="button" class="btn-back" data-back="${prev}">${backIcon}Back</button>` : ''}
+      ${pr.step ? `${OracleUI.progress(pr.step, pr.total, pr.label)}<span class="step-of">${pr.step} of ${pr.total}</span>` : ''}
+    </div>`;
+  }
+  const artStage = (caption, cls) => `<figure class="art-stage${cls ? ' ' + cls : ''}">
+      <canvas id="pv-canvas" width="432" height="540" role="img" aria-label="Your artwork so far"></canvas>
+      <figcaption><span id="pv-cap" aria-live="polite">${caption || 'Your artwork so far'}</span></figcaption>
+    </figure>`;
+  /** frame({ id, title, lead, body, cta, caption }) → one v4 screen. `title` is the screen's one question (h1). */
+  const frame = (o) => `<div class="screen v4s s-${o.id}">
+      ${topBar(o.id)}
+      <div class="screen-grid">
+        <header class="screen-head"><h1 tabindex="-1">${o.title}</h1>${o.lead ? `<p class="lead">${o.lead}</p>` : ''}</header>
+        ${o.noArt ? '' : artStage(o.caption)}
+        <div class="screen-main">${o.body || ''}${o.cta ? `<div class="screen-cta">${o.cta}</div>` : ''}</div>
+      </div>
+    </div>`;
+  // Legacy chapters (until each is rebuilt in WP4–WP7) render inside the same frame: chapterHead emits the
+  // top bar, the question and the art stage; the chapter's own content follows in the main column.
   const chapterHead = (id, lead, preview) => {
     const P = PHASES.find(p => p.id === id) || { n: '', label: id };
-    return `
-    <header class="ch-head${preview ? ' has-preview' : ''}">
-      <div class="stage-label">Step ${P.n} of 5</div>
-      <h1 class="ch-title">${P.label}</h1>
-      ${lead ? `<p class="ch-lead">${lead}</p>` : ''}
-      ${preview ? `<figure class="preview">
-        <canvas id="pv-canvas" width="216" height="270" role="img" aria-label="Your artwork so far"></canvas>
-        <figcaption><span class="pv-kicker">Your artwork so far</span><span id="pv-cap" aria-live="polite">${preview}</span></figcaption>
-      </figure>` : ''}
-    </header>`;
+    return `${topBar(id)}
+    <header class="ch-head screen-head"><h1 class="ch-title">${P.label}</h1>${lead ? `<p class="ch-lead lead">${lead}</p>` : ''}</header>
+    ${artStage(preview)}`;
   };
   // Redraw the header preview from the current choices; optionally say what just changed (in visual terms).
   function drawPreview(caption) {
@@ -133,7 +150,7 @@ window.OracleChapters = (() => {
   // the Next button is the screen's filled action; in-chapter actions are outlined.
   const chapterNav = (next) => {
     const N = PHASES.find(p => p.id === next);
-    return N ? `<nav class="ch-nav" aria-label="Next chapter"><button type="button" class="btn-primary btn-fill" data-goto="${N.id}">Next: ${N.label} \u2192</button></nav>` : '';
+    return N ? `<nav class="ch-nav screen-cta" aria-label="Next step"><button type="button" class="btn-primary btn-fill" data-goto="${N.id}">Next</button></nav>` : '';
   };
   const slider = (id, name, value, hint, extra) => `
     <div class="slider">
@@ -282,6 +299,6 @@ window.OracleChapters = (() => {
       drawPreview();
     },
     go, boot, openDrawer, closeDrawer, artParams, reduceMotion, simulatorOn,
-    ui: { chapterHead, drawPreview, chapterNav, slider, simNote, more, esc, row, bindRows, tally, setTally }
+    ui: { frame, topBar, artStage, chapterHead, drawPreview, chapterNav, slider, simNote, more, esc, row, bindRows, tally, setTally }
   };
 })();

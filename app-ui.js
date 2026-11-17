@@ -10,6 +10,7 @@ document.addEventListener('keydown', (e) => {
 const render = () => {
   app.innerHTML = '';
   document.body.dataset.stage = state.stage;
+  document.body.classList.toggle('v4', !['handshake', 'permissions', 'portrait'].includes(state.stage)); // v4 frame; sensor demo keeps its own look until WP9
   syncHud();
   if (window.OracleChapters && OracleChapters.handles(state.stage)) OracleChapters.renderStage(state.stage, app);
   else if (state.stage === 'approach') renderApproach();

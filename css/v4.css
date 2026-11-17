@@ -1,0 +1,139 @@
+/* ORACLE PROTOCOL v4 — tokens, base, components, screens (docs/PLAN-v4.md §4).
+ * Palette hex values stay in theme.css (mirrored by the art engine); this file only maps them to roles.
+ * Rules: 4 text sizes, one primary button per screen, nothing fixed over content, 44 px targets, in-flow CTAs. */
+
+/* ── tokens ─────────────────────────────────────────────────────────── */
+:root{
+  --v-bg:var(--bg);--v-surface:var(--surface);--v-ink:var(--ink);--v-ink-2:var(--slate);--v-accent:var(--signal);
+  --v-mark:var(--alert);--v-line:color-mix(in srgb,var(--ink) 16%,transparent);--v-line-2:color-mix(in srgb,var(--ink) 30%,transparent);
+  --v-fill:color-mix(in srgb,var(--signal) 10%,var(--surface));
+  --t-s:13px;--t-b:16px;--t-l:19px;--t-h:clamp(26px,1.6vw + 18px,38px);
+  --r:12px;--gap:16px;--tap:44px;
+}
+
+/* ── base (v4 screens) ──────────────────────────────────────────────── */
+body.v4 .appbar{display:none}
+body.v4 #app{padding:0;max-width:none}
+.v4s{font-family:var(--font-body);font-size:var(--t-b);line-height:1.45;color:var(--v-ink)}
+.v4s h1,.v4s .q{font-family:var(--font-display);font-weight:var(--display-w);letter-spacing:var(--display-track);line-height:1.08;font-size:var(--t-h);margin:0;color:var(--v-ink);text-transform:none}
+.v4s p{margin:0}
+.v4s .lead{font-size:var(--t-b);color:var(--v-ink-2);margin-top:6px;max-width:42ch}
+.v4s .small,.v4s .q-hint{font-size:var(--t-s);color:var(--v-ink-2)}
+.v4s :focus-visible{outline:2px solid var(--v-accent);outline-offset:2px}
+
+/* ── frame: top bar (Back · progress · n of 5), art stage, main column ── */
+.screen{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:8px 16px 16px;min-height:100svh;display:flex;flex-direction:column}
+.screen-top{display:flex;align-items:center;gap:12px;min-height:var(--tap);margin-bottom:8px}
+.screen-top .progress{flex:1}
+.step-of{font-size:var(--t-s);color:var(--v-ink-2);white-space:nowrap}
+.btn-back{display:inline-flex;align-items:center;gap:4px;min-height:var(--tap);min-width:var(--tap);padding:0 10px 0 4px;margin-left:-4px;background:none;border:0;border-radius:8px;color:var(--v-ink);font:inherit;font-size:var(--t-b);cursor:pointer}
+.btn-back:hover{background:var(--v-fill)}
+.btn-back svg{width:20px;height:20px}
+.progress{display:flex;gap:4px;align-items:center}
+.progress i{flex:1;height:4px;border-radius:2px;background:var(--v-line)}
+.progress i.on{background:var(--v-accent)}
+.screen-grid{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 112px;grid-template-rows:auto 1fr;column-gap:14px;align-content:start}
+.screen-head{grid-column:1;grid-row:1;align-self:center}
+.art-stage{grid-column:2;grid-row:1;margin:0;align-self:start}
+.art-stage canvas{display:block;width:100%;height:auto;aspect-ratio:4/5;border-radius:8px;background:var(--v-surface);border:1px solid var(--v-line)}
+.art-stage figcaption{font-size:var(--t-s);color:var(--v-ink-2);margin-top:4px;line-height:1.3}
+.art-stage .vh-cap{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.screen-main{grid-column:1 / -1;grid-row:2;display:flex;flex-direction:column;gap:12px;margin-top:14px;min-width:0}
+.screen-cta{margin-top:auto;padding-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.screen-cta .btn-primary{flex:1}
+@media (max-width:899px){
+  .art-stage figcaption{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+}
+@media (min-width:900px){
+  .screen{padding:20px 32px 28px}
+  .screen-top{max-width:none;margin-bottom:20px}
+  .screen-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:56px}
+  .art-stage{grid-column:1;grid-row:1 / span 2;position:static;max-width:520px;width:100%;justify-self:end}
+  .art-stage canvas{max-height:calc(100svh - 180px);width:auto;max-width:100%;margin-left:auto}
+  .art-stage figcaption{font-size:var(--t-s);text-align:right}
+  .screen-head{grid-column:2;grid-row:1}
+  .screen-main{grid-column:2;grid-row:2;max-width:520px}
+}
+
+/* ── buttons ────────────────────────────────────────────────────────── */
+.v4s .btn-primary{display:inline-flex;justify-content:center;align-items:center;min-height:48px;padding:0 22px;border-radius:999px;border:0;background:var(--v-accent);color:var(--v-bg);font:inherit;font-size:var(--t-b);font-weight:600;letter-spacing:0;text-transform:none;cursor:pointer;box-shadow:none}
+.v4s .btn-primary:hover{filter:brightness(1.08)}
+.v4s .btn-quiet{display:inline-flex;justify-content:center;align-items:center;min-height:var(--tap);padding:0 16px;border-radius:999px;border:1px solid var(--v-line-2);background:transparent;color:var(--v-ink);font:inherit;font-size:var(--t-b);letter-spacing:0;text-transform:none;cursor:pointer}
+.v4s .btn-quiet:hover{background:var(--v-fill)}
+.v4s .btn-link{min-height:var(--tap);padding:0 4px;background:none;border:0;color:var(--v-ink-2);font:inherit;font-size:var(--t-b);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* ── check rows and radio cards ─────────────────────────────────────── */
+.v4s fieldset{border:0;margin:0;padding:0;min-width:0}
+.v4s legend{padding:0}
+.check-rows{list-style:none;margin:0;padding:0;border-top:1px solid var(--v-line)}
+.check-row{position:relative;display:flex;align-items:center;border-bottom:1px solid var(--v-line)}
+.check-row input{position:absolute;left:4px;top:50%;width:22px;height:22px;margin:-11px 0 0;accent-color:var(--v-accent)}
+.check-row label{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:48px;padding:6px 8px 6px 38px;cursor:pointer}
+.check-row .row-title{font-size:var(--t-b);color:var(--v-ink)}
+.check-row .row-sub{font-size:var(--t-s);color:var(--v-ink-2)}
+.check-row.on .row-title{font-weight:600}
+.v4s .info{flex:none;width:var(--tap);height:var(--tap);display:inline-grid;place-items:center;border:0;background:none;color:var(--v-ink-2);font:italic 600 var(--t-b)/1 Georgia,serif;cursor:pointer;border-radius:50%}
+.v4s .info::before{content:"";position:absolute;width:24px;height:24px;border:1.5px solid currentColor;border-radius:50%}
+.v4s .info{position:relative}
+.v4s .info:hover{color:var(--v-accent)}
+.radio-cards{display:flex;flex-direction:column;gap:8px}
+.radio-card{display:flex;gap:12px;align-items:center;min-height:56px;padding:8px 14px;border:1px solid var(--v-line-2);border-radius:var(--r);cursor:pointer}
+.radio-card input{width:20px;height:20px;margin:0;flex:none;accent-color:var(--v-accent)}
+.radio-card.on{border-color:var(--v-accent);background:var(--v-fill)}
+.radio-card .rc-text{display:flex;flex-direction:column}
+.radio-card .row-title{font-size:var(--t-b);font-weight:600}
+.radio-card .row-sub{font-size:var(--t-s);color:var(--v-ink-2)}
+
+/* ── provenance (one meaning each) ──────────────────────────────────── */
+.v4s .prov,.sheet .prov{display:inline-block;font-family:var(--font-mono);font-size:var(--t-s);letter-spacing:.02em;padding:1px 6px;border-radius:4px;border:1px solid currentColor;text-transform:uppercase;vertical-align:1px}
+.prov-verified{color:var(--v-accent)}.prov-inferred{color:var(--trace)}.prov-simulated{color:var(--sim)}.prov-unknown{color:var(--v-ink-2)}
+
+/* ── sheet: native <dialog>; bottom sheet on phones, side panel on wide screens ── */
+.sheet{padding:0;border:0;background:transparent;color:var(--v-ink);max-width:none;max-height:none;width:100%;height:100%;margin:0;font-family:var(--font-body)}
+.sheet::backdrop{background:color-mix(in srgb,var(--shade) 55%,transparent)}
+.sheet-panel{position:absolute;left:0;right:0;bottom:0;max-height:86svh;display:flex;flex-direction:column;background:var(--v-surface);border-radius:16px 16px 0 0;border-top:1px solid var(--v-line-2);box-shadow:0 -8px 32px color-mix(in srgb,var(--shade) 30%,transparent)}
+.sheet-grab{width:40px;height:4px;border-radius:2px;background:var(--v-line-2);margin:8px auto 0}
+.sheet-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 12px 6px 20px}
+.sheet-title{font-family:var(--font-display);font-weight:var(--display-w);font-size:var(--t-l);margin:0;text-transform:none;letter-spacing:0}
+.sheet .btn-quiet{display:inline-flex;align-items:center;min-height:var(--tap);padding:0 16px;border-radius:999px;border:1px solid var(--v-line-2);background:transparent;color:var(--v-ink);font:inherit;font-size:var(--t-b);cursor:pointer}
+.sheet-body{overflow:auto;padding:4px 20px 24px;font-size:var(--t-b);line-height:1.5;display:flex;flex-direction:column;gap:12px}
+.sheet-body h3{font-size:var(--t-s);font-weight:600;margin:6px 0 0;color:var(--v-ink-2);text-transform:none;letter-spacing:0;font-family:var(--font-body)}
+.sheet-body p{margin:0}
+.sheet-body .cite{font-size:var(--t-s)}
+@media (min-width:900px){
+  .sheet-panel{left:auto;top:0;width:440px;max-height:none;border-radius:0;border-top:0;border-left:1px solid var(--v-line-2)}
+  .sheet-grab{display:none}
+}
+html.sheet-open{overflow:hidden}
+
+/* ── Start ──────────────────────────────────────────────────────────── */
+.s-approach{justify-content:center}
+.start-grid{display:flex;flex-direction:column;gap:20px;align-items:center;text-align:center;margin:auto 0}
+.start-art{margin:0;width:min(62vw,300px)}
+.start-art canvas{display:block;width:100%;height:auto;aspect-ratio:4/5;border-radius:10px;border:1px solid var(--v-line)}
+.start-art figcaption{margin-top:6px}
+.start-text{display:flex;flex-direction:column;gap:12px;align-items:center;max-width:30rem}
+.start-text .brand{font-family:var(--font-mono);font-size:var(--t-s);color:var(--v-ink-2);letter-spacing:.08em}
+.start-text .lead{margin:0}
+.start-text .screen-cta{width:100%;max-width:320px;padding-top:4px}
+@media (min-width:900px){
+  .start-grid{flex-direction:row;gap:64px;text-align:left;justify-content:center;align-items:center}
+  .start-art{width:min(36vw,440px)}
+  .start-text{align-items:flex-start}
+}
+
+/* ── legacy chapters inside the v4 frame (until rebuilt in WP4–WP7) ──── */
+body.v4 .chapter{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:8px 16px 16px;display:grid;grid-template-columns:minmax(0,1fr) 112px;column-gap:14px;align-content:start;font-family:var(--font-body);color:var(--v-ink)}
+body.v4 .chapter > *{grid-column:1 / -1;min-width:0}
+body.v4 .chapter > .screen-head{grid-column:1;grid-row:2;align-self:center}
+body.v4 .chapter > .art-stage{grid-column:2;grid-row:2}
+body.v4 .chapter .ch-title{font-family:var(--font-display);font-size:var(--t-h);text-transform:none;letter-spacing:var(--display-track);margin:0}
+@media (min-width:900px){
+  body.v4 .chapter{padding:20px 32px 28px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:56px}
+  body.v4 .chapter > *{grid-column:2;max-width:560px}
+  body.v4 .chapter > .screen-top{grid-column:1 / -1;max-width:none}
+  body.v4 .chapter > .screen-head{grid-column:2;grid-row:2}
+  body.v4 .chapter > .art-stage{grid-column:1;grid-row:2 / span 40;justify-self:end;max-width:520px;width:100%}
+}
+/* the footer (Sources · theme) shows on Start and Artwork; question screens keep one viewport */
+body.v4:not([data-stage=approach]):not([data-stage=revelation]):not([data-stage=extras]) .sitefoot{display:none}
