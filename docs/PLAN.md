@@ -136,6 +136,10 @@ without Syne 800's loudness; Plex Mono stays for data so the "instrument" textur
 
 ## 5b. Simplification rules (iteration 3, revised by the handover UX pass WP1–WP6, 2026-11-14)
 
+> **Superseded by v4 (2026-11-17).** The journey, screens, components and copy limits are now defined in
+> [PLAN-v4.md](PLAN-v4.md) (approved) and verified in [QA.md](QA.md) → "v4 build". The colour rules below still hold;
+> the chapter/drawer/disclosure rules describe the pre-v4 build.
+
 1. **One colour, one meaning.**
    * signal = interactive / VERIFIED / current position
    * trace (amber) = INFERRED only

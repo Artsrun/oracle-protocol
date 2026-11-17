@@ -205,7 +205,7 @@ css/tokens.css base.css components.css screens.css   (styles.css v1.2 remnants r
 Tests:
 - Unit (node): reducer, hash round-trip, footprint-from-trades mapping, v1 hash fixtures unchanged, **v2 layer stability**
   (toggling one trade changes only the shard layer; pixel diff of the rest = 0), content word budgets, every claim has a label + source.
-- E2E (`qa.mjs` rewritten as per-screen specs): one-viewport check at 390×844, one primary per screen, Back/Next, sheet focus/Esc, no network, reduced motion, determinism.
+- E2E (`qa.mjs` rewritten as per-screen specs — done as `qa/v4.mjs`; `qa.mjs` retired in WP10, mapping in QA.md): one-viewport check at 390×844, one primary per screen, Back/Next, sheet focus/Esc, no network, reduced motion, determinism.
 - `load.mjs` extended: decisions per screen, art-in-view while answering, scripted time-to-finish.
 - axe WCAG 2.1 AA and contrast in all 6 looks, both schemes.
 

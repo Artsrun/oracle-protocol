@@ -60,7 +60,7 @@ body.v4 #app{padding:0;max-width:none}
 .v4s .btn-primary:hover{filter:brightness(1.08)}
 .v4s .btn-quiet{display:inline-flex;justify-content:center;align-items:center;min-height:var(--tap);padding:0 16px;border-radius:999px;border:1px solid var(--v-line-2);background:transparent;color:var(--v-ink);font:inherit;font-size:var(--t-b);letter-spacing:0;text-transform:none;cursor:pointer}
 .v4s .btn-quiet:hover{background:var(--v-fill)}
-.v4s .btn-link{min-height:var(--tap);padding:0 4px;background:none;border:0;color:var(--v-ink-2);font:inherit;font-size:var(--t-b);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.v4s .btn-link{min-height:var(--tap);min-width:var(--tap);padding:0 4px;background:none;border:0;color:var(--v-ink-2);font:inherit;font-size:var(--t-b);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 
 /* ── check rows and radio cards ─────────────────────────────────────── */
 .v4s fieldset{border:0;margin:0;padding:0;min-width:0}

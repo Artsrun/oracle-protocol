@@ -10,7 +10,7 @@
         <div class="start-text">
           <p class="brand">Oracle Protocol</p>
           <h1 tabindex="-1">Turn your digital life into art</h1>
-          <p class="lead">Answer four quick questions. Your answers become a one-of-a-kind artwork.</p>
+          <p class="lead">Three questions. Your answers become a unique artwork.</p>
           <div class="screen-cta"><button type="button" class="btn-primary" id="btn-begin">Begin</button></div>
           <p class="small">About 2 minutes \u00b7 no permissions \u00b7 nothing leaves this tab</p>
         </div>

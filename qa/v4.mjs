@@ -308,12 +308,108 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await ctx2.close();
 }
 
+// ── WP10: checks ported from the retired qa.mjs (see docs/QA.md "qa.mjs → v4.mjs") ──────────────
+{
+  const other = SCHEME === 'dark' ? 'light' : 'dark';
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 860 }, acceptDownloads: true });
+  const page = await ctx.newPage(); instrument(page, 'wp10');
+  // keyboard
+  await page.goto(BASE); await page.reload(); await settle(page, 500);
+  let tabs = 0; while (tabs++ < 12 && !(await page.evaluate(() => document.activeElement?.id === 'btn-begin'))) await page.keyboard.press('Tab');
+  await page.keyboard.press('Enter'); await settle(page);
+  check('WP10 keyboard: Tab + Enter on Begin opens step 1', await page.evaluate(() => state.stage === 'offer' && location.hash === '#offer'));
+  // theme (the switch lives in the footer on Start, Artwork and Extras)
+  const th = () => page.evaluate(() => ({ t: document.documentElement.dataset.theme, pref: document.documentElement.dataset.themePref, ls: localStorage.getItem('oracle.theme'), sel: document.getElementById('theme-select')?.value, pal: document.documentElement.dataset.palette, type: document.documentElement.dataset.type }));
+  await page.goto(BASE); await settle(page, 400);
+  let t = await th();
+  check(`WP10 theme: auto follows the device scheme (${SCHEME}); default look observatory + instrument`, t.t === SCHEME && t.pref === 'auto' && t.sel === 'auto' && t.ls === null && t.pal === 'observatory' && t.type === 'instrument', t);
+  const name = await page.$eval('#theme-select', el => ({ label: el.labels[0]?.textContent, opts: [...el.options].map(o => o.textContent) }));
+  check('WP10 theme: switch is a labelled native <select> with 3 options', name.label === 'Colour theme' && name.opts.length === 3, name);
+  await page.emulateMedia({ colorScheme: other }); await settle(page, 200);
+  t = await th(); check('WP10 theme: auto reacts live when the device scheme changes', t.t === other, t);
+  await page.emulateMedia({ colorScheme: SCHEME }); await settle(page, 200);
+  await page.selectOption('#theme-select', other); await settle(page, 200);
+  t = await th(); const stored = t.t === other && t.ls === other;
+  await page.reload(); await settle(page, 400);
+  const t2 = await th(); check('WP10 theme: manual choice applies, is stored locally and survives a reload', stored && t2.t === other && t2.sel === other, { t, t2 });
+  await page.focus('#theme-select'); await page.keyboard.press('ArrowUp'); await settle(page, 200);
+  t = await th(); check('WP10 theme: keyboard can change the switch', t.sel !== other, t);
+  await page.selectOption('#theme-select', 'auto'); await settle(page, 200);
+  t = await th(); check('WP10 theme: back to auto clears storage and follows the device', t.t === SCHEME && t.ls === null, t);
+  await page.goto(BASE + '?palette=nope&type=nope'); await settle(page, 300);
+  t = await th(); check('WP10 theme: unknown ?palette/?type fall back to defaults', t.pal === 'observatory' && t.type === 'instrument', t);
+  await page.goto(BASE + '#revelation?' + FIXED + '&fmt=portrait'); await page.reload(); await settle(page, 900);
+  const px = () => page.evaluate(() => ({ id: OracleEngine.get(state.v2.engine).compositionId(OracleArt.normalize(OracleChapters.artParams())), px: [...document.getElementById('art-canvas').getContext('2d').getImageData(4, 4, 1, 1).data].slice(0, 3).join(), look: OracleExport.lookNow() }));
+  const b4 = await px(); await page.selectOption('#theme-select', other); await settle(page, 900); const af = await px();
+  check('WP10 theme: switching repaints the artwork, composition id unchanged', b4.id === af.id && b4.px !== af.px && af.look.th === other, { b4, af });
+  await page.evaluate(() => localStorage.clear()); await page.goto(BASE + '#art?' + FIXED + '&fmt=portrait'); await page.reload(); await settle(page, 900);
+  const legacy = await page.evaluate(() => ({ look: OracleExport.lookNow(), engine: state.v2.engine, stage: state.stage }));
+  check('WP10 an old shared link without look params keeps the legacy look (observatory · night · signal) and the legacy engine', legacy.look.pal === 'observatory' && legacy.look.th === 'dark' && legacy.look.ty === 'signal' && legacy.engine !== 2, legacy);
+  await page.evaluate(() => localStorage.clear());
+  // reduced motion: artwork drawn immediately
+  await ctx.close();
+  const rc = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 860 }, reducedMotion: 'reduce', acceptDownloads: true });
+  const rp = await rc.newPage(); instrument(rp, 'wp10-reduced');
+  await rp.goto(BASE); await rp.click('#btn-begin'); await rp.click('label[for=offer-0]'); await rp.click('[data-goto=extraction]'); await rp.click('[data-goto=machine]');
+  await rp.click('#card-skip'); await rp.click('.v4s .btn-primary[data-goto]'); await settle(rp, 200); await rp.click('#card-skip'); await settle(rp, 250);
+  const drawn = await rp.$eval('#art-canvas', c => { const L = OracleExport.lookNow(), bg = OracleArt.PALETTES[L.pal + '-' + L.th].bg, v = parseInt(bg.slice(1), 16), B = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let lit = 0; for (let i = 0; i < d.length; i += 4 * 97) if (Math.abs(d[i] - B[0]) + Math.abs(d[i + 1] - B[1]) + Math.abs(d[i + 2] - B[2]) > 60) lit++; return lit; });
+  check('WP10 reduced motion: the artwork is drawn immediately (no draw-in)', drawn > 50, { lit: drawn });
+  // every export format
+  const link = await rp.evaluate(() => location.hash), dims = {};
+  for (const fmt of ['portrait', 'story', 'square', 'hires']) {
+    await rp.click('#rv-options'); await settle(rp, 250); await rp.click(`#sheet input[name=rv-fmt][value=${fmt}]`); await settle(rp, 250);
+    await rp.keyboard.press('Escape'); await settle(rp, 250);
+    const [dl] = await Promise.all([rp.waitForEvent('download'), rp.click('#rv-download')]);
+    const f = `${QA}/wp10-${fmt}.png`; await dl.saveAs(f); const png = readPng(f); dims[fmt] = `${png.w}x${png.h}`;
+  }
+  check('WP10 export sizes: portrait 1080×1350, story 1080×1920, square 1080×1080, hi-res 2160×2700', dims.portrait === '1080x1350' && dims.story === '1080x1920' && dims.square === '1080x1080' && dims.hires === '2160x2700', dims);
+  const id1 = await rp.evaluate(() => OracleEngine.get(state.v2.engine).compositionId(OracleArt.normalize(OracleChapters.artParams())));
+  await rc.close();
+  // a shared v=2 link restores the same composition in a fresh browser
+  const fc = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 } });
+  const fp = await fc.newPage(); instrument(fp, 'wp10-fresh');
+  await fp.goto(BASE + link); await settle(fp, 700);
+  const id2 = await fp.evaluate(() => OracleEngine.get(state.v2.engine).compositionId(OracleArt.normalize(OracleChapters.artParams())));
+  check('WP10 a shared v=2 link restores the same composition id in a fresh browser', /&v=2(&|$)/.test(link) && id1 === id2, { link, id1, id2 });
+  // no horizontal overflow at 390 on any screen
+  const over = {};
+  for (const [nm, h] of SCREENS) { await fp.goto(BASE + h); await fp.reload(); await settle(fp, 350); const o = await fp.evaluate(() => document.documentElement.scrollWidth - innerWidth); if (o > 0) over[nm] = o; }
+  check('WP10 mobile: no horizontal overflow on any screen', !Object.keys(over).length, over);
+  // preview redraw cost at maximum density
+  const perf = await fp.evaluate(() => { const c = document.createElement('canvas'); c.width = 216; c.height = 270; const ctx = c.getContext('2d');
+    const p = OracleArt.normalize({ s: 'ORACLE-PERF-TEST', o: 63, f: 255, d: 100, c: 100, p: 100, y: 100, x: 100, i: 100, e: 100, r: 100, t: 100, k: 100, a: 100, n: 12, v: 2 });
+    const ts = []; for (let i = 0; i < 15; i++) { const t0 = performance.now(); OracleArt.render(ctx, OracleLayers.compose(p, 1), c.width, c.height, OracleExport.renderOpts(OracleExport.lookNow())); ts.push(performance.now() - t0); }
+    ts.sort((a, b) => a - b); return +ts[7].toFixed(1); });
+  check('WP10 preview redraw at maximum density (216×270, layered engine): median under 50 ms (desktop CPU, not a phone)', perf < 50, perf);
+  await fc.close();
+  // sensor demo: identity step, sensors this device lacks, keyboard rows, settling
+  const sc = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 860 } });
+  const sp = await sc.newPage(); instrument(sp, 'wp10-demo');
+  await sp.goto(BASE + '#protocol'); await sp.reload(); await settle(sp, 400);
+  const deep = await sp.isVisible('#btn-crypto');
+  await sp.click('#btn-crypto'); await settle(sp, 500);
+  check('WP10 #protocol opens the optional identity step; an anonymous ID links without a wallet', deep && /Linked/.test(await sp.textContent('.auth-card')));
+  await sp.goto(BASE + '#sensors'); await settle(sp, 400);
+  for (const id of ['orient', 'shake']) { await sp.click(`[data-perm="${id}"]`); await settle(sp, 1600); }
+  const bd = await sp.$$eval('.perm-item', els => els.map(e => [e.dataset.perm, e.querySelector('.perm-badge').textContent]));
+  check('WP10 sensors this device lacks read UNAVAILABLE, never LIVE (orientation, shake)', ['orient', 'shake'].every(id => bd.find(b => b[0] === id)?.[1] === 'UNAVAILABLE') && !bd.some(b => b[1] === 'LIVE'), bd);
+  await sp.focus('[data-perm="gpu"]'); await sp.keyboard.press('Enter'); await settle(sp, 500);
+  check('WP10 sensor rows are native buttons that work with Enter', await sp.$eval('[data-perm="gpu"]', e => e.tagName === 'BUTTON' && e.tabIndex === 0 && /OK/.test(e.textContent)));
+  await settle(sp, 3000);
+  const inf = await sp.evaluate(() => document.getAnimations().filter(a => a.playState === 'running').map(a => a.animationName));
+  check('WP10 after reading sensors every animation settles; re-render does not replay earlier rows', !inf.length && await sp.evaluate(() => !document.querySelector('[data-perm="orient"]').closest('.just')), inf);
+  await sc.close();
+}
+
 // @@SECTIONS@@
 
 // ── network + console (always last) ──────────────────────────────────────
 const ext = R.requests.filter(r => !/^http:\/\/127\.0\.0\.1:8765\//.test(r.url) && !/^(data|blob):/.test(r.url));
 check('network: zero requests leave localhost (the CSP probe is blocked before it is sent)', ext.every(r => /example\.com\/x$/.test(r.url)) , ext.slice(0, 5));
 check('network: only GET requests', R.requests.every(r => r.method === 'GET'));
+const leaky = R.requests.filter(r => /[?&](lat|lng|latitude|longitude|ua|gpu)=|40\.18|51\.50|Mozilla|ORACLE_HASH/i.test(r.url.replace(/^http:\/\/127\.0\.0\.1:8765\/oracle-protocol\/[^?#]*/, '')));
+check('network: no request carries location, user agent, GPU or hash values', !leaky.length, leaky.slice(0, 3));
 const errs = R.consoleErrors.filter(e => !/Content Security Policy|example\.com|Failed to fetch|net::ERR_/.test(e.text));
 check('console: zero app errors', !errs.length, errs.slice(0, 5));
 const pass = R.checks.filter(c => c.ok).length;

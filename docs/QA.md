@@ -24,6 +24,105 @@ Load at 390 px (Night; `qa/load.mjs`; Day matches): words 47 / 90 / 127 / 103 / 
 Footprint, Loop, Feed, Artwork (681 total); page length 1 / 1.2 / 1.8 / 1.5 / 2.0 / 1.5 viewports; up to 6 font
 sizes per screen; 10 px smallest text on the sensor demo. Before screenshots: `/workspace/oracle-qa/v4/before/`.
 
+### WP1–WP10 results (final, after WP10, 2026-11-17, Asia/Yerevan; same machine and tools as WP0)
+
+| Suite | Night | Day |
+|---|---|---|
+| Unit (`npm test`: core, layers, content, art, ranker) | 36/36 | – |
+| `qa/determinism.mjs` (v1 reference `ORACLE-7K3F-Q9ZD`, 4 formats × DPR 1/3) | 16/16 byte-identical to WP0 | – |
+| `qa/v4.mjs` end-to-end (WP3–WP10 + invariants + ported checks) | 82/82 | 82/82 |
+| axe-core WCAG 2.1 A/AA, 10 screens × 390/1280 (inside `v4.mjs`) | 0 violations | 0 violations |
+| Contrast `qa/contrast.mjs`, 6 looks × 11 views (incl. 3 sheet views) | 0 fails in 66 view×look checks, lowest 4.50 | (both modes included)
+| Outbound requests (all runs) | 0 (only the deliberate CSP probe, blocked before sending) | 0 |
+
+Per-WP runs are kept in `/workspace/oracle-qa/v4/wp/<wp>/` (unit, determinism, v4 Night/Day, contrast logs).
+The legacy `qa/qa.mjs` ran green through WP2 (119/119 in both schemes) and was retired in WP10 (mapping below).
+
+#### Targets (PLAN-v4 §11), measured with `qa/load.mjs` at 390×844 and 1280×860, Night and Day (identical numbers)
+
+| Measure | Before (WP0) | v4 target | v4 result | |
+|---|---|---|---|---|
+| Visible words per question screen | 215 (Feed) | ≤ 60 | Trade 45 · Footprint 47 · Feed 55 (Loop cards 32–40, Reveal cards 19–24 incl. frame) | met |
+| Visible words, whole path (as landed, same method as WP0) | 681 | ≤ 350 | 256 (Start 28, Trade 45, Footprint 49, Loop 33, Feed 55, Reveal 21, Artwork 25) | met |
+| …reading every Loop and Reveal card too | – | – | 567 | over (frame text repeats per card) |
+| Required decisions per screen | 8 + reading | ≤ 1 question | 1 fieldset on Trade, Footprint, Feed; 0 elsewhere | met |
+| Options shown at once | 8 | ≤ 7 | Trade 6, Feed 3, Footprint **8** | missed on Footprint (the plan's own §7 asks for 8 kinds) |
+| Controls per screen | 19 | ≤ 10 | Start 1, Loop 4, Feed 8, Reveal 3, Artwork 6, Trade **14**, Footprint **19** | missed on Trade/Footprint (rows + one ⓘ per row, as §7 specifies) |
+| Page length | 2.0 viewports | 1.0 on question screens | 1.0 on every journey screen, both widths; sensor demo (optional) 1.2 | met |
+| Art visible while answering | 01 only | 100% | Trade, Footprint, Loop, Feed, Reveal: in view | met |
+| Preview change per single input | 43–56% of pixels | only the touched layer | v4.mjs WP4/WP6 + unit layer-stability: other layers 0 px change | met |
+| Font sizes per screen | 6 | ≤ 4 | 3–4 (13/16/19/h1), nothing under 13 px on journey screens | met |
+| Taps to the artwork (fast path) | 5 + scrolling | ≤ 7, no scrolling | 6 navigation taps (9 with two trades and a feed picked), 0 scrolls | met |
+| Scripted time to finish (238 wpm + 1 s/decision) | ≈ 3–3.5 min | ≤ 2 min | 69 s fast path; 147 s reading every card | met on the fast path, over by ~27 s reading all 12 cards |
+| axe / contrast | 0 / ≥ 4.5 | 0 / ≥ 4.5 in 6 looks | 0 / lowest 4.50 | met |
+| Outbound requests | 0 | 0 | 0 | met |
+| v1 reference PNG | identical | identical | 16/16 byte-identical | met |
+| Touch targets under 44 px | up to 6 per screen (Artwork) | – | 0 on every screen | |
+
+Not measured: the qualitative 5-person hallway test (needs the owner). Screenshots: before
+`/workspace/oracle-qa/v4/before/{dark,light}/`, after `/workspace/oracle-qa/v4/after/{dark,light}/`, compare sheets
+`/workspace/oracle-qa/v4/compare-{dark,light}-{mobile,desktop}.png`.
+
+Not verified: real phones, Safari, Firefox; native Web Share (only a stubbed `navigator.share`); real sensor LIVE
+events (headless Chrome has no motion sensors, camera or microphone). Lowest contrast fell from 5.18 to 4.50 (still AA):
+secondary text on the sodium look in Day.
+
+#### Deliberate test changes (behaviour changed on purpose)
+
+- WP2 qa.mjs cross-engine determinism: Node id from `art/layers.js`, link must carry `v=2` (new artworks use the layered engine).
+- WP2 qa.mjs shared-link determinism: the test's link includes `&v=2`, as Copy link produces it.
+- WP2 qa.mjs "preview uses the same look": background read as the most common colour instead of pixel (0,0), where a line can sit (this was the pre-existing Day failure).
+- WP2 tests/core.test.cjs: `parseHash('#offer')` returns `{ route }` (written to the actual contract).
+- WP3 contrast.mjs: Sources view opened from Start (the footer is hidden on question screens to keep one viewport).
+- WP9 contrast.mjs: Sources measured in the sheet; two sheet views added (Who is in this loop, Artwork Options).
+- WP9 contrast.mjs: waits for finite CSS animations to end before measuring (the sensor demo fade-in gave a false 4.4:1).
+- WP10 load.mjs: no `.appbar` in v4 (appbarPx null), Reveal and Extras measured, scripted walk added (words per card, taps, decisions, time estimate).
+- WP10 qa.mjs retired; its still-relevant checks were ported into v4.mjs (table below).
+
+#### qa.mjs → v4.mjs (WP10)
+
+| qa.mjs check(s) | Status | Where / why |
+|---|---|---|
+| approach: one entry action | kept | v4 WP3 "Start has one question-free promise and Begin opens step 1" |
+| handshake anonymous ID; #protocol deep link | ported | v4 WP10 "#protocol opens the optional identity step…" |
+| harvest DENIED (geo, mic, cam) / OK (gpu, cpu, net, base) | kept | v4 WP9 "location without permission reads DENIED", "a passive read shows OK" |
+| harvest UNAVAILABLE never LIVE (orient, shake); rows keyboard-activatable | ported | v4 WP10 (two checks) |
+| granted geolocation shown locally | kept | v4 WP9 "granted location reads OK, is shown only on the page and is never stored" |
+| after grant: animations settle; no replay | ported | v4 WP10 "after reading sensors every animation settles…" |
+| witness portrait + hash, geo panel, continue-to-machine | replaced | v4 WP9 "portrait opens and leads back to Extras" (the demo is after the artwork now) |
+| reset clears collected | replaced | v4 WP7 "Start over returns to Start with nothing chosen" |
+| CSP blocks fetch | kept | v4 invariants (both widths) |
+| keyboard Tab + Enter starts | ported | v4 WP10 |
+| offer: simulator hidden; ?simulator=1 restores it | replaced | v4 WP9 "the hidden Exchange simulator is gone" (simulator deleted, approved default 5) |
+| offer: 6-row checklist, bitmask, dials from trades, Space toggles | replaced | v4 WP4 Trade checks + unit tests (state reducer, footprint prefill) |
+| offer: evidence collapsed / row disclosure / accordion | replaced | v4 WP4 "tapping ⓘ opens a modal sheet with the VERIFIED claim…" (no disclosures, approved default 4) |
+| sources drawer from a citation; Esc returns focus | replaced | v4 WP4 source-in-sheet + "Esc closes the sheet and focus returns"; WP9 Sources sheet |
+| extraction: explainer stack, 8-row footprint, details, sensor demo collapsed / round trip | replaced | v4 WP4 Footprint checks (pre-filled, ≤50 words, lattice-only change); demo moved to Extras (WP9) |
+| machine: step disclosure + relation filter | replaced | v4 WP5 Loop cards; WP9 "Who is in this loop" in the sheet |
+| loop: amplification raises / Newest lowers concentration | replaced | v4 WP6 "Most engaging: top 3 get 69% → 92%" + unit test in tests/core.test.cjs (toy ranker) |
+| revelation: seed + id, URL abstract only; cross-engine id; params reflect choices | kept | v4 WP7 (link v=2, cross-engine id, metadata) |
+| export dimensions (4 formats) | ported | v4 WP10 export sizes |
+| PNG metadata seed + params only | kept | v4 WP7 Save image |
+| share fallback / native share (stubbed) | kept | v4 WP7 (two checks) |
+| clean view; new seed / restore; history local + clearable | kept | v4 WP7 |
+| shared link restores id in a fresh context | ported | v4 WP10 (v=2 link) |
+| same seed → byte-identical PNGs across contexts; fixed reference mobile = desktop | kept | `qa/determinism.mjs` (16 checks) |
+| legacy link without look params → legacy look | ported | v4 WP10 (also asserts the legacy engine) |
+| different seed → different PNG | replaced | v4 WP7 "new seed differs" (composition id) |
+| mobile: no horizontal overflow | ported | v4 WP10 (every screen at 390) |
+| mobile: sources drawer full-width; chapter-nav ≥ 44 px; phone nav (WP6) | removed | drawer and chapter nav no longer exist; targets: load.mjs under44 = 0 |
+| perf: max-density compose+render | ported | v4 WP10 preview redraw median < 50 ms (desktop CPU) |
+| reduced motion: starfield static / nothing animates / art drawn immediately | kept / ported | v4 invariants "no endless animation"; WP8 "no starfield layers"; WP10 "drawn immediately" |
+| motion on: starfield animates and settles | removed | starfield is off on v4 screens (WP8) |
+| chrome: app bar in flow; no fixed UI over content; one primary | kept / removed | v4 invariants "no fixed or sticky UI"; WP3 one primary; app bar gone |
+| forward-only chapter nav; names match; v1.2 labelled as step 2 | removed | replaced by Back + "n of 5" (WP3); demo is now Extras |
+| theme (auto, select, live, override, persist, keyboard, back to auto, unknown fallback, repaint) | ported | v4 WP10 (8 checks) |
+| WP1–WP6 handover checks (ring labels, lab presets, machine list, drawer directory, revelation legend/Options, type sizes, chrome, phone nav, 02 kinds, footer Sources) | replaced / removed | their v4 equivalents: WP5 cards, WP6 Feed, WP7 Options sheet, WP8 type, WP9 Sources; screens that no longer exist removed |
+| WP2 preview (seed on Begin, tick redraws in view, text alternative, same look, header on 01/02/04, footprint tick, redraw speed, reduced motion) | replaced | v4 WP3 art in view, WP4 only-shards/only-lattice change, WP10 redraw speed; seed creation is unchanged code (app-shell seed on the first chapter) and is exercised by every WP4–WP7 preview check |
+| network: zero external, GET only, no leaking values; console clean | kept | v4 final section (3 checks + console) |
+| axe on every screen | kept | v4 invariants (10 screens × 2 widths) |
+
+
 
 Run on the build box, 2026-11-13 (Asia/Yerevan). **Local only — nothing was deployed.**
 

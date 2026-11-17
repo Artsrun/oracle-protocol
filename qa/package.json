@@ -3,6 +3,18 @@
   "private": true,
   "type": "module",
   "description": "End-to-end QA harness. Not part of the deployed site.",
-  "devDependencies": { "axe-core": "^4.14.0", "playwright-core": "^1.65.0", "pngjs": "^7.0.0" },
-  "scripts": { "qa": "node qa.mjs", "qa:dark": "COLOR_SCHEME=dark QA_DIR=/workspace/oracle-qa/scheme-dark node qa.mjs", "qa:light": "COLOR_SCHEME=light QA_DIR=/workspace/oracle-qa/scheme-light node qa.mjs", "contrast": "node contrast.mjs", "theme": "node theme.mjs" }
+  "devDependencies": {
+    "axe-core": "^4.14.0",
+    "playwright-core": "^1.65.0",
+    "pngjs": "^7.0.0"
+  },
+  "scripts": {
+    "qa": "node v4.mjs",
+    "qa:dark": "COLOR_SCHEME=dark QA_DIR=/tmp/oracle-v4-qa/dark node v4.mjs",
+    "qa:light": "COLOR_SCHEME=light QA_DIR=/tmp/oracle-v4-qa/light node v4.mjs",
+    "determinism": "node determinism.mjs",
+    "contrast": "node contrast.mjs",
+    "load": "node load.mjs",
+    "theme": "node theme.mjs"
+  }
 }
