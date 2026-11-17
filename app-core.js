@@ -120,7 +120,7 @@ const state = {
 const PHASES = OracleRouter.FLOW.filter(id => id !== 'reveal').map(id => {
   const S = OracleRouter.byId(id); return { id, n: String(S.step), label: S.label };
 });
-const LEGACY_PARENT = { handshake: 'extraction', permissions: 'extraction', portrait: 'extraction', art: 'revelation' };
+const LEGACY_PARENT = { handshake: 'extras', permissions: 'extras', portrait: 'extras', art: 'revelation', reveal: 'revelation', extras: 'revelation' };
 const stepName = (P) => P.id === 'approach' ? P.label : `Step ${P.n} of 5 \u00b7 ${P.label}`;
 const visited = new Set();
 

@@ -44,7 +44,7 @@ const overlayFree = (page) => page.evaluate(() => [...document.querySelectorAll(
 const running = (page) => page.evaluate(() => document.getAnimations().filter(a => a.playState === 'running' && a.effect && a.effect.getComputedTiming().iterations === Infinity).length);
 
 // ── 0. invariants on every main screen (both widths) ─────────────────────
-const SCREENS = (process.env.SCREENS || 'approach:,offer:#offer,extraction:#extraction,machine:#machine,loop:#loop,reveal:#reveal,revelation:#revelation').split(',').map(s => s.split(':'));
+const SCREENS = (process.env.SCREENS || 'approach:,offer:#offer,extraction:#extraction,machine:#machine,loop:#loop,reveal:#reveal,revelation:#revelation,extras:#extras,sensors:#sensors,identity:#protocol').split(',').map(s => s.split(':'));
 for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['desktop', { width: 1280, height: 860 }]]) {
   const ctx = await browser.newContext({ colorScheme: SCHEME, viewport, reducedMotion: 'reduce' });
   const page = await ctx.newPage(); instrument(page, view);
@@ -266,6 +266,46 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   const bad = Object.entries(res).filter(([, r]) => r.sizes.length > 4 || r.sizes[0] < 13 || r.deco.length);
   check(`${view}: WP8 ≤4 text sizes per screen, none under 13 px, no starfield/scanline/noise/vignette layers`, !bad.length, bad.length ? bad : Object.fromEntries(Object.entries(res).map(([k, r]) => [k, r.sizes.join('/')])));
   await ctx.close();
+}
+
+// ── WP9: Extras, sensor demo, Sources; simulator gone ────────────────────
+{
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await ctx.newPage(); instrument(page, 'wp9-denied');
+  await page.goto(BASE + '#revelation'); await page.reload(); await settle(page, 600);
+  await page.click('#app [data-goto=extras]'); await settle(page, 300);
+  check('WP9 Extras is reached from the artwork (after it, optional)', await page.evaluate(() => state.stage) === 'extras');
+  await page.click('#ex-sensors'); await settle(page, 400);
+  const d = await page.evaluate(() => ({ stage: state.stage, hash: location.hash, rows: document.querySelectorAll('.perm-row').length, badges: [...document.querySelectorAll('.perm-badge')].map(b => b.textContent),
+    emoji: /\p{Extended_Pictographic}/u.test(document.getElementById('app').innerText),
+    small: Math.min(...[...document.querySelectorAll('#app *')].filter(el => [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && el.getClientRects().length).map(el => parseFloat(getComputedStyle(el).fontSize))) }));
+  check('WP9 sensor demo: 11 rows, all TAP before asking, no emoji, no text under 12 px', d.stage === 'permissions' && d.hash === '#sensors' && d.rows === 11 && d.badges.every(b => b === 'TAP') && !d.emoji && d.small >= 12, d);
+  await page.click('[data-perm=geo]'); await settle(page, 1500);
+  const geo = await page.$eval('[data-perm=geo] .perm-badge', b => b.textContent);
+  check('WP9 location without permission reads DENIED (refused), never LIVE', geo === 'DENIED', geo);
+  await page.click('[data-perm=gpu]'); await settle(page, 600);
+  const gpu = await page.$eval('[data-perm=gpu] .perm-badge', b => b.textContent);
+  check('WP9 a passive read shows OK (LIVE is reserved for real sensor events)', gpu === 'OK' || gpu === 'UNAVAILABLE', gpu);
+  await page.click('#btn-portrait'); await settle(page, 400);
+  check('WP9 portrait opens and leads back to Extras', await page.evaluate(() => state.stage === 'portrait' && !!document.getElementById('btn-continue-machine')));
+  await page.click('#btn-continue-machine'); await settle(page, 300);
+  await page.click('#ex-sources'); await settle(page, 300);
+  const src = await page.evaluate(() => ({ n: document.querySelectorAll('#sheet .source-list li').length, total: OracleEvidence.SOURCES.length, legend: document.querySelectorAll('#sheet .legend .prov').length }));
+  check('WP9 Sources open in the sheet: every source plus the four label meanings', src.n === src.total && src.legend === 4, src);
+  await page.click('#open-who'); await settle(page, 200);
+  check('WP9 Who is in this loop opens from Sources, with Back', await page.evaluate(() => !!document.querySelector('#sheet .rel-table') && !document.querySelector('[data-sheet-back]').hidden));
+  await page.keyboard.press('Escape');
+  await page.goto(BASE + '?simulator=1#offer'); await page.reload(); await settle(page, 300);
+  check('WP9 the hidden Exchange simulator is gone (?simulator=1 shows no sliders)', await page.evaluate(() => !document.querySelector('input[type=range]') && !document.getElementById('exsim-title')));
+  check('WP9 no legacy chapter scripts are loaded', await page.evaluate(() => ![...document.scripts].some(s => /chapters\//.test(s.src))));
+  await ctx.close();
+  const ctx2 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, permissions: ['geolocation'], geolocation: { latitude: 40.18, longitude: 44.51 } });
+  const p2 = await ctx2.newPage(); instrument(p2, 'wp9-granted');
+  await p2.goto(BASE + '#sensors'); await p2.reload(); await settle(p2, 300);
+  await p2.click('[data-perm=geo]'); await settle(p2, 1500);
+  const g2 = await p2.evaluate(() => ({ b: document.querySelector('[data-perm=geo] .perm-badge').textContent, v: (document.getElementById('pval-geo') || {}).textContent, stored: JSON.stringify(localStorage).includes('40.18') }));
+  check('WP9 granted location reads OK, is shown only on the page and is never stored', g2.b === 'OK' && /40\.18/.test(g2.v || '') && !g2.stored, g2);
+  await ctx2.close();
 }
 
 // @@SECTIONS@@

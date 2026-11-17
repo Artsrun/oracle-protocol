@@ -176,7 +176,7 @@
             <button type="button" class="btn-quiet" id="rv-options" aria-haspopup="dialog">Options</button>
           </div>
           <p class="status-line small" id="rv-status" role="status" aria-live="polite"></p>
-          <p><button type="button" class="btn-link" id="rv-restart">Start over</button></p>
+          <p class="opt-row"><button type="button" class="btn-link" id="rv-restart">Start over</button><button type="button" class="btn-link" data-goto="extras">Extras</button></p>
         </div>
       </div>
     </div>`;
