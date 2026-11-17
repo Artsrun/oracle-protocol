@@ -7,6 +7,14 @@ import fs from 'node:fs';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
+const { PNG } = require('pngjs');
+const crypto = require('node:crypto');
+const Art = require(new URL('../art/oracle-art.js', import.meta.url).pathname);
+const Lay = require(new URL('../art/layers.js', import.meta.url).pathname);
+const FIXED = 's=ORACLE-7K3F-Q9ZD&o=21&f=77&d=80&c=40&p=70&y=60&x=65&i=55&e=75&r=60&t=50&k=60&a=70&n=4';
+const readPng = (file) => { const buf = fs.readFileSync(file), png = PNG.sync.read(buf), texts = {}; let o = 8;
+  while (o < buf.length) { const len = buf.readUInt32BE(o), type = buf.toString('latin1', o + 4, o + 8); if (type === 'tEXt') { const d = buf.subarray(o + 8, o + 8 + len); const z = d.indexOf(0); texts[d.toString('latin1', 0, z)] = d.toString('latin1', z + 1); } o += 12 + len; }
+  return { w: png.width, h: png.height, texts, sha256: crypto.createHash('sha256').update(buf).digest('hex') }; };
 const BASE = process.env.BASE || 'http://127.0.0.1:8765/oracle-protocol/';
 const QA = process.env.QA_DIR || '/tmp/oracle-v4-qa';
 const SCHEME = process.env.COLOR_SCHEME === 'light' ? 'light' : 'dark';
@@ -36,7 +44,7 @@ const overlayFree = (page) => page.evaluate(() => [...document.querySelectorAll(
 const running = (page) => page.evaluate(() => document.getAnimations().filter(a => a.playState === 'running' && a.effect && a.effect.getComputedTiming().iterations === Infinity).length);
 
 // ── 0. invariants on every main screen (both widths) ─────────────────────
-const SCREENS = (process.env.SCREENS || 'approach:,offer:#offer,extraction:#extraction,machine:#machine,loop:#loop,revelation:#revelation').split(',').map(s => s.split(':'));
+const SCREENS = (process.env.SCREENS || 'approach:,offer:#offer,extraction:#extraction,machine:#machine,loop:#loop,reveal:#reveal,revelation:#revelation').split(',').map(s => s.split(':'));
 for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['desktop', { width: 1280, height: 860 }]]) {
   const ctx = await browser.newContext({ colorScheme: SCHEME, viewport, reducedMotion: 'reduce' });
   const page = await ctx.newPage(); instrument(page, view);
@@ -174,6 +182,69 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await page.keyboard.press('Escape'); await settle(page, 200);
   const radios = await page.evaluate(() => [...document.querySelectorAll('[name=feed]')].filter(r => r.checked).length);
   check('WP6 Tune opens six labelled sliders in the sheet; moving one leaves the presets (custom mix)', t.open && t.n === 6 && t.out === '10' && t.e === 10 && radios === 0, { ...t, radios });
+  await ctx.close();
+}
+
+// ── WP7: Reveal + Artwork ────────────────────────────────────────────────
+{
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce', acceptDownloads: true, hasTouch: true });
+  const page = await ctx.newPage(); instrument(page, 'wp7');
+  await page.goto(BASE); await page.reload(); await settle(page, 300);
+  // shortest path: Begin → Next → Next → Skip → See your artwork → Skip = 6 taps
+  let taps = 0; const tap = async (sel) => { await page.click(sel); taps++; await settle(page, 250); };
+  await tap('#btn-begin'); await page.tap('label[for=offer-0]'); await page.tap('label[for=offer-5]');
+  await tap('[data-goto=extraction]'); await tap('[data-goto=machine]'); await tap('#card-skip');
+  await page.click('label.radio-card:has([value=foryou])'); await settle(page, 150);
+  await tap('[data-goto=reveal]');
+  const cards = [];
+  for (let i = 0; i < 5; i++) {
+    cards.push(await page.evaluate(() => ({ t: document.getElementById('card-title').textContent, w: (document.getElementById('card-title').textContent.match(/[A-Za-z0-9'’]+/g) || []).length })));
+    if (i < 4) { await page.click('#card-next'); await settle(page, 150); }
+  }
+  check('WP7 Reveal: five cards, ≤12 words each, naming what the answers drew', cards.length === 5 && cards.every(c => c.w <= 12) && /2 red shards/.test(cards[0].t) && /For you/.test(cards[3].t), cards);
+  await page.click('#card-next'); await settle(page, 900);
+  check('WP7 shortest path from Start to the artwork is ≤7 taps (6: Begin, Next, Next, Skip, See your artwork, Skip/Next)', taps + 1 <= 7, taps + 1);
+  const art = await page.evaluate(() => ({ stage: state.stage, hash: location.hash, w: (document.getElementById('app').innerText.match(/[A-Za-z0-9'’]+/g) || []).length, primaries: document.querySelectorAll('#app .btn-primary').length,
+    canvas: (() => { const r = document.getElementById('art-canvas').getBoundingClientRect(); return r.width > 250 && r.bottom <= innerHeight; })() }));
+  check('WP7 Artwork: link carries v=2, ≤25 words, one primary action, the artwork fully in view', art.stage === 'revelation' && /&v=2(&|$)/.test(art.hash) && art.w <= 25 && art.primaries === 1 && art.canvas, art);
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#rv-download')]);
+  const f = QA + '/wp7-' + dl.suggestedFilename(); await dl.saveAs(f); const png = readPng(f);
+  const p1 = await page.evaluate(() => OracleArt.normalize(OracleChapters.artParams()));
+  check('WP7 Save image: 1080×1350 PNG whose metadata holds only the seed, answers and v=2', png.w === 1080 && png.h === 1350 && png.texts.Comment.startsWith('oracle:s=' + p1.s) && /&v=2;id=/.test(png.texts.Comment) && !/lat|lng|ua=|gpu/i.test(png.texts.Comment), png.texts);
+  const id1 = await page.evaluate(() => OracleLayers.compositionId(OracleArt.normalize(OracleChapters.artParams())));
+  check('WP7 cross-engine: Node layered compositionId === browser', Lay.compositionId(p1) === id1, { node: Lay.compositionId(p1), id1 });
+  const hasShare = await page.evaluate(() => typeof navigator.share === 'function');
+  const [sdl] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('#rv-share')]); await settle(page, 300);
+  check('WP7 Share without Web Share: image downloaded + caption copy attempted', !hasShare && !!sdl && /downloaded/.test(await page.textContent('#rv-status')), await page.textContent('#rv-status'));
+  await page.evaluate(() => { window.__shared = null; navigator.canShare = () => true; navigator.share = async (d) => { window.__shared = { files: d.files.map(f => [f.name, f.type]), text: d.text }; }; });
+  await page.click('#rv-share'); await page.waitForFunction(() => window.__shared, null, { timeout: 10000 }).catch(() => {});
+  const shared = await page.evaluate(() => window.__shared);
+  check('WP7 Share native path (stubbed) receives the PNG and a caption without personal data', shared && shared.files[0][1] === 'image/png' && shared.text.includes(p1.s) && /no personal data/.test(shared.text), shared);
+  await page.click('#rv-options'); await settle(page, 300);
+  const opt = await page.evaluate(() => ({ open: document.getElementById('sheet').open, fmts: document.querySelectorAll('#sheet [name=rv-fmt]').length, made: document.querySelectorAll('#sheet .made-from li').length, seed: document.getElementById('seed-line').textContent }));
+  check('WP7 Options open in the sheet: 4 formats, title, link, caption, seed, what it was made from', opt.open && opt.fmts === 4 && opt.made === 5 && opt.seed.includes(p1.s), opt);
+  await page.click('label.radio-card:has([value=story])'); await settle(page, 600);
+  const story = await page.evaluate(() => ({ fmt: state.v2.format, open: document.getElementById('sheet').open, hash: location.hash }));
+  check('WP7 changing the format keeps the sheet open and updates the link', story.fmt === 'story' && story.open && /fmt=story/.test(story.hash), story);
+  await page.click('#rv-new'); await settle(page, 500);
+  const seed2 = await page.evaluate(() => state.v2.seed);
+  await page.fill('#rv-restore', p1.s); await page.click('#rv-restore-btn'); await settle(page, 500);
+  const back = await page.evaluate(() => ({ s: state.v2.seed, id: OracleLayers.compositionId(OracleArt.normalize(OracleChapters.artParams())) }));
+  check('WP7 new seed differs; opening the old seed restores the same composition', seed2 !== p1.s && back.s === p1.s && back.id === id1, { seed2, back });
+  const hist = await page.evaluate(() => JSON.parse(localStorage.getItem('oracle.v2.history') || '[]'));
+  check('WP7 history stays in this browser and holds parameters only', hist.length >= 2 && hist.every(h => Object.keys(h).join() === 'enc,s,id'), hist.slice(0, 2));
+  await page.click('#rv-options'); await settle(page, 300); await page.click('#rv-clean'); await settle(page, 600);
+  check('WP7 clean view shows only the artwork', await page.evaluate(() => !!document.getElementById('art-clean') && state.stage === 'art'));
+  await page.click('#ac-back'); await settle(page, 600);
+  // an old link (no v=2) skips Reveal and renders on the legacy engine
+  await page.goto(BASE + '#revelation?' + FIXED); await page.reload(); await settle(page, 600);
+  const old = await page.evaluate(() => ({ e: state.v2.engine, id: OracleEngine.get(state.v2.engine).compositionId(OracleArt.normalize(OracleChapters.artParams())), hash: location.hash }));
+  check('WP7 an old link stays on the legacy engine (same composition id as before v4) and keeps no v=2', old.e === 1 && old.id === Art.compositionId(Art.decode(FIXED)) && !/v=2/.test(old.hash), old);
+  await page.goto(BASE + '#reveal'); await page.reload(); await settle(page, 300);
+  await page.click('#card-skip'); await settle(page, 400);
+  check('WP7 Reveal Skip goes straight to the artwork', await page.evaluate(() => state.stage) === 'revelation');
+  await page.click('#rv-restart'); await settle(page, 300);
+  check('WP7 Start over returns to Start with nothing chosen', await page.evaluate(() => state.stage === 'approach' && state.v2.offers === 0 && state.v2.seed === null));
   await ctx.close();
 }
 

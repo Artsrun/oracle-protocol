@@ -1,5 +1,6 @@
-/* 05 THE REVELATION — deterministic artwork from the visitor's abstract choices; export, share, restore.
- * Also registers the clean artwork view ('art' stage, #art?…). Uses art/oracle-art.js only for generation. */
+/* v4 Step 5 · Artwork — the visitor's artwork: Save image, Share, Options (in the sheet). Export, PNG metadata,
+ * share, restore and history are unchanged from v2/v3 so the fixed reference stays byte-identical.
+ * Also registers the clean artwork view ('art' stage, #art?…). Moved from chapters/revelation.js in v4 WP7. */
 (() => {
   const A = OracleArt, U = OracleChapters.ui, esc = U.esc;
   const HKEY = 'oracle.v2.history';
@@ -123,22 +124,37 @@
     return null;
   }
 
-  // WP5: a short, visible legend written from the visitor's own answers (engine factors in art/oracle-art.js).
-  function legend(p) {
-    const C = OracleContent, F = A.factors(p), b = (v) => v < 0.34 ? 0 : v < 0.67 ? 1 : 2, cap = (t) => t[0].toUpperCase() + t.slice(1);
-    const pl = (n, one, many) => `${n} ${n === 1 ? one : many}`;
-    const rel = (p.f >> C.FOOTPRINT.findIndex(c => c.id === 'relationships')) & 1;
-    const echoes = 1 + Math.round(F.feedback * 5 + p.n / 4);
-    const items = [
-      [F.offers ? `${pl(F.offers, 'red shard', 'red shards')}: the ${pl(F.offers, 'trade', 'trades')} you ticked` : 'No red shards: you ticked no trades', 'offer'],
-      [`${cap(['sparse', 'measured', 'dense'][b(F.disclosure)])} lattice: ${F.cats} of 8 footprint categories${F.offers ? ', plus your trades' : ''}`, 'extraction'],
-      [`${cap(['few', 'some', 'many'][b(F.relations)])} network links: social relationships ${rel ? 'ticked' : 'not ticked'}, social proof ${p.k}`, 'extraction'],
-      [`${cap(['scattered', 'directed', 'captured'][b(F.attention)])} flow lines: emotion ${p.e}, relevance ${p.r} in the lab`, 'loop'],
-      [`${pl(echoes, 'echo', 'echoes')} around the core: repetition ${p.t}, ${pl(p.n, 'round', 'rounds')}`, 'loop'],
-      [`${cap(['little', 'some', 'strong'][b(F.influence)])} swirl: amplification ${p.a}`, 'loop']
+  // What each answer drew (layered engine). Each line links back to the screen that changes it.
+  function madeFrom(p) {
+    const n = A.normalize(p), F = OracleLayers.factors(n), fd = OracleLayers.feedOf(n);
+    const pl = (k, one, many) => `${k} ${k === 1 ? one : many}`;
+    return [
+      [`${pl(F.offers, 'red shard', 'red shards')}: the apps you trade with`, 'offer'],
+      [`Lattice: ${F.cats} of 8 kinds of data`, 'extraction'],
+      [`Network lines: social relationships ${F.rel ? 'ticked' : 'not ticked'}`, 'extraction'],
+      [`Flow lines: ${fd ? OracleLayers.FEED_NAME[fd] : 'your own feed mix'}`, 'loop'],
+      [`${pl(1 + Math.round(F.feedback * 5 + n.n / 4), 'echo', 'echoes')} around the core: ${pl(n.n, 'round', 'rounds')}`, 'loop']
     ];
-    return `<ul class="legend-list">${items.map(([t, ch]) => `<li><span>${esc(t)}</span> <button type="button" class="cite" data-goto="${ch}">edit</button></li>`).join('')}</ul>`;
   }
+  const optionsHtml = (p, id, fmt, hist) => `
+    <h3>Format</h3>
+    <div class="radio-cards compact">${Object.entries(A.FORMATS).map(([k, f]) => `<label class="radio-card${k === fmt ? ' on' : ''}"><input type="radio" name="rv-fmt" value="${k}"${k === fmt ? ' checked' : ''}><span class="rc-text"><span class="row-title">${f.label}</span><span class="row-sub">${f.w}\u00d7${f.h}</span></span></label>`).join('')}</div>
+    <label class="opt-check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}> Title on the image</label>
+    <div class="opt-row"><button type="button" class="btn-quiet" id="rv-link">Copy link</button><button type="button" class="btn-quiet" id="rv-copy">Copy caption</button><button type="button" class="btn-quiet" id="rv-clean">Clean view</button></div>
+    <h3>Seed</h3>
+    <div class="seed-line" id="seed-line">${esc(p.s)} <span class="small">composition ${esc(id)}</span></div>
+    <p class="small" id="rv-look">Look: ${esc(lookLabel(lookNow()))} \u00b7 ${state.v2.look ? 'from the link' : 'follows site theme'}
+      ${state.v2.look ? '<button type="button" class="btn-link" id="rv-unpin">Use site theme</button>' : ''}</p>
+    <div class="opt-row"><button type="button" class="btn-quiet" id="rv-new">New seed</button></div>
+    ${E().v === 2 ? `<h3>What you made it from</h3><ul class="made-from">${madeFrom(p).map(([t, ch]) => `<li><span>${esc(t)}</span> <button type="button" class="btn-link" data-goto="${ch}">Edit</button></li>`).join('')}</ul>` : `<h3>About this artwork</h3><p>${esc(E().interpret(p))}</p><p class="small">Made with the earlier engine; it renders exactly as when it was shared.</p>`}
+    <label for="rv-caption"><h3>Caption</h3></label>
+    <textarea id="rv-caption" class="caption" rows="5" readonly>${esc(E().caption(p, id, shareLink(p, fmt)))}</textarea>
+    <label for="rv-restore"><h3>Open a seed or link</h3></label>
+    <div class="opt-row"><input id="rv-restore" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="ORACLE-XXXX-XXXX or a link"><button type="button" class="btn-quiet" id="rv-restore-btn">Open</button></div>
+    <h3 id="rv-hist-label">Recent (this browser only)</h3>
+    ${hist.length ? `<ul class="history" aria-labelledby="rv-hist-label">${hist.map((h, i) => `<li><span>${esc(h.s)} \u00b7 ${esc(h.id)}</span><button type="button" class="btn-link" data-hist="${i}">Open</button></li>`).join('')}</ul>
+    <button type="button" class="btn-quiet" id="rv-clear">Clear history</button>` : '<p class="small">Nothing yet.</p>'}
+    <p class="small">The link and the file hold only the seed and your answers as numbers. No personal data, no server.</p>`;
 
   OracleChapters.register('revelation', (app) => {
     ensureSeed();
@@ -146,64 +162,34 @@
     history.replaceState(null, '', '#revelation?' + enc(p) + '&fmt=' + fmt);
     if (!skipRemember) remember(p, id);
     skipRemember = false;
-    const hist = readHist();
     const canNative = typeof navigator.share === 'function';
-    app.innerHTML = `<article class="chapter ch-revelation">
-      ${U.chapterHead('revelation',
-        'Your choices from steps 1\u20134 \u2014 never sensor readings \u2014 became this one reproducible artwork.')}
-      <div class="rev-grid">
-        <div class="art-frame"><canvas id="art-canvas" role="img" aria-label="Generative artwork ${esc(p.s)}: ${esc(E().interpret(p))}"></canvas></div>
-        <div class="rev-controls">
-          <div class="btn-row rev-actions">
-            <button type="button" class="btn-sm primary" id="rv-download">Save image</button>
-            <button type="button" class="btn-sm" id="rv-share">${canNative ? 'Share\u2026' : 'Share'}</button>
+    app.innerHTML = `<div class="screen v4s s-revelation">
+      ${U.topBar('revelation')}
+      <div class="screen-grid art-grid">
+        <header class="screen-head"><h1 tabindex="-1">Your artwork</h1><p class="small seed-tag">${esc(p.s)}</p></header>
+        <figure class="art-frame art-stage"><canvas id="art-canvas" role="img" aria-label="Generative artwork ${esc(p.s)}: ${esc(E().interpret(p))}"></canvas></figure>
+        <div class="screen-main">
+          <p class="lead">Made only from your answers. Nothing left this tab.</p>
+          <div class="screen-cta art-actions">
+            <button type="button" class="btn-primary" id="rv-download">Save image</button>
+            <button type="button" class="btn-quiet" id="rv-share">${canNative ? 'Share\u2026' : 'Share'}</button>
+            <button type="button" class="btn-quiet" id="rv-options" aria-haspopup="dialog">Options</button>
           </div>
-          <div class="status-line" id="rv-status" role="status" aria-live="polite"></div>
-          <p class="sim-note">Link and file hold only the seed and dial values. History stays in this browser.</p>
-          <h2 class="legend-title" id="rv-legend-title">What you made it from</h2>
-          <div id="rv-legend" aria-labelledby="rv-legend-title">${legend(p)}</div>
-
-          ${U.more('Options', `
-          <p class="mini-label">Format</p>
-          <div class="seg" role="group" aria-label="Export format">${Object.entries(A.FORMATS).map(([k, f]) => `<button type="button" data-fmt="${k}" aria-pressed="${k === fmt}">${f.label}</button>`).join('')}</div>
-          <label class="check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}> Editorial title on artwork</label>
-          <div class="btn-row"><button type="button" class="btn-sm" id="rv-link">Copy link</button><button type="button" class="btn-sm" id="rv-clean">Clean view</button></div>
-          <p class="mini-label">Seed</p>
-          <div class="seed-line" id="seed-line">${esc(p.s)}<small>composition ${esc(id)}</small></div>
-          <p class="interp" id="interp">${esc(E().interpret(p))}</p>
-          <p class="param-sum" id="rv-look">Look: ${esc(lookLabel(lookNow()))} \u00b7 ${state.v2.look ? 'from the link' : 'follows site theme'}
-          ${state.v2.look ? '<button type="button" class="cite" id="rv-unpin">use site theme</button>' : ''}</p>
-          <div class="btn-row"><button type="button" class="btn-sm" id="rv-new">New seed</button><button type="button" class="btn-sm" id="rv-vary">Vary</button><button type="button" class="btn-sm" id="rv-copy">Copy caption</button></div>
-          <label for="rv-caption" class="mini-label">Caption</label>
-          <textarea id="rv-caption" class="caption" readonly>${esc(E().caption(p, id, shareLink(p, fmt)))}</textarea>
-          <label for="rv-restore" class="mini-label">Restore a seed or link</label>
-          <div class="restore"><input id="rv-restore" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="ORACLE-XXXX-XXXX or a shared link"><button type="button" class="btn-sm" id="rv-restore-btn">Restore</button></div>
-          <p class="mini-label" id="rv-hist-label">Recent (this browser)</p><ul class="history" aria-labelledby="rv-hist-label">${hist.map((h, i) => `<li><span>${esc(h.s)} \u00b7 ${esc(h.id)}</span><button type="button" class="cite" data-hist="${i}">restore</button></li>`).join('')}</ul>
-          ${hist.length ? `<button type="button" class="btn-sm" id="rv-clear">Clear history</button>` : ''}`, 'rv-more')}
+          <p class="status-line small" id="rv-status" role="status" aria-live="polite"></p>
+          <p><button type="button" class="btn-link" id="rv-restart">Start over</button></p>
         </div>
       </div>
-    </article>`;
+    </div>`;
 
     const canvas = document.getElementById('art-canvas');
     fontsReady().then(() => draw(canvas, p, fmt === 'hires' ? 'portrait' : fmt, true));
-    const mo = document.getElementById('rv-more'); mo.open = moreOpen; mo.ontoggle = () => { moreOpen = mo.open; };
-    const status = (t) => { document.getElementById('rv-status').textContent = t; };
-    const rerender = () => { OracleChapters.go('revelation', { push: false, focus: false }); };
-
-    document.getElementById('rv-new').onclick = () => { state.v2.seed = A.newSeed(); state.v2.engine = OracleEngine.LAYERED.v; rerender(); };
-    document.getElementById('rv-vary').onclick = () => {
-      const r = crypto.getRandomValues(new Uint8Array(11)), keys = ['d', 'c', 'p', 'y', 'x', 'i'], lk = ['e', 'r', 't', 'k', 'a'];
-      keys.forEach((k, j) => { state.v2.ex[k] = Math.max(0, Math.min(100, state.v2.ex[k] + (r[j] % 25) - 12)); });
-      lk.forEach((k, j) => { state.v2.lab[k] = Math.max(0, Math.min(100, state.v2.lab[k] + (r[6 + j] % 25) - 12)); });
-      rerender();
-    };
-    app.querySelectorAll('[data-fmt]').forEach(b => b.onclick = () => { state.v2.format = b.dataset.fmt; rerender(); });
-    document.getElementById('rv-title').onchange = (e) => { state.v2.title = e.target.checked; rerender(); };
+    const status = (t) => { const el = document.getElementById('rv-status'); if (el) el.textContent = t; };
+    const rerender = (keepSheet) => { const reopen = keepSheet && OracleSheet.isOpen(); OracleSheet.close(); OracleChapters.go('revelation', { push: false, focus: false }); if (reopen) openOptions(); };
     document.getElementById('rv-download').onclick = async () => {
       status('Rendering ' + A.FORMATS[fmt].label + '\u2026');
       const { blob, w, h } = await exportBlob(p, fmt);
       download(blob, fileName(p, fmt));
-      status(`Downloaded ${fileName(p, fmt)} (${w}\u00d7${h}, ${(blob.size / 1024).toFixed(0)} KB).`);
+      status(`Saved ${fileName(p, fmt)} (${w}\u00d7${h}, ${(blob.size / 1024).toFixed(0)} KB).`);
     };
     document.getElementById('rv-share').onclick = async () => {
       const caption = E().caption(p, id, shareLink(p, fmt));
@@ -218,34 +204,47 @@
       }
       download(blob, fileName(p, fmt));
       const ok = await copy(caption);
-      status(`Native sharing is not available here \u2014 PNG downloaded${ok ? ' and caption copied' : '; copy the caption below'}.`);
+      status(`Sharing is not available here \u2014 image downloaded${ok ? ' and caption copied' : '; copy the caption in Options'}.`);
     };
-    document.getElementById('rv-copy').onclick = async () => status((await copy(E().caption(p, id, shareLink(p, fmt)))) ? 'Caption copied.' : 'Copy blocked \u2014 select the caption text below.');
-    document.getElementById('rv-link').onclick = async () => status((await copy(shareLink(p, fmt))) ? 'Link copied.' : 'Copy blocked.');
-    document.getElementById('rv-clean').onclick = () => OracleChapters.go('art', { hash: '#art?' + enc(p) + '&fmt=' + fmt + lookQuery(lookNow()) });
-    const unpin = document.getElementById('rv-unpin');
-    if (unpin) unpin.onclick = () => { state.v2.look = null; rerender(); };
-    const doRestore = (q) => {
-      if (!q) { status('Not a seed or Oracle link.'); return; }
-      apply(q); status('Restored ' + q.s + '.'); rerender();
+    document.getElementById('rv-restart').onclick = () => {
+      Object.assign(state.v2, OracleState.reduce(state.v2, { type: 'reset' }));
+      state.v2.look = null; state.v2.ex = OracleContent.deriveEx(0); OracleChapters.go('approach');
     };
-    document.getElementById('rv-restore-btn').onclick = () => doRestore(parseRestore(document.getElementById('rv-restore').value));
-    document.getElementById('rv-restore').onkeydown = (e) => { if (e.key === 'Enter') doRestore(parseRestore(e.target.value)); };
-    const clr = document.getElementById('rv-clear');
-    if (clr) clr.onclick = () => { try { localStorage.removeItem(HKEY); } catch (e) { /* ignore */ } skipRemember = true; rerender(); status('History cleared from this browser.'); };
-    app.querySelectorAll('[data-hist]').forEach(b => b.onclick = () => { state.v2.engine = OracleEngine.of(hist[+b.dataset.hist].enc); doRestore(A.decode(hist[+b.dataset.hist].enc)); });
+    function openOptions() {
+      const hist = readHist();
+      OracleSheet.open({ title: 'Options', html: optionsHtml(p, id, fmt, hist), from: document.getElementById('rv-options'), onOpen: (body) => {
+        const st = (t) => { status(t); const s2 = body.querySelector('#rv-opt-status'); if (s2) s2.textContent = t; };
+        body.insertAdjacentHTML('afterbegin', '<p class="small" id="rv-opt-status" role="status" aria-live="polite"></p>');
+        body.querySelectorAll('[name=rv-fmt]').forEach(r => r.onchange = () => { state.v2.format = r.value; rerender(true); });
+        body.querySelector('#rv-title').onchange = (e) => { state.v2.title = e.target.checked; rerender(true); };
+        body.querySelector('#rv-new').onclick = () => { state.v2.seed = A.newSeed(); state.v2.engine = OracleEngine.LAYERED.v; rerender(true); };
+        body.querySelector('#rv-copy').onclick = async () => st((await copy(E().caption(p, id, shareLink(p, fmt)))) ? 'Caption copied.' : 'Copy blocked \u2014 select the caption text.');
+        body.querySelector('#rv-link').onclick = async () => st((await copy(shareLink(p, fmt))) ? 'Link copied.' : 'Copy blocked.');
+        body.querySelector('#rv-clean').onclick = () => { OracleSheet.close(); OracleChapters.go('art', { hash: '#art?' + enc(p) + '&fmt=' + fmt + lookQuery(lookNow()) }); };
+        const unpin = body.querySelector('#rv-unpin');
+        if (unpin) unpin.onclick = () => { state.v2.look = null; rerender(true); };
+        const doRestore = (q) => { if (!q) { st('Not a seed or Oracle link.'); return; } apply(q); status('Opened ' + q.s + '.'); rerender(false); };
+        body.querySelector('#rv-restore-btn').onclick = () => doRestore(parseRestore(body.querySelector('#rv-restore').value));
+        body.querySelector('#rv-restore').onkeydown = (e) => { if (e.key === 'Enter') doRestore(parseRestore(e.target.value)); };
+        const clr = body.querySelector('#rv-clear');
+        if (clr) clr.onclick = () => { try { localStorage.removeItem(HKEY); } catch (e) { /* ignore */ } skipRemember = true; rerender(true); status('History cleared from this browser.'); };
+        body.querySelectorAll('[data-hist]').forEach(b => b.onclick = () => { state.v2.engine = OracleEngine.of(hist[+b.dataset.hist].enc); doRestore(A.decode(hist[+b.dataset.hist].enc)); });
+        body.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => OracleSheet.close()));
+      } });
+    }
+    document.getElementById('rv-options').onclick = openOptions;
   });
 
   // Clean artwork view: only the work, plus minimal controls.
   OracleChapters.register('art', (app) => {
     ensureSeed();
     const p = params(), fmt = fmtOf();
-    app.innerHTML = `<div class="art-only">
+    app.innerHTML = `<div class="art-only v4s">
       <canvas id="art-clean" role="img" aria-label="ORACLE // DIGITAL REMAINS ${esc(p.s)}"></canvas>
       <div class="art-bar">
-        <button type="button" class="btn-sm" id="ac-back">\u2190 STUDIO</button>
-        ${Object.entries(A.FORMATS).filter(([k]) => k !== 'hires').map(([k, f]) => `<button type="button" class="btn-sm" data-afmt="${k}" aria-pressed="${k === fmt}">${f.w}\u00d7${f.h}</button>`).join('')}
-        <button type="button" class="btn-sm amber" id="ac-dl">DOWNLOAD</button>
+        <button type="button" class="btn-quiet" id="ac-back">Back</button>
+        ${Object.entries(A.FORMATS).filter(([k]) => k !== 'hires').map(([k, f]) => `<button type="button" class="btn-quiet" data-afmt="${k}" aria-pressed="${k === fmt}">${f.w}\u00d7${f.h}</button>`).join('')}
+        <button type="button" class="btn-primary" id="ac-dl">Save image</button>
       </div></div>`;
     fontsReady().then(() => draw(document.getElementById('art-clean'), p, fmt === 'hires' ? 'portrait' : fmt, false));
     document.getElementById('ac-back').onclick = () => OracleChapters.go('revelation');
@@ -256,12 +255,16 @@
   // Repaint the artwork when the site theme changes (only while it is not pinned by a link).
   if (window.OracleTheme) OracleTheme.onChange(() => {
     if (state.v2.look || !['revelation', 'art'].includes(state.stage)) return;
+    if (OracleSheet.isOpen()) OracleSheet.close();
     skipRemember = true; OracleChapters.go(state.stage, { push: false, focus: false });
   });
   // WP2: the small live preview shown in the headers of 01, 02 and 04 — same engine, same look as the 05 canvas,
   // portrait aspect, no overlay text. Drawn instantly (no draw-in), so nothing animates.
-  function paintPreview(canvas) {
-    const p = params(), w = canvas.width, h = canvas.height, scene = E().compose(p, A.FORMATS.portrait.w / A.FORMATS.portrait.h);
+  // v4: `focus` (layer names) fades the other layers so one stands out (Reveal cards; layered engine only).
+  function paintPreview(canvas, focus) {
+    const p = params(), w = canvas.width, h = canvas.height;
+    let scene = E().compose(p, A.FORMATS.portrait.w / A.FORMATS.portrait.h);
+    if (focus && E().v === 2) scene = OracleLayers.focus(scene, focus);
     A.render(canvas.getContext('2d'), scene, w, h, { ...renderOpts(lookNow()), overlay: null });
     canvas.setAttribute('aria-label', 'Your artwork so far: ' + E().interpret(p));
   }

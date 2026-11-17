@@ -44,7 +44,7 @@ window.OracleChapters = (() => {
       return route;
     }
     const S = OracleRouter.byRoute(route);
-    if (S && !['reveal', 'art', 'extras', 'portrait'].includes(S.id)) return S.id;
+    if (S && !['art', 'extras', 'portrait'].includes(S.id)) return S.id;
     return 'approach';
   }
 
@@ -125,7 +125,7 @@ window.OracleChapters = (() => {
   /** frame({ id, title, lead, body, cta, caption }) → one v4 screen. `title` is the screen's one question (h1). */
   const frame = (o) => `<div class="screen v4s s-${o.id}">
       ${topBar(o.id)}
-      <div class="screen-grid">
+      <div class="screen-grid${o.grid ? ' ' + o.grid : ''}">
         <header class="screen-head"><h1 tabindex="-1">${o.title}</h1>${o.lead ? `<p class="lead">${o.lead}</p>` : ''}</header>
         ${o.noArt ? '' : artStage(o.caption)}
         <div class="screen-main">${o.body || ''}${o.cta ? `<div class="screen-cta">${o.cta}</div>` : ''}</div>
@@ -301,7 +301,7 @@ window.OracleChapters = (() => {
     renderStage: (stage, app) => {
       // WP2: the seed exists from the first chapter on, so every choice can show up in the preview.
       // Random (crypto), never derived from device data.
-      if (ROUTES.includes(stage) && !state.v2.seed && window.OracleArt) state.v2.seed = OracleArt.newSeed();
+      if ((ROUTES.includes(stage) || stage === 'reveal') && !state.v2.seed && window.OracleArt) state.v2.seed = OracleArt.newSeed();
       registry[stage](app);
       drawPreview();
     },
