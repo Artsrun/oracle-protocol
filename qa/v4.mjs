@@ -248,6 +248,26 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await ctx.close();
 }
 
+// ── WP8: visual + type ───────────────────────────────────────────────────
+for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['desktop', { width: 1280, height: 860 }]]) {
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport, reducedMotion: 'reduce' });
+  const page = await ctx.newPage(); instrument(page, 'wp8-' + view);
+  const res = {};
+  for (const [name, hash] of SCREENS) {
+    await page.goto(BASE + hash); await page.reload(); await settle(page, 400);
+    res[name] = await page.evaluate(() => {
+      const sizes = new Set();
+      document.querySelectorAll('#app *').forEach(el => { if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) || !el.getClientRects().length || el.closest('.vh,.legend-vh')) return;
+        const cs = getComputedStyle(el); if (cs.position === 'absolute' && cs.clip !== 'auto') return; sizes.add(Math.round(parseFloat(cs.fontSize))); });
+      const deco = ['cosmos', 'scanlines', 'noise', 'vignette'].filter(c => { const el = document.getElementById(c) || document.querySelector('.' + c); return el && getComputedStyle(el).display !== 'none'; });
+      return { sizes: [...sizes].sort((a, b) => a - b), deco };
+    });
+  }
+  const bad = Object.entries(res).filter(([, r]) => r.sizes.length > 4 || r.sizes[0] < 13 || r.deco.length);
+  check(`${view}: WP8 ≤4 text sizes per screen, none under 13 px, no starfield/scanline/noise/vignette layers`, !bad.length, bad.length ? bad : Object.fromEntries(Object.entries(res).map(([k, r]) => [k, r.sizes.join('/')])));
+  await ctx.close();
+}
+
 // @@SECTIONS@@
 
 // ── network + console (always last) ──────────────────────────────────────
