@@ -137,3 +137,10 @@ body.v4 .chapter .ch-title{font-family:var(--font-display);font-size:var(--t-h);
 }
 /* the footer (Sources · theme) shows on Start and Artwork; question screens keep one viewport */
 body.v4:not([data-stage=approach]):not([data-stage=revelation]):not([data-stage=extras]) .sitefoot{display:none}
+.legend-vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.sheet-back[hidden]{display:none}
+.sheet-top .sheet-title{flex:1}
+.sheet .claim{margin:0;font-size:var(--t-b);line-height:1.5}
+.sheet .claim .prov{margin-right:6px}
+.sheet a{color:var(--link)}
+.sheet .cite{font:inherit;font-size:var(--t-s);color:var(--link);background:none;border:0;padding:0 2px;min-height:var(--tap);cursor:pointer;text-decoration:underline;text-underline-offset:3px}

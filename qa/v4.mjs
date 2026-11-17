@@ -84,6 +84,49 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await ctx.close();
 }
 
+// ── WP4: Trade + Footprint ───────────────────────────────────────────────
+{
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce', hasTouch: true });
+  const page = await ctx.newPage(); instrument(page, 'wp4');
+  const words = () => page.evaluate(() => { let n = 0; const w = document.createTreeWalker(document.getElementById('app'), NodeFilter.SHOW_TEXT);
+    while (w.nextNode()) { const el = w.currentNode.parentElement; if (el.getClientRects().length && !el.closest('.vh,.legend-vh,[hidden]')) n += (w.currentNode.textContent.match(/[A-Za-z0-9'’]+/g) || []).length; } return n; });
+  const groups = () => page.evaluate(() => { const p = OracleArt.normalize(OracleChapters.artParams()), sc = OracleLayers.compose(p, 0.8);
+    return Object.fromEntries(OracleLayers.GROUPS.map(g => [g, JSON.stringify(OracleLayers.group(sc, g)).length + ':' + OracleArt.sceneHash({ layers: [{ items: OracleLayers.group(sc, g) }] })])); });
+  await page.goto(BASE); await page.reload(); await settle(page, 300);
+  await page.click('#btn-begin'); await settle(page, 300);
+  const tradeWords = await words();
+  const g0 = await groups(); const pv0 = await page.$eval('#pv-canvas', c => c.toDataURL());
+  await page.tap('label[for=offer-0]'); await settle(page, 200);
+  const g1 = await groups(); const pv1 = await page.$eval('#pv-canvas', c => c.toDataURL());
+  const changed = Object.keys(g0).filter(k => g0[k] !== g1[k]);
+  check('WP4 Trade: ≤45 words on screen', tradeWords <= 45, tradeWords);
+  check('WP4 ticking a trade redraws the preview and changes only the shards layer', pv0 !== pv1 && changed.join() === 'shards', changed);
+  await page.tap('label[for=offer-3]'); await settle(page, 150);
+  await page.click('[data-info="offer:0"]'); await settle(page, 300);
+  const sh = await page.evaluate(() => ({ open: document.getElementById('sheet').open, modal: document.getElementById('sheet').matches(':modal'), verified: !!document.querySelector('#sheet .prov-verified'), cite: !!document.querySelector('#sheet .cite[data-source]'), inferred: !!document.querySelector('#sheet .prov-inferred') }));
+  check('WP4 tapping ⓘ opens a modal sheet with the VERIFIED claim, its source and the INFERRED reading', sh.open && sh.modal && sh.verified && sh.cite && sh.inferred, sh);
+  await page.click('#sheet .cite'); await settle(page, 200);
+  const src = await page.evaluate(() => ({ t: document.getElementById('sheet-title').textContent, back: !document.querySelector('[data-sheet-back]').hidden, link: (document.querySelector('#sheet-body a[href^="http"]') || {}).rel }));
+  await page.click('[data-sheet-back]'); await settle(page, 150);
+  const backT = await page.evaluate(() => document.getElementById('sheet-title').textContent);
+  check('WP4 a source opens inside the sheet; Back returns to the claim; source links are noopener', src.back && /noopener/.test(src.link || '') && backT === 'Social apps', { src, backT });
+  await page.keyboard.press('Escape'); await settle(page, 200);
+  const after = await page.evaluate(() => ({ open: document.getElementById('sheet').open, focus: document.activeElement.dataset.info }));
+  check('WP4 Esc closes the sheet and focus returns to the ⓘ button', !after.open && after.focus === 'offer:0', after);
+  await page.click('[data-goto=extraction]'); await settle(page, 300);
+  const fp = await page.evaluate(() => ({ mask: state.v2.footprint, expect: OracleState.prefillFootprint(state.v2.offers), lead: document.querySelector('.lead').textContent, checked: document.querySelectorAll('[data-fp]:checked').length }));
+  check('WP4 Footprint is pre-filled from the trades and says it is our assumption', fp.mask === fp.expect && fp.checked > 0 && /our assumption/i.test(fp.lead), fp);
+  check('WP4 Footprint: ≤50 words on screen', (await words()) <= 50, await words());
+  const gf0 = await groups(); await page.tap('label[for=fp-7]'); await settle(page, 150); const gf1 = await groups();
+  const fch = Object.keys(gf0).filter(k => gf0[k] !== gf1[k]);
+  check('WP4 ticking a footprint kind changes only the lattice (and network for relationships)', fch.length && fch.every(k => k === 'lattice' || k === 'network'), fch);
+  const edited = await page.evaluate(() => state.v2.footprint);
+  await page.click('[data-back]'); await settle(page, 300); await page.tap('label[for=offer-4]'); await settle(page, 100);
+  await page.click('[data-goto=extraction]'); await settle(page, 300);
+  check('WP4 an edited footprint is never overwritten by later trade changes', await page.evaluate(() => state.v2.footprint) === edited);
+  await ctx.close();
+}
+
 // @@SECTIONS@@
 
 // ── network + console (always last) ──────────────────────────────────────

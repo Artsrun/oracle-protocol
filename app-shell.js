@@ -8,7 +8,7 @@ window.OracleChapters = (() => {
 
   // Visitor choices that drive simulations + artwork. Abstract values only — never sensor readings.
   // v4: the initial values come from core/state.js (same field names as v2, so links and art read the same values).
-  state.v2 = (() => { const i = OracleState.initial(); return { engine: i.engine, offers: i.offers, footprint: i.footprint, ex: i.ex, lab: i.lab, seed: i.seed, format: i.format, title: i.title, fromUrl: i.fromUrl }; })();
+  state.v2 = (() => { const i = OracleState.initial(); return { engine: i.engine, offers: i.offers, footprint: i.footprint, footprintEdited: i.footprintEdited, ex: i.ex, lab: i.lab, seed: i.seed, format: i.format, title: i.title, fromUrl: i.fromUrl }; })();
 
   // v3: the Exchange simulator is hidden unless ?simulator=1. Without it the dials follow the marked exchanges.
   const simulatorOn = /[?&]simulator=1\b/.test(location.search);
@@ -38,7 +38,7 @@ window.OracleChapters = (() => {
       const p = L.params;
       Object.assign(state.v2.ex, { d: p.d, c: p.c, p: p.p, y: p.y, x: p.x, i: p.i });
       Object.assign(state.v2.lab, { e: p.e, r: p.r, t: p.t, k: p.k, a: p.a, n: p.n });
-      state.v2.offers = p.o; state.v2.footprint = p.f; state.v2.seed = p.s; state.v2.fromUrl = true; state.v2.engine = L.engine;
+      state.v2.offers = p.o; state.v2.footprint = p.f; state.v2.footprintEdited = true; state.v2.seed = p.s; state.v2.fromUrl = true; state.v2.engine = L.engine;
       if (L.fmt) state.v2.format = L.fmt;
       state.v2.look = L.look; // a link's look; #art links without one get the legacy look; plain #revelation follows the site
       return route;
@@ -237,6 +237,9 @@ window.OracleChapters = (() => {
     btn.textContent = 'Sources'; btn.setAttribute('aria-haspopup', 'dialog');
     btn.onclick = () => openDrawer(null, btn);
     document.getElementById('sitefoot').prepend(btn); // WP6: out of the top bar, into the footer
+    // v4 WP4: the optional sensor demo left Footprint; until WP9 moves it after the artwork it is linked here.
+    const demo = document.createElement('a'); demo.href = '#sensors'; demo.className = 'foot-btn'; demo.id = 'foot-sensors'; demo.textContent = 'Sensor demo';
+    btn.after(demo);
 
     const d = document.createElement('div');
     d.id = 'sources-drawer'; d.className = 'drawer'; d.hidden = true;
@@ -283,6 +286,10 @@ window.OracleChapters = (() => {
     if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
   }
 
+  // v4: every answer goes through the pure reducer in core/state.js; state.v2 is updated in place so the screens
+  // that still read it directly see the same object.
+  const deps = { deriveEx: (o) => OracleContent.deriveEx(o), prefill: (o) => OracleState.prefillFootprint(o) };
+  function dispatch(action) { Object.assign(state.v2, OracleState.reduce(state.v2, action, deps)); return state.v2; }
   function artParams() {
     const v = state.v2;
     return { s: v.seed, o: v.offers, f: v.footprint, ...v.ex, e: v.lab.e, r: v.lab.r, t: v.lab.t, k: v.lab.k, a: v.lab.a, n: v.lab.n };
@@ -298,7 +305,7 @@ window.OracleChapters = (() => {
       registry[stage](app);
       drawPreview();
     },
-    go, boot, openDrawer, closeDrawer, artParams, reduceMotion, simulatorOn,
+    go, boot, openDrawer, closeDrawer, artParams, dispatch, reduceMotion, simulatorOn,
     ui: { frame, topBar, artStage, chapterHead, drawPreview, chapterNav, slider, simNote, more, esc, row, bindRows, tally, setTally }
   };
 })();
