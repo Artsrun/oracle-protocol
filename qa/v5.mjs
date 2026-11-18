@@ -1,7 +1,8 @@
-// Oracle Protocol v4 — end-to-end QA (grows one section per work package; see docs/QA.md "v4").
+// Oracle Protocol — end-to-end QA. v4 sections (WP3–WP10) plus v5 sections (Device step, privacy, fixtures).
+// Renamed from qa/v4.mjs at v5 WP0; it grows one section per v5 work package (docs/QA.md "v5").
 // Serve the repo's parent folder so the site lives under /oracle-protocol/ like GitHub Pages:
 //   python3 -m http.server 8765 --bind 127.0.0.1
-//   COLOR_SCHEME=dark|light QA_DIR=/tmp/v4 CHROME=/path/to/chrome node v4.mjs
+//   COLOR_SCHEME=dark|light QA_DIR=/tmp/v5 CHROME=/path/to/chrome node v5.mjs
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
@@ -16,7 +17,7 @@ const readPng = (file) => { const buf = fs.readFileSync(file), png = PNG.sync.re
   while (o < buf.length) { const len = buf.readUInt32BE(o), type = buf.toString('latin1', o + 4, o + 8); if (type === 'tEXt') { const d = buf.subarray(o + 8, o + 8 + len); const z = d.indexOf(0); texts[d.toString('latin1', 0, z)] = d.toString('latin1', z + 1); } o += 12 + len; }
   return { w: png.width, h: png.height, texts, sha256: crypto.createHash('sha256').update(buf).digest('hex') }; };
 const BASE = process.env.BASE || 'http://127.0.0.1:8765/oracle-protocol/';
-const QA = process.env.QA_DIR || '/tmp/oracle-v4-qa';
+const QA = process.env.QA_DIR || '/tmp/oracle-v5-qa';
 const SCHEME = process.env.COLOR_SCHEME === 'light' ? 'light' : 'dark';
 const R = { scheme: SCHEME, checks: [], requests: [], consoleErrors: [], axe: {} };
 const check = (name, ok, detail) => { R.checks.push({ name, ok: !!ok, detail }); console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail !== undefined && !ok ? '  — ' + JSON.stringify(detail).slice(0, 400) : ''}`); };
@@ -413,7 +414,7 @@ check('network: no request carries location, user agent, GPU or hash values', !l
 const errs = R.consoleErrors.filter(e => !/Content Security Policy|example\.com|Failed to fetch|net::ERR_/.test(e.text));
 check('console: zero app errors', !errs.length, errs.slice(0, 5));
 const pass = R.checks.filter(c => c.ok).length;
-console.log(`\nv4 QA (${SCHEME}): ${pass}/${R.checks.length} passed`);
-fs.writeFileSync(`${QA}/v4-results-${SCHEME}.json`, JSON.stringify(R, null, 1));
+console.log(`\nv5 QA (${SCHEME}): ${pass}/${R.checks.length} passed`);
+fs.writeFileSync(`${QA}/v5-results-${SCHEME}.json`, JSON.stringify(R, null, 1));
 await browser.close();
 process.exit(pass === R.checks.length ? 0 : 1);

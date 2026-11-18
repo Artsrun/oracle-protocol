@@ -1,5 +1,30 @@
 # Oracle Protocol — QA report
 
+## v5 build (branch `oracle-v5`, from 2026-11-18, Asia/Yerevan)
+
+Plan: [docs/PLAN-v5.md](PLAN-v5.md). Branched from `oracle-v4` @ bfce77a (PR #4, still open; prod = 4526203).
+Suites: `npm test` (unit), `qa/determinism.mjs` (byte-identical reference PNGs), `qa/v5.mjs` (end-to-end, renamed
+from `qa/v4.mjs`; grows per WP), `qa/device-probe.mjs` (which device APIs each phase touches), `qa/contrast.mjs`,
+`qa/load.mjs`. Device fixtures for mocked sensors: `qa/fixtures/devices.cjs`. Per-WP logs:
+`/workspace/oracle-qa/v5/wp/<wp>/` (runner: `/workspace/oracle-qa/v5/run-suite.sh <wp>`).
+
+### WP0. Baseline (oracle-v4 @ bfce77a, before any v5 change; Chrome 156.0.8078.47 via playwright-core)
+
+| Suite | Night | Day |
+|---|---|---|
+| Unit (`npm test`) | 36/36 | – |
+| `qa/determinism.mjs` v1 reference (`ORACLE-7K3F-Q9ZD`, legacy engine) | 16/16 | (both modes included) |
+| `qa/determinism.mjs` v4 reference (same answers, `&v=2`, layered engine) — **new fixture, hashes recorded now** | 16/16 | (both modes included) |
+| `qa/v4.mjs` → `qa/v5.mjs` end-to-end | 82/82 | 82/82 |
+| Contrast, 6 looks × 11 views | 0 fails, lowest 4.50 | (both modes included) |
+| `qa/device-probe.mjs` | 4/4: the journey reads no device API; rendering reads = `devicePixelRatio` only; 0 external requests | – |
+
+v4 reference hashes (SHA-256 prefix, identical at DPR 1 and 3): Night portrait `a71362dcf4cc`, story `e61d200d0787`,
+square `ca47ddb882da`, hi-res `8d60906c6cd0`; Day portrait `f60fbd13ae48`, story `8cff23afd905`, square
+`700cd1aecb52`, hi-res `c1bbda452b15`.
+
+<!-- @@V5_WP@@ -->
+
 ## v4 build (branch `oracle-v4`, from 2026-11-17, Asia/Yerevan)
 
 Plan: [docs/PLAN-v4.md](PLAN-v4.md). Branched from `ux-handover-wp0-6` @ 0aa162c (PR #3, still open; prod = 4526203).
