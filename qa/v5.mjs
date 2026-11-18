@@ -420,6 +420,30 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await ctx.close();
 }
 
+// ── v5 WP2: core/privacy.js in the browser — buckets, digest, share modes, Forget everything ──
+{
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce', timezoneId: 'Asia/Kathmandu' });
+  await ctx.addInitScript(FX.install, FX.PROFILES.pixel);
+  const page = await ctx.newPage(); instrument(page, 'v5-wp2');
+  await page.goto(BASE + '#offer'); await page.reload(); await settle(page, 300);
+  const r = await page.evaluate(async () => {
+    localStorage.setItem('oracle.theme', 'dark'); localStorage.setItem('unrelated', '1');
+    OracleDevice.allowPassive(); await OracleDevice.readPassive(); const S = OracleDevice.snapshot();
+    const pat = await OraclePrivacy.pattern('ORACLE-7K3F-Q9ZD', S), choices = OraclePrivacy.linkPart(pat);
+    OraclePrivacy.setShare('pattern'); const withPat = OraclePrivacy.linkPart(pat);
+    const fixed = await OraclePrivacy.digest(new Uint8Array(16).fill(7), OraclePrivacy.canonical(S));
+    const canon = OraclePrivacy.canonical(S), raw = OraclePrivacy.rawStrings(S);
+    OraclePrivacy.forgetEverything();
+    return { choices, withPat, fixed, canon, raw, keys: Object.keys(localStorage), after: OracleDevice.snapshot(), share: OraclePrivacy.share() };
+  });
+  const expect = crypto.createHash('sha256').update(Buffer.concat([Buffer.alloc(16, 7), Buffer.from(r.canon)])).digest('hex').slice(0, 8);
+  check('v5 WP2 browser digest (WebCrypto) equals node:crypto for the same salt and canonical text', r.fixed === expect, { browser: r.fixed, node: expect });
+  const sent = FX.SENTINELS().filter(x => (r.choices + r.withPat).includes(x));
+  check('v5 WP2 default link part is empty (Choices only); the opt-in adds only &dg=8hex&db=3 chars, no sentinel or raw string', r.choices === '' && /^&dg=[0-9a-f]{8}&db=[A-Z0-9]{3}$/.test(r.withPat) && !sent.length && !r.raw.some(x => r.withPat.includes(x)), { r: { choices: r.choices, withPat: r.withPat }, sent });
+  check('v5 WP2 Forget everything clears readings and every oracle.* key, keeps other sites\' keys', r.keys.join() === 'unrelated' && r.after.passive === null && r.share === 'choices', { keys: r.keys, after: r.after });
+  await ctx.close();
+}
+
 // @@SECTIONS@@
 
 // ── network + console (always last) ──────────────────────────────────────
