@@ -1,0 +1,47 @@
+/* ORACLE PROTOCOL v6 — mobile layout pass (docs/PLAN-v6.md). Loaded after css/v4.css; vanilla CSS, no build step.
+ * Rules kept: nothing fixed over content, one primary per screen, 44 px targets, animations play once. */
+
+/* ── WP1 — the art never collapses: floors on the portrait formulas ─────────────── */
+@media (max-width:899px){
+  .start-art{width:min(62vw,300px,max(120px,calc((100svh - 470px) * .8)))}
+  .art-grid .art-stage{max-width:min(100%,max(160px,calc((100svh - 440px) * .8)))}
+  .reveal-grid .art-stage{max-width:min(100%,max(160px,calc((100svh - 420px) * .8)))}
+}
+
+/* ── WP1 — landscape phones: art | heading | controls, side by side ─────────────── */
+@media (orientation:landscape) and (max-height:500px){
+  body.v4 .screen{width:100%;max-width:none;min-height:100svh;padding:8px 20px 12px}
+  .screen:has(.art-stage){display:grid;grid-template-columns:auto minmax(0,.85fr) minmax(0,1.15fr);grid-template-rows:auto 1fr;column-gap:20px;align-content:start}
+  .screen:has(.art-stage) > .screen-grid{display:contents}
+  .screen:has(.art-stage) .art-stage{grid-column:1;grid-row:1 / span 2;align-self:start;justify-self:start;margin:0;width:min(28vw,calc((100svh - 20px) * .8));max-width:none}
+  .screen:has(.art-stage) .art-stage canvas{width:100%;height:auto;max-height:none;margin:0}
+  .screen:has(.art-stage) > .screen-top{grid-column:2;grid-row:1;margin-bottom:4px}
+  .screen:has(.art-stage) .screen-head{grid-column:2;grid-row:2;align-self:start}
+  .screen:has(.art-stage) .screen-main{grid-column:3;grid-row:1 / span 2;align-self:start;margin-top:0;gap:8px;max-width:none}
+  .screen:has(.art-stage) .screen-cta{margin-top:4px;padding-top:0}
+  .v4s h1{font-size:1.375rem;line-height:1.2}
+  .v4s .lead{margin-top:4px}
+  /* compact rows, still 44 px targets */
+  .check-row label,.radio-card{min-height:var(--tap);padding-top:6px;padding-bottom:6px}
+  .radio-cards,.check-list{gap:6px}
+  .story-card{min-height:0;padding:12px 14px}
+  /* the Artwork and Reveal art get the larger column */
+  .screen:has(.art-stage).s-revelation .art-stage,.screen:has(.art-stage).s-reveal .art-stage{width:min(40vw,calc((100svh - 20px) * .8))}
+  /* Start: art beside the text */
+  .start-grid{flex-direction:row;gap:32px;text-align:left;justify-content:center;align-items:center;margin:auto 0}
+  .start-art{width:min(36vw,calc((100svh - 80px) * .8))}
+  .start-text{align-items:flex-start}
+}
+@media (orientation:landscape) and (max-height:500px){
+  /* Footprint: eight short rows in two columns */
+  .s-extraction .check-rows{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:16px}
+  /* Device readout: label above value so values get the full column */
+  .dev-row{flex-wrap:wrap;row-gap:0;min-height:var(--tap)}
+  .dev-row dt{width:100%}
+  .screen:has(.art-stage).s-device{grid-template-columns:auto minmax(0,.7fr) minmax(0,1.3fr)}
+}
+@media (orientation:landscape) and (max-height:500px) and (max-width:700px){
+  .screen:has(.art-stage) .art-stage{width:max(160px,24vw)}
+  .screen:has(.art-stage).s-revelation .art-stage,.screen:has(.art-stage).s-reveal .art-stage{width:min(36vw,calc((100svh - 20px) * .8))}
+  .screen:has(.art-stage){column-gap:16px;padding-left:16px;padding-right:16px;grid-template-columns:auto minmax(0,.75fr) minmax(0,1.25fr)}
+}
