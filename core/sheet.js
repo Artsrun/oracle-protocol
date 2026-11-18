@@ -42,11 +42,14 @@
   }
   // v6 WP8: opening the sheet adds one history entry (same URL), so Back — including the iOS edge swipe — closes the
   // sheet first. onPop() is called by the app's popstate handler before it routes.
-  let ignorePop = 0, closedByPop = false;
+  let ignorePop = 0, closedByPop = false, sheetHref = '';
   const isSentinel = () => !!(history.state && history.state.oracleSheet);
   function onPop() {
     if (ignorePop > 0) { ignorePop--; return true; }            // our own history.back() after a close
-    if (dlg && dlg.open && !isSentinel()) { closedByPop = true; dlg.close(); return true; }
+    if (dlg && dlg.open && !isSentinel()) {
+      closedByPop = true; dlg.close();
+      return location.href === sheetHref; // Back to the screen under the sheet: done. A new URL (hash link, typed URL): route it.
+    }
     if (isSentinel()) { history.replaceState(null, '', location.href); } // forward onto a stale sheet entry
     return false;
   }
@@ -84,6 +87,7 @@
     document.documentElement.classList.add('sheet-open');
     d.showModal();
     if (!isSentinel()) history.pushState({ oracleSheet: 1 }, '', location.href);
+    sheetHref = location.href;
     show(o);
     return d;
   }
