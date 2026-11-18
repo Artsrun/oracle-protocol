@@ -1,0 +1,14 @@
+{
+  "name": "Oracle Protocol — The Anatomy of Attention",
+  "short_name": "Oracle",
+  "description": "A local-only investigation of the digital-self economy that ends in a reproducible generative artwork.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#020408",
+  "theme_color": "#020408",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

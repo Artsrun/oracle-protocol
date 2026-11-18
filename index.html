@@ -10,7 +10,12 @@
 <meta name="description" content="An interactive, local-only investigation of the digital-self economy that ends in a reproducible generative artwork.">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'none'; img-src 'self' data: blob:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
-<link rel="icon" href="data:,">
+<link rel="icon" href="icons/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preload" href="fonts/IBMPlexMono-normal-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/SpaceGrotesk-variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/IBMPlexSans-variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="styles.css">
@@ -18,8 +23,35 @@
 <link rel="stylesheet" href="css/v4.css">
 <link rel="stylesheet" href="css/v6.css">
 <script src="theme-boot.js"></script>
+<!-- v6 WP11: classic scripts, deferred (same order, run after parsing); the static Start below shows first -->
+<script defer src="core/router.js"></script>
+<script defer src="core/state.js"></script>
+<script defer src="core/ranker.js"></script>
+<script defer src="core/sheet.js"></script>
+<script defer src="core/device.js"></script>
+<script defer src="core/privacy.js"></script>
+<script defer src="ui/components.js"></script>
+<script defer src="app-core.js"></script>
+<script defer src="data/evidence.js"></script>
+<script defer src="data/content.js"></script>
+<script defer src="art/oracle-art.js"></script>
+<script defer src="art/layers.js"></script>
+<script defer src="art/fingerprint.js"></script>
+<script defer src="art/engine.js"></script>
+<script defer src="app-shell.js"></script>
+<script defer src="screens/start.js"></script>
+<script defer src="screens/evidence.js"></script>
+<script defer src="screens/trade.js"></script>
+<script defer src="screens/footprint.js"></script>
+<script defer src="screens/device.js"></script>
+<script defer src="screens/loop-cards.js"></script>
+<script defer src="screens/feed.js"></script>
+<script defer src="screens/reveal.js"></script>
+<script defer src="screens/artwork.js"></script>
+<script defer src="screens/extras.js"></script>
+<script defer src="app-ui.js"></script>
 </head>
-<body>
+<body class="v4" data-stage="approach">
 <canvas id="cosmos"></canvas>
 <div class="scanlines"></div>
 <div class="noise"></div>
@@ -30,33 +62,19 @@
   </div>
   <nav class="phase-rail" id="phase-rail" aria-label="Chapters"></nav>
 </header>
-<main id="app"></main>
+<main id="app"><div class="screen v4s s-approach" data-static>
+  <div class="start-grid">
+    <figure class="start-art"><canvas id="start-art" width="432" height="540" role="img" aria-label="Example artwork: red shards, a lattice and flowing lines around a triangle"></canvas>
+      <figcaption class="small">Example artwork</figcaption></figure>
+    <div class="start-text">
+      <p class="brand">Oracle Protocol</p>
+      <h1 tabindex="-1">Turn your digital life into art</h1>
+      <p class="lead">Three questions. Your answers become a unique artwork.</p>
+      <div class="screen-cta"><a class="btn-primary" id="btn-begin" href="#offer">Begin</a></div>
+      <p class="small">About 3 minutes · permissions optional · nothing leaves this tab</p>
+    </div>
+  </div>
+</div></main>
 <footer class="sitefoot" id="sitefoot"><span class="foot-note">Local only · nothing leaves this tab</span></footer>
-<script src="core/router.js"></script>
-<script src="core/state.js"></script>
-<script src="core/ranker.js"></script>
-<script src="core/sheet.js"></script>
-<script src="core/device.js"></script>
-<script src="core/privacy.js"></script>
-<script src="ui/components.js"></script>
-<script src="app-core.js"></script>
-<script src="data/evidence.js"></script>
-<script src="data/content.js"></script>
-<script src="art/oracle-art.js"></script>
-<script src="art/layers.js"></script>
-<script src="art/fingerprint.js"></script>
-<script src="art/engine.js"></script>
-<script src="app-shell.js"></script>
-<script src="screens/start.js"></script>
-<script src="screens/evidence.js"></script>
-<script src="screens/trade.js"></script>
-<script src="screens/footprint.js"></script>
-<script src="screens/device.js"></script>
-<script src="screens/loop-cards.js"></script>
-<script src="screens/feed.js"></script>
-<script src="screens/reveal.js"></script>
-<script src="screens/artwork.js"></script>
-<script src="screens/extras.js"></script>
-<script src="app-ui.js"></script>
 </body>
 </html>

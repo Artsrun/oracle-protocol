@@ -126,3 +126,7 @@ body.v4 .sitefoot{padding-left:max(16px,calc(var(--safe-l) + 8px));padding-right
 
 /* ── WP9 — cards take horizontal swipes; vertical scrolling stays with the browser ── */
 .cards{touch-action:pan-y}
+
+/* ── WP11 — static Start (index.html) until the scripts run; hidden on deep links ── */
+html.boot-deep #app > [data-static]{visibility:hidden}
+.v4s a.btn-primary{text-decoration:none;box-sizing:border-box}

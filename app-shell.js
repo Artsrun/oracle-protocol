@@ -90,7 +90,21 @@ window.OracleChapters = (() => {
     document.body.appendChild(lab);
   }
 
+  // v6 WP11: offline copy of the site's own files (sw.js: same-origin, cache-first). No install prompt or banner:
+  // the browser's own install offer is suppressed. ?nosw=1 removes the worker (and its cache) for testing.
+  function offline() {
+    window.addEventListener('beforeinstallprompt', (e) => e.preventDefault());
+    if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
+    if (/[?&]nosw=1\b/.test(location.search)) {
+      navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister())).catch(() => {});
+      if (window.caches) caches.keys().then((ks) => ks.filter((k) => k.startsWith('oracle-')).forEach((k) => caches.delete(k))).catch(() => {});
+      return;
+    }
+    const reg = () => navigator.serviceWorker.register('sw.js').catch(() => {});
+    if (document.readyState === 'complete') reg(); else window.addEventListener('load', reg);
+  }
   function boot() {
+    offline();
     buildThemeSwitch();
     buildFooter();
     buildThemeLab();
