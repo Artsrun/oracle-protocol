@@ -43,9 +43,8 @@
   const STATE_TEXT = { ok: 'Read', unavailable: 'Not shared by this browser', randomised: 'Randomised by your browser', denied: 'Not allowed' };
   const badge = (st) => `<span class="dev-state dev-${st}">${STATE_TEXT[st] || st}</span>`;
   const passive = () => (D.snapshot().passive || null);
-  const short = (s, n) => { s = String(s); return s.length > n ? s.slice(0, n - 1) + '\u2026' : s; };
   const PRE = { battery: 'battery ' };
-  const summary = (g, R) => g.items.map(id => R[id]).filter(Boolean).map(e => e.state === 'ok' ? (PRE[e.id] || '') + short(e.value, 34) : e.state === 'randomised' ? 'randomised' : null).filter(Boolean).join(' \u00b7 ') || 'Not shared by this browser';
+  const summary = (g, R) => g.items.map(id => R[id]).filter(Boolean).map(e => e.state === 'ok' ? (PRE[e.id] || '') + e.value : e.state === 'randomised' ? 'randomised' : null).filter(Boolean).join(' \u00b7 ') || 'Not shared by this browser';
   const countRead = (R) => Object.values(R || {}).filter(e => e.state === 'ok').length;
 
   // In-tab ring from this device: buckets + digest for the current seed (per-artwork salt unless Remember is on).
@@ -97,8 +96,7 @@
     const rows = GROUPS.map(g => `<div class="dev-row"><dt>${g.title}</dt><dd><span>${esc(summary(g, R))}</span>
       <button type="button" class="info" data-dev-info="${g.id}" aria-haspopup="dialog" aria-label="Details: ${g.title}">i</button></dd></div>`).join('');
     return `${browserNote(R)}<dl class="dev-list" aria-label="What this browser shares">${rows}</dl>
-      <p class="small" id="dev-count">${countRead(R)} readings. None left this tab.</p>
-      <p class="small"><button type="button" class="btn-link" id="dev-ident" aria-haspopup="dialog">How identifying is this?</button> <button type="button" class="btn-link" id="dev-forget">Forget everything</button></p>`;
+      <p class="small dev-links"><button type="button" class="btn-link" id="dev-ident" aria-haspopup="dialog">How identifying is this?</button> <button type="button" class="btn-link" id="dev-forget">Forget everything</button></p>`;
   }
 
   function cardBody(c) {
@@ -135,7 +133,7 @@
     app.innerHTML = U.frame({
       id: 'device',
       title: ask ? 'What does your device say?' : 'Any website could read this',
-      lead: ask ? 'Every website can read things about your device without asking. Want to see what yours says? Nothing leaves this tab.' : 'No prompt, no permission.',
+      lead: ask ? 'Every website can read things about your device without asking. Want to see what yours says? Nothing leaves this tab.' : `<span id="dev-count">${countRead(passive())} readings</span>, no prompt. None left this tab.`,
       caption: ask ? 'Your artwork so far' : FP.describe(FP.context()),
       body: ask ? askBody() : readoutBody(R),
       cta: ask ? `${UI.button(busy ? 'Reading\u2026' : 'Show me', { primary: true, attrs: { id: 'dev-show', disabled: busy } })}${UI.button('Skip', { link: true, attrs: { id: 'dev-skip' } })}`

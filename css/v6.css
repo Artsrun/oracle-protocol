@@ -35,13 +35,40 @@
 @media (orientation:landscape) and (max-height:500px){
   /* Footprint: eight short rows in two columns */
   .s-extraction .check-rows{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:16px}
-  /* Device readout: label above value so values get the full column */
-  .dev-row{flex-wrap:wrap;row-gap:0;min-height:var(--tap)}
-  .dev-row dt{width:100%}
   .screen:has(.art-stage).s-device{grid-template-columns:auto minmax(0,.7fr) minmax(0,1.3fr)}
 }
 @media (orientation:landscape) and (max-height:500px) and (max-width:700px){
   .screen:has(.art-stage) .art-stage{width:max(160px,24vw)}
   .screen:has(.art-stage).s-revelation .art-stage,.screen:has(.art-stage).s-reveal .art-stage{width:min(36vw,calc((100svh - 20px) * .8))}
   .screen:has(.art-stage){column-gap:16px;padding-left:16px;padding-right:16px;grid-template-columns:auto minmax(0,.75fr) minmax(0,1.25fr)}
+}
+
+/* ── WP2 — short phones (portrait, under 700 px tall): compact rows, smaller gaps ── */
+@media (max-height:700px) and (orientation:portrait) and (max-width:899px){
+  .screen{padding-top:4px;padding-bottom:12px}
+  .screen-top{margin-bottom:4px}
+  .v4s h1{font-size:1.5rem;line-height:1.15}
+  .v4s .lead{margin-top:4px}
+  .screen-grid{grid-template-columns:minmax(0,1fr) 96px}
+  .screen-main{margin-top:10px;gap:8px}
+  .check-row label{min-height:var(--tap);padding-top:4px;padding-bottom:4px}
+  .radio-card{min-height:48px;padding-top:6px;padding-bottom:6px}
+  .radio-cards{gap:6px}
+  .story-card{min-height:150px;padding:14px}
+}
+/* Device readout rows: the label runs into its value (one paragraph per row) and values wrap (no "…") —
+   short phones and landscape. The ⓘ keeps its own reserved column on the right. */
+@media (max-height:700px) and (max-width:899px), (orientation:landscape) and (max-height:500px){
+  .dev-row{display:block;position:relative;min-height:var(--tap);padding:3px 52px 3px 0;box-sizing:border-box;line-height:1.35}
+  .dev-row dt{display:inline;width:auto;margin-right:.35em;color:var(--v-ink-2);font-size:var(--t-s)}
+  .dev-row dd,.dev-row dd>span{display:inline;font-size:var(--t-s)}
+  .dev-row dd .info{position:absolute;right:0;top:50%;margin-top:calc(var(--tap) / -2)}
+}
+@media (max-height:600px) and (orientation:portrait) and (max-width:899px){
+  .v4s h1{font-size:1.375rem}
+  .screen-grid{grid-template-columns:minmax(0,1fr) 80px;column-gap:12px}
+}
+@media (max-height:600px) and (orientation:portrait) and (max-width:899px){
+  .dev-links{display:flex;flex-wrap:wrap;column-gap:4px}
+  .dev-links .btn-link{font-size:var(--t-s);padding-left:0;padding-right:6px}
 }
