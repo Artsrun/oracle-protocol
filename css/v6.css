@@ -10,7 +10,7 @@
 
 /* ── WP1 — landscape phones: art | heading | controls, side by side ─────────────── */
 @media (orientation:landscape) and (max-height:500px){
-  body.v4 .screen{width:100%;max-width:none;min-height:100svh;padding:8px 20px 12px}
+  body.v4 .screen{width:100%;max-width:none;min-height:100svh;--s-pt:8px;--s-px:20px;--s-pb:12px}
   .screen:has(.art-stage){display:grid;grid-template-columns:auto minmax(0,.85fr) minmax(0,1.15fr);grid-template-rows:auto 1fr;column-gap:20px;align-content:start}
   .screen:has(.art-stage) > .screen-grid{display:contents}
   .screen:has(.art-stage) .art-stage{grid-column:1;grid-row:1 / span 2;align-self:start;justify-self:start;margin:0;width:min(28vw,calc((100svh - 20px) * .8));max-width:none}
@@ -40,12 +40,12 @@
 @media (orientation:landscape) and (max-height:500px) and (max-width:700px){
   .screen:has(.art-stage) .art-stage{width:max(160px,24vw)}
   .screen:has(.art-stage).s-revelation .art-stage,.screen:has(.art-stage).s-reveal .art-stage{width:min(36vw,calc((100svh - 20px) * .8))}
-  .screen:has(.art-stage){column-gap:16px;padding-left:16px;padding-right:16px;grid-template-columns:auto minmax(0,.75fr) minmax(0,1.25fr)}
+  .screen:has(.art-stage){column-gap:16px;--s-px:16px;grid-template-columns:auto minmax(0,.75fr) minmax(0,1.25fr)}
 }
 
 /* ── WP2 — short phones (portrait, under 700 px tall): compact rows, smaller gaps ── */
 @media (max-height:700px) and (orientation:portrait) and (max-width:899px){
-  .screen{padding-top:4px;padding-bottom:12px}
+  .screen{--s-pt:4px;--s-pb:12px}
   .screen-top{margin-bottom:4px}
   .v4s h1{font-size:1.5rem;line-height:1.15}
   .v4s .lead{margin-top:4px}
@@ -109,3 +109,17 @@ body.v4 .sitefoot .foot-btn{display:flex;align-items:center;justify-content:flex
 body.v4 .sitefoot .theme-switch{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:0 4px;border-bottom:1px solid var(--v-line)}
 body.v4 .sitefoot .foot-note{order:9;padding:12px 4px 0}
 @media (min-width:900px){ body.v4 .sitefoot{max-width:520px;margin:0 auto} }
+
+/* ── WP6 — type in rem (the browser's font-size setting applies), safe areas, 16 px fields ── */
+:root{--t-s:.8125rem;--t-b:1rem;--t-l:1.1875rem;--t-h:clamp(1.625rem,1.6vw + 1.125rem,2.375rem);
+  --safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px)}
+@media (min-width:900px){ .screen{--s-pt:20px;--s-px:32px;--s-pb:28px} }
+/* one padding rule: the per-layout values above + the device's safe-area insets (notch, home bar, landscape sides) */
+body.v4 .screen{padding:calc(var(--s-pt,8px) + var(--safe-t)) max(var(--s-px,16px),calc(var(--safe-r) + 8px)) calc(var(--s-pb,16px) + var(--safe-b)) max(var(--s-px,16px),calc(var(--safe-l) + 8px))}
+body.v4 .sitefoot{padding-left:max(16px,calc(var(--safe-l) + 8px));padding-right:max(16px,calc(var(--safe-r) + 8px))}
+.sheet-panel{padding-left:var(--safe-l);padding-right:var(--safe-r);bottom:var(--kb,0px);max-height:calc(86svh - var(--kb,0px))}
+.sheet-body{padding-bottom:calc(24px + var(--safe-b))}
+.sheet-top{padding-top:max(0px,calc(var(--safe-t) - 40px))}
+@media (min-width:900px){ .sheet-panel{max-height:none;padding-top:var(--safe-t)} }
+/* fields at 16 px: readable, and iOS Safari does not zoom the page when they get focus */
+.opt-row input[type=text],.sheet .caption,body.v4 .sitefoot .theme-switch select,#tilt-slider{font-size:var(--t-b)}

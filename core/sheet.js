@@ -17,6 +17,11 @@
         <div class="sheet-body" id="sheet-body"></div>
       </div>`;
     document.body.appendChild(dlg);
+    // v6 WP6: keep a focused field visible above the on-screen keyboard. --kb lifts the panel by the part of the
+    // layout viewport the keyboard covers (iOS keeps the layout viewport; Android may resize it — both end at 0 or more).
+    dlg.addEventListener('focusin', () => setTimeout(keepVisible, 60));
+    if (window.visualViewport) visualViewport.addEventListener('resize', keepVisible);
+    window.addEventListener('resize', keepVisible);
     dlg.addEventListener('click', (e) => {
       if (e.target === dlg) return close();                 // backdrop
       if (e.target.closest('[data-sheet-close]')) close();
@@ -24,11 +29,20 @@
     });
     dlg.addEventListener('close', () => {
       const f = opener; opener = null; stack = []; cur = null;
+      dlg.querySelector('.sheet-panel').style.removeProperty('--kb');
       document.documentElement.classList.remove('sheet-open');
       if (onClose) { const fn = onClose; onClose = null; fn(); }
       if (f && document.contains(f)) f.focus();
     });
     return dlg;
+  }
+  function keepVisible() {
+    if (!dlg || !dlg.open) return;
+    const vv = window.visualViewport, panel = dlg.querySelector('.sheet-panel');
+    const kb = vv ? Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) : 0;
+    panel.style.setProperty('--kb', kb + 'px');
+    const a = document.activeElement;
+    if (a && dlg.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) requestAnimationFrame(() => a.scrollIntoView({ block: 'center' }));
   }
   function show(o) {
     const d = ensure();
