@@ -49,12 +49,13 @@ for (const pal of PALETTES) for (const mode of MODES) {
   const page = await ctx.newPage();
   const B = `${BASE}?palette=${pal}`;
   const key = `${pal}-${mode}`; out[key] = {};
-  for (const [label, url, clicks] of [['approach', B, []], ['offer', B + '#offer', []], ['extraction', B + '#extraction', []], ['machine', B + '#machine', []], ['loop', B + '#loop', []], ['revelation', B + '#revelation', []], ['sources', B + '#offer', ['#btn-sources']], ['harvest', B + '#sensors', []], ['identity', B + '#protocol', ['#btn-crypto']]]) {
-    await page.goto(url); await page.waitForTimeout(label === 'approach' ? 1000 : 450);
-    for (const c of clicks) { await page.click(c); await page.waitForTimeout(300); }
+  for (const [label, url, clicks] of [['approach', B, []], ['offer', B + '#offer', []], ['extraction', B + '#extraction', []], ['machine', B + '#machine', []], ['loop', B + '#loop', []], ['revelation', B + '#revelation', []], ['sources', B, ['#btn-sources']], ['who', B, ['#btn-sources', '#open-who']], ['options', B + '#revelation', ['#rv-options']], ['device', B + '#device', []], ['device-readout', B + '#device', ['#dev-show']], ['device-card', B + '#device', ['#dev-show', '#dev-next']], ['device-ident', B + '#device', ['#dev-show', '#dev-ident']], ['device-detail', B + '#device', ['#dev-show', '[data-dev-info=graphics]']]]) {
+    await page.goto(url); if (label.startsWith('device')) await page.reload(); await page.waitForTimeout(label === 'approach' ? 1000 : 450);
+    for (const c of clicks) { await page.click(c); await page.waitForTimeout(c === '#dev-show' ? 1500 : 300); }
     if (clicks.length) { await page.mouse.move(0, 0); await page.waitForTimeout(700); } // no hover state, finished fade-in
+    await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().filter(a => a.effect && a.effect.getComputedTiming().endTime !== Infinity).map(a => a.finished.catch(() => 0))), new Promise(r => setTimeout(r, 3000))])); // measure after every finite fade-in has ended
     await page.evaluate(() => { document.querySelectorAll('#app details').forEach(d => { d.open = true; }); document.querySelectorAll('#app .row-more').forEach(m => { m.hidden = false; }); document.querySelectorAll('#app .row-check').forEach((c, i) => { if (i % 2) c.click(); }); }); await page.waitForTimeout(150); // measure text inside expanders too
-    const r = (await run(page, label === 'sources' ? '#sources-drawer' : '#app')).concat(label === 'sources' || label === 'harvest' ? [] : await run(page, '.appbar'));
+    const r = (await run(page, ['sources', 'who', 'options', 'device-ident', 'device-detail'].includes(label) ? '#sheet' : '#app')).concat(['sources', 'who', 'options', 'device-ident', 'device-detail'].includes(label) ? [] : (await run(page, '.appbar')).concat(await run(page, '.sitefoot')));
     const fails = r.filter(x => x.ratio < x.need);
     out[key][label] = { elements: r.length, min: Math.min(...r.map(x => x.ratio)), failing: fails.length, samples: fails.slice(0, 6) };
   }

@@ -48,7 +48,17 @@
     { id: 'dsa38', short: 'DSA Art. 38', title: 'Regulation (EU) 2022/2065 (Digital Services Act), Article 38 \u2014 Recommender systems', publisher: 'European Union (text via digitalacts.eu)', date: '2022-10-19', type: 'Law',
       url: 'https://eur-lex.europa.eu/eli/reg/2022/2065/oj/eng',
       verifiedVia: 'https://www.digitalacts.eu/regulation/digital-service-act/article/38/recommender-systems',
-      supports: 'Very large online platforms and search engines must offer at least one recommender option not based on profiling.' }
+      supports: 'Very large online platforms and search engines must offer at least one recommender option not based on profiling.' },
+    // v5 Device step — "How identifying is this?" (figures copied from each paper's abstract/results, PLAN-v5 §6)
+    { id: 'eckersley10', short: 'Eckersley 2010', title: 'How Unique Is Your Web Browser?', publisher: 'Peter Eckersley, EFF — Privacy Enhancing Technologies Symposium 2010', date: '2010-07', type: 'Peer-reviewed paper',
+      url: 'https://coveryourtracks.eff.org/static/browser-uniqueness.pdf',
+      supports: 'Of 470,161 browsers tested by Panopticlick, 83.6% had a unique fingerprint; the fingerprint carried at least 18.1 bits of entropy.' },
+    { id: 'laperdrix16', short: 'Laperdrix 2016', title: 'Beauty and the Beast: Diverting modern web browsers to build unique browser fingerprints', publisher: 'Laperdrix, Rudametkin, Baudry — IEEE Symposium on Security and Privacy 2016', date: '2016-05', type: 'Peer-reviewed paper',
+      url: 'https://hal.science/hal-01285470',
+      supports: 'Of 118,934 fingerprints collected by AmIUnique, 89.4% were unique (desktop 90%, mobile 81%).' },
+    { id: 'gomezboix18', short: 'G\u00f3mez-Boix 2018', title: 'Hiding in the Crowd: an Analysis of the Effectiveness of Browser Fingerprinting at Large Scale', publisher: 'G\u00f3mez-Boix, Laperdrix, Baudry — The Web Conference (WWW) 2018', date: '2018-04', type: 'Peer-reviewed paper',
+      url: 'https://dl.acm.org/doi/10.1145/3178876.3186097',
+      supports: 'Of 2,067,942 fingerprints from a general-audience French website, 33.6% were unique (computers 35.7%, mobile 18.5%).' }
   ];
   SOURCES.forEach(s => { s.accessed = ACCESSED; if (!s.verifiedVia) s.verifiedVia = s.url; });
   const byId = Object.fromEntries(SOURCES.map(s => [s.id, s]));

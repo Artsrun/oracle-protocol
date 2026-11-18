@@ -31,7 +31,8 @@
     { id: 'i', name: 'Influence', hint: 'how much the service steers what you see' }
   ];
 
-  // v3: with the simulator hidden, the six exchange dials are derived from the exchanges the visitor marks.
+  // The six legacy dials (encoded in every link for compatibility) are derived from the trades the visitor ticks.
+  // v4 WP9: the Exchange simulator that once set them by hand was deleted.
   // Per-offer weights over [d, c, p, y, x, i] are design assumptions (SIMULATED), not measurements.
   const OFFER_WEIGHTS = {
     social:        [10, 4, 8, 8, 12, 8],
@@ -52,14 +53,6 @@
     });
     return out;
   }
-
-  // Illustrative model. Weights are design assumptions, shown verbatim in the UI.
-  const EXCHANGE_MODEL = [
-    { id: 'value', name: 'Perceived value', formula: '0.5\u00b7Convenience + 0.5\u00b7Personalization', f: v => 0.5 * v.c + 0.5 * v.p },
-    { id: 'resolution', name: 'Profile resolution', formula: '0.5\u00b7Disclosure + 0.3\u00b7Personalization + 0.2\u00b7Dependency', f: v => 0.5 * v.d + 0.3 * v.p + 0.2 * v.y },
-    { id: 'surface', name: 'Exposure surface', formula: 'Disclosure \u00d7 Exposure / 100', f: v => v.d * v.x / 100 },
-    { id: 'lockin', name: 'Steering loop', formula: '0.6\u00b7Influence + 0.4\u00b7Dependency', f: v => 0.6 * v.i + 0.4 * v.y }
-  ];
 
   const FOOTPRINT = [
     { id: 'identity', name: 'Identity', observed: 'name, email, phone, date of birth, ID document', derived: 'age band, gender, household role', unknown: 'how long each copy is retained by every recipient',
@@ -146,6 +139,6 @@
     { id: 'J', title: 'Fear-framed health claim', emo: 0.9, rel: 0.5, rec: 0.6 }
   ];
 
-  root.OracleContent = { OFFERS, OFFER_WEIGHTS, deriveEx, EXCHANGE_DIMS, EXCHANGE_MODEL, FOOTPRINT, MACHINE, ROLES, ENTITIES, RELATIONS, LAB_ITEMS };
+  root.OracleContent = { OFFERS, OFFER_WEIGHTS, deriveEx, EXCHANGE_DIMS, FOOTPRINT, MACHINE, ROLES, ENTITIES, RELATIONS, LAB_ITEMS };
   if (typeof module !== 'undefined') module.exports = root.OracleContent;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -1,4 +1,194 @@
-# Oracle Protocol v2 — QA report
+# Oracle Protocol — QA report
+
+## v5 build (branch `oracle-v5`, from 2026-11-18, Asia/Yerevan)
+
+Plan: [docs/PLAN-v5.md](PLAN-v5.md). Branched from `oracle-v4` @ bfce77a (PR #4, still open; prod = 4526203).
+Suites: `npm test` (unit), `qa/determinism.mjs` (byte-identical reference PNGs), `qa/v5.mjs` (end-to-end, renamed
+from `qa/v4.mjs`; grows per WP), `qa/device-probe.mjs` (which device APIs each phase touches), `qa/contrast.mjs`,
+`qa/load.mjs`. Device fixtures for mocked sensors: `qa/fixtures/devices.cjs`. Per-WP logs:
+`/workspace/oracle-qa/v5/wp/<wp>/` (runner: `/workspace/oracle-qa/v5/run-suite.sh <wp>`).
+
+### WP0. Baseline (oracle-v4 @ bfce77a, before any v5 change; Chrome 156.0.8078.47 via playwright-core)
+
+| Suite | Night | Day |
+|---|---|---|
+| Unit (`npm test`) | 36/36 | – |
+| `qa/determinism.mjs` v1 reference (`ORACLE-7K3F-Q9ZD`, legacy engine) | 16/16 | (both modes included) |
+| `qa/determinism.mjs` v4 reference (same answers, `&v=2`, layered engine) — **new fixture, hashes recorded now** | 16/16 | (both modes included) |
+| `qa/v4.mjs` → `qa/v5.mjs` end-to-end | 82/82 | 82/82 |
+| Contrast, 6 looks × 11 views | 0 fails, lowest 4.50 | (both modes included) |
+| `qa/device-probe.mjs` | 4/4: the journey reads no device API; rendering reads = `devicePixelRatio` only; 0 external requests | – |
+
+v4 reference hashes (SHA-256 prefix, identical at DPR 1 and 3): Night portrait `a71362dcf4cc`, story `e61d200d0787`,
+square `ca47ddb882da`, hi-res `8d60906c6cd0`; Day portrait `f60fbd13ae48`, story `8cff23afd905`, square
+`700cd1aecb52`, hi-res `c1bbda452b15`.
+
+## v5 build (branch `oracle-v5`, 2026-11-18, Asia/Yerevan)
+
+Final run (WP10), logs in `/workspace/oracle-qa/v5/wp/10/`, Chrome 156 headless, sensors and browser APIs mocked in JS
+(`qa/fixtures/devices.cjs`: pixel, iphone, windows, macff, brave, missing). No CDP sensor overrides, no real prompts.
+
+| Suite | Result |
+|---|---|
+| Unit (`npm test`) | 64/64 |
+| Determinism (v1, v2, v4 references + v5 ring withheld/pattern, Night/Day, DPR1/3, 4 formats) | 64/64 byte-identical |
+| End-to-end `qa/v5.mjs` | Night 128/128, Day 128/128 |
+| Contrast (6 looks × 14 views incl. 5 Device views) | 0 failing elements in 84 checks, lowest 4.5:1 |
+| axe WCAG 2.1 A/AA | 0 violations on every screen, Device ask/readout/sheets/cards, Options, Brave readout |
+| Device probe (API calls before consent) | 11/11; 0 calls to tilt/location/mic APIs before Allow |
+
+Privacy leak scan (sentinel strings in the fixtures, plus coordinates): 0 hits in the URL, history, `localStorage`,
+`sessionStorage`, PNG tEXt metadata (choices-only and pattern), caption and share payload; 0 requests leave localhost;
+the pattern mode adds only `&dg=<8 hex>&db=<3 chars>`. Forget everything (Device step, Options, footer) leaves no `oracle.*`
+key and strips `dg`/`db` from the address bar.
+
+Targets (load.mjs, 390 × 844 and 1280 × 800, Night and Day identical except full-path word count ±8):
+
+| Target | Measured | |
+|---|---|---|
+| Fast path ≤ 300 words | 298 (est. 80 s) | met |
+| Taps to artwork ≤ 7 | 7 (e2e); load.mjs counts 10 incl. option ticks | met |
+| ≤ 60 words per Device screen | ask 42, card 44–50, readout 110 incl. six data rows (≤ 60 copy excl. rows, e2e) | met with the rows-excluded reading |
+| Device ask ≤ 40 words (§4 table) | 42 | missed by 2 |
+| Permission cards ≤ 30 words each (§4 table) | 44–50 | missed |
+| 1.0 viewport, ≤ 4 font sizes on Device screens | 1.0; 3 sizes (13/16/26 phone, 13/16/38 desktop) | met |
+| Unsourced statistics 0 | every figure on the sheet links a source | met |
+
+### Real-device matrix (to be completed by hand — not run)
+
+| Device / browser | Rows shown on 3b (OK / UNAVAILABLE / RANDOMISED) | Tilt | Location | Mic | Forget | Errors / stuck spinners |
+|---|---|---|---|---|---|---|
+| iPhone, Safari | | | | | | |
+| Android, Chrome | | | | | | |
+| Windows, Chrome or Edge | | | | | | |
+| macOS, Firefox | | | | | | |
+| Any, Brave (shields on) | | | | | | |
+
+
+
+## v4 build (branch `oracle-v4`, from 2026-11-17, Asia/Yerevan)
+
+Plan: [docs/PLAN-v4.md](PLAN-v4.md). Branched from `ux-handover-wp0-6` @ 0aa162c (PR #3, still open; prod = 4526203).
+New harnesses: `qa/determinism.mjs` (the fixed reference must stay byte-identical, 16 checks) and `qa/v4.mjs`
+(the v4 end-to-end suite; it grows one section per work package).
+
+### WP0. Baseline (before any v4 change, same machine, Chrome via playwright-core, local server)
+
+| Suite | Dark | Light |
+|---|---|---|
+| Unit (`npm test`) | 14/14 | – |
+| Legacy end-to-end `qa/qa.mjs` | 119/119 | 118/119 (1) |
+| `qa/determinism.mjs` (portrait/story/square/hires × DPR 1 and 3) | 8/8 | 8/8 |
+| `qa/v4.mjs` invariants (overlay-free, motion, axe, CSP, network, console) | 11/11 | 11/11 |
+| Contrast `qa/contrast.mjs`, 6 looks × 9 views | 0 fails, lowest 5.18 | 0 fails |
+
+(1) Pre-existing on the base branch: "preview uses the same look as the 05 canvas" reads `#dee5e5` against
+`#eef1f0` in Day — the light preview background differs slightly from the look's paper colour. Not caused by v4;
+the WP7 artwork stage replaces this preview.
+
+Load at 390 px (Night; `qa/load.mjs`; Day matches): words 47 / 90 / 127 / 103 / 215 / 99 on Start, Trade,
+Footprint, Loop, Feed, Artwork (681 total); page length 1 / 1.2 / 1.8 / 1.5 / 2.0 / 1.5 viewports; up to 6 font
+sizes per screen; 10 px smallest text on the sensor demo. Before screenshots: `/workspace/oracle-qa/v4/before/`.
+
+### WP1–WP10 results (final, after WP10, 2026-11-17, Asia/Yerevan; same machine and tools as WP0)
+
+| Suite | Night | Day |
+|---|---|---|
+| Unit (`npm test`: core, layers, content, art, ranker) | 36/36 | – |
+| `qa/determinism.mjs` (v1 reference `ORACLE-7K3F-Q9ZD`, 4 formats × DPR 1/3) | 16/16 byte-identical to WP0 | – |
+| `qa/v4.mjs` end-to-end (WP3–WP10 + invariants + ported checks) | 82/82 | 82/82 |
+| axe-core WCAG 2.1 A/AA, 10 screens × 390/1280 (inside `v4.mjs`) | 0 violations | 0 violations |
+| Contrast `qa/contrast.mjs`, 6 looks × 11 views (incl. 3 sheet views) | 0 fails in 66 view×look checks, lowest 4.50 | (both modes included)
+| Outbound requests (all runs) | 0 (only the deliberate CSP probe, blocked before sending) | 0 |
+
+Per-WP runs are kept in `/workspace/oracle-qa/v4/wp/<wp>/` (unit, determinism, v4 Night/Day, contrast logs).
+The legacy `qa/qa.mjs` ran green through WP2 (119/119 in both schemes) and was retired in WP10 (mapping below).
+
+#### Targets (PLAN-v4 §11), measured with `qa/load.mjs` at 390×844 and 1280×860, Night and Day (identical numbers)
+
+| Measure | Before (WP0) | v4 target | v4 result | |
+|---|---|---|---|---|
+| Visible words per question screen | 215 (Feed) | ≤ 60 | Trade 45 · Footprint 47 · Feed 55 (Loop cards 32–40, Reveal cards 19–24 incl. frame) | met |
+| Visible words, whole path (as landed, same method as WP0) | 681 | ≤ 350 | 256 (Start 28, Trade 45, Footprint 49, Loop 33, Feed 55, Reveal 21, Artwork 25) | met |
+| …reading every Loop and Reveal card too | – | – | 567 | over (frame text repeats per card) |
+| Required decisions per screen | 8 + reading | ≤ 1 question | 1 fieldset on Trade, Footprint, Feed; 0 elsewhere | met |
+| Options shown at once | 8 | ≤ 7 | Trade 6, Feed 3, Footprint **8** | missed on Footprint (the plan's own §7 asks for 8 kinds) |
+| Controls per screen | 19 | ≤ 10 | Start 1, Loop 4, Feed 8, Reveal 3, Artwork 6, Trade **14**, Footprint **19** | missed on Trade/Footprint (rows + one ⓘ per row, as §7 specifies) |
+| Page length | 2.0 viewports | 1.0 on question screens | 1.0 on every journey screen, both widths; sensor demo (optional) 1.2 | met |
+| Art visible while answering | 01 only | 100% | Trade, Footprint, Loop, Feed, Reveal: in view | met |
+| Preview change per single input | 43–56% of pixels | only the touched layer | v4.mjs WP4/WP6 + unit layer-stability: other layers 0 px change | met |
+| Font sizes per screen | 6 | ≤ 4 | 3–4 (13/16/19/h1), nothing under 13 px on journey screens | met |
+| Taps to the artwork (fast path) | 5 + scrolling | ≤ 7, no scrolling | 6 navigation taps (9 with two trades and a feed picked), 0 scrolls | met |
+| Scripted time to finish (238 wpm + 1 s/decision) | ≈ 3–3.5 min | ≤ 2 min | 69 s fast path; 147 s reading every card | met on the fast path, over by ~27 s reading all 12 cards |
+| axe / contrast | 0 / ≥ 4.5 | 0 / ≥ 4.5 in 6 looks | 0 / lowest 4.50 | met |
+| Outbound requests | 0 | 0 | 0 | met |
+| v1 reference PNG | identical | identical | 16/16 byte-identical | met |
+| Touch targets under 44 px | up to 6 per screen (Artwork) | – | 0 on every screen | |
+
+Not measured: the qualitative 5-person hallway test (needs the owner). Screenshots: before
+`/workspace/oracle-qa/v4/before/{dark,light}/`, after `/workspace/oracle-qa/v4/after/{dark,light}/`, compare sheets
+`/workspace/oracle-qa/v4/compare-{dark,light}-{mobile,desktop}.png`.
+
+Not verified: real phones, Safari, Firefox; native Web Share (only a stubbed `navigator.share`); real sensor LIVE
+events (headless Chrome has no motion sensors, camera or microphone). Lowest contrast fell from 5.18 to 4.50 (still AA):
+secondary text on the sodium look in Day.
+
+#### Deliberate test changes (behaviour changed on purpose)
+
+- WP2 qa.mjs cross-engine determinism: Node id from `art/layers.js`, link must carry `v=2` (new artworks use the layered engine).
+- WP2 qa.mjs shared-link determinism: the test's link includes `&v=2`, as Copy link produces it.
+- WP2 qa.mjs "preview uses the same look": background read as the most common colour instead of pixel (0,0), where a line can sit (this was the pre-existing Day failure).
+- WP2 tests/core.test.cjs: `parseHash('#offer')` returns `{ route }` (written to the actual contract).
+- WP3 contrast.mjs: Sources view opened from Start (the footer is hidden on question screens to keep one viewport).
+- WP9 contrast.mjs: Sources measured in the sheet; two sheet views added (Who is in this loop, Artwork Options).
+- WP9 contrast.mjs: waits for finite CSS animations to end before measuring (the sensor demo fade-in gave a false 4.4:1).
+- WP10 load.mjs: no `.appbar` in v4 (appbarPx null), Reveal and Extras measured, scripted walk added (words per card, taps, decisions, time estimate).
+- WP10 qa.mjs retired; its still-relevant checks were ported into v4.mjs (table below).
+
+#### qa.mjs → v4.mjs (WP10)
+
+| qa.mjs check(s) | Status | Where / why |
+|---|---|---|
+| approach: one entry action | kept | v4 WP3 "Start has one question-free promise and Begin opens step 1" |
+| handshake anonymous ID; #protocol deep link | ported | v4 WP10 "#protocol opens the optional identity step…" |
+| harvest DENIED (geo, mic, cam) / OK (gpu, cpu, net, base) | kept | v4 WP9 "location without permission reads DENIED", "a passive read shows OK" |
+| harvest UNAVAILABLE never LIVE (orient, shake); rows keyboard-activatable | ported | v4 WP10 (two checks) |
+| granted geolocation shown locally | kept | v4 WP9 "granted location reads OK, is shown only on the page and is never stored" |
+| after grant: animations settle; no replay | ported | v4 WP10 "after reading sensors every animation settles…" |
+| witness portrait + hash, geo panel, continue-to-machine | replaced | v4 WP9 "portrait opens and leads back to Extras" (the demo is after the artwork now) |
+| reset clears collected | replaced | v4 WP7 "Start over returns to Start with nothing chosen" |
+| CSP blocks fetch | kept | v4 invariants (both widths) |
+| keyboard Tab + Enter starts | ported | v4 WP10 |
+| offer: simulator hidden; ?simulator=1 restores it | replaced | v4 WP9 "the hidden Exchange simulator is gone" (simulator deleted, approved default 5) |
+| offer: 6-row checklist, bitmask, dials from trades, Space toggles | replaced | v4 WP4 Trade checks + unit tests (state reducer, footprint prefill) |
+| offer: evidence collapsed / row disclosure / accordion | replaced | v4 WP4 "tapping ⓘ opens a modal sheet with the VERIFIED claim…" (no disclosures, approved default 4) |
+| sources drawer from a citation; Esc returns focus | replaced | v4 WP4 source-in-sheet + "Esc closes the sheet and focus returns"; WP9 Sources sheet |
+| extraction: explainer stack, 8-row footprint, details, sensor demo collapsed / round trip | replaced | v4 WP4 Footprint checks (pre-filled, ≤50 words, lattice-only change); demo moved to Extras (WP9) |
+| machine: step disclosure + relation filter | replaced | v4 WP5 Loop cards; WP9 "Who is in this loop" in the sheet |
+| loop: amplification raises / Newest lowers concentration | replaced | v4 WP6 "Most engaging: top 3 get 69% → 92%" + unit test in tests/core.test.cjs (toy ranker) |
+| revelation: seed + id, URL abstract only; cross-engine id; params reflect choices | kept | v4 WP7 (link v=2, cross-engine id, metadata) |
+| export dimensions (4 formats) | ported | v4 WP10 export sizes |
+| PNG metadata seed + params only | kept | v4 WP7 Save image |
+| share fallback / native share (stubbed) | kept | v4 WP7 (two checks) |
+| clean view; new seed / restore; history local + clearable | kept | v4 WP7 |
+| shared link restores id in a fresh context | ported | v4 WP10 (v=2 link) |
+| same seed → byte-identical PNGs across contexts; fixed reference mobile = desktop | kept | `qa/determinism.mjs` (16 checks) |
+| legacy link without look params → legacy look | ported | v4 WP10 (also asserts the legacy engine) |
+| different seed → different PNG | replaced | v4 WP7 "new seed differs" (composition id) |
+| mobile: no horizontal overflow | ported | v4 WP10 (every screen at 390) |
+| mobile: sources drawer full-width; chapter-nav ≥ 44 px; phone nav (WP6) | removed | drawer and chapter nav no longer exist; targets: load.mjs under44 = 0 |
+| perf: max-density compose+render | ported | v4 WP10 preview redraw median < 50 ms (desktop CPU) |
+| reduced motion: starfield static / nothing animates / art drawn immediately | kept / ported | v4 invariants "no endless animation"; WP8 "no starfield layers"; WP10 "drawn immediately" |
+| motion on: starfield animates and settles | removed | starfield is off on v4 screens (WP8) |
+| chrome: app bar in flow; no fixed UI over content; one primary | kept / removed | v4 invariants "no fixed or sticky UI"; WP3 one primary; app bar gone |
+| forward-only chapter nav; names match; v1.2 labelled as step 2 | removed | replaced by Back + "n of 5" (WP3); demo is now Extras |
+| theme (auto, select, live, override, persist, keyboard, back to auto, unknown fallback, repaint) | ported | v4 WP10 (8 checks) |
+| WP1–WP6 handover checks (ring labels, lab presets, machine list, drawer directory, revelation legend/Options, type sizes, chrome, phone nav, 02 kinds, footer Sources) | replaced / removed | their v4 equivalents: WP5 cards, WP6 Feed, WP7 Options sheet, WP8 type, WP9 Sources; screens that no longer exist removed |
+| WP2 preview (seed on Begin, tick redraws in view, text alternative, same look, header on 01/02/04, footprint tick, redraw speed, reduced motion) | replaced | v4 WP3 art in view, WP4 only-shards/only-lattice change, WP10 redraw speed; seed creation is unchanged code (app-shell seed on the first chapter) and is exercised by every WP4–WP7 preview check |
+| network: zero external, GET only, no leaking values; console clean | kept | v4 final section (3 checks + console) |
+| axe on every screen | kept | v4 invariants (10 screens × 2 widths) |
+
+
 
 Run on the build box, 2026-11-13 (Asia/Yerevan). **Local only — nothing was deployed.**
 
@@ -371,3 +561,103 @@ Screenshots: `/workspace/oracle-qa/v3/{before,after}/` (`offer|extraction-{1024,
 `compare-390.png`). Scripts: `qa/v3-shots.mjs`, `qa/v3-interact.mjs`.
 
 Not tested: real devices, Safari, Firefox, Brave itself (Chromium headless only).
+
+## Handover UX pass (branch `ux-handover-wp0-6`, 2026-11-14, Asia/Yerevan)
+
+Work packages from `docs/HANDOVER-UX.md` §6, one commit each. WP7 (footprint derived from trades) not done:
+it needs the owner's go-ahead (§10.4).
+
+### WP0. Baseline (before any change, `claude/dreamy-hawking-n9hjce` @ 523ea6b = prod 4526203 + docs)
+
+Environment: headless Google Chrome (`/usr/bin/google-chrome`), Playwright-core, axe-core 4.x, Node.
+
+- Unit tests: **14/14**.
+- `qa.mjs`: **85/85** dark, **85/85** light. (The handover expected 84/85 on a container with no audio device;
+  this machine has Chrome and the mic tile reads DENIED, so the check passes.)
+- Contrast (`contrast.mjs`, 3 palettes × 2 modes × 9 screens): **0 failing of 4,446** text elements, minimum **5.09**.
+- axe-core WCAG 2.1 A/AA: **0 violations on 15 screens** per scheme.
+- Fixed reference `ORACLE-7K3F-Q9ZD` PNG SHA-256 (first 12): dark portrait `d17be765a17c`, story `df332b679c8d`,
+  square `60b9ade83a84`, hi-res `e69f044a2595`; light portrait `fb15f9591701`, story `ed1d0299297d`, square
+  `714d95327a57`, hi-res `b263c13cec22`. Every later WP must reproduce these.
+
+`load.mjs` at 390 × 844, Night (`qa/load-table.mjs` prints it):
+
+| Screen | Words | Controls | App-bar controls | Disclosures | Targets < 44 px | Font sizes (px) | Smallest px | Uppercase labels | App bar px | Page length (viewports) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 00-approach mobile | 27 | 1 | 8 | 0 | 8 | 11/13/16/43 | 11 | 3 | 87 | 1.1 |
+| 01-offer mobile | 80 | 13 | 8 | 6 | 13 | 11/13/14/16/30 | 11 | 2 | 87 | 1.1 |
+| 02-extraction mobile | 114 | 19 | 8 | 10 | 18 | 10/11/12/13/14/16/18/30 | 10 | 7 | 87 | 1.6 |
+| 03-machine mobile | 236 | 31 | 8 | 1 | 30 | 9/10/11/12/13/14/16/18/30 | 9 | 7 | 87 | 2.7 |
+| 04-loop mobile | 200 | 14 | 8 | 2 | 18 | 10/11/12/13/14/16/18/24/30 | 10 | 17 | 91 | 2.5 |
+| 05-revelation mobile | 96 | 11 | 8 | 2 | 15 | 11/12/13/14/16/30 | 11 | 10 | 87 | 1.7 |
+| 02b-sensors mobile | 52 | 16 | 8 | 1 | 11 | 10/11/12/13/25 | 10 | 26 | 87 | 1.4 |
+
+Outputs: `/workspace/oracle-qa/handover-ux/before/` (`load-{dark,light}/` screenshots + `load.json`,
+`qa-{dark,light}/`, `contrast.json`).
+
+### WP1–WP6 results (after WP6, same machine and tools as WP0)
+
+- Unit tests: **14/14** (unchanged; no engine or content-model change).
+- `qa.mjs`: **119/119** dark, **119/119** light (85 → 119: 40 checks added, 6 replaced, listed below).
+- Contrast: **0 failing of 4,476** text elements (now also the footer and the drawer's opened directory/relations),
+  minimum **5.09** (unchanged).
+- axe-core WCAG 2.1 A/AA: **0 violations on 15 screens** per scheme.
+- Determinism: all fixed-reference PNGs (portrait, story, square, hi-res, mobile story) are **byte-identical to WP0** in
+  both schemes. `art/oracle-art.js` untouched. Zero non-localhost requests in every run.
+- Preview redraw at 216 × 270, every parameter at maximum (25 draws, headless desktop CPU): median **7.6 ms**, worst
+  **28.9 ms** (dark); **8.4 / 34.5 ms** (light).
+
+`load.mjs` before → after, 390 × 844, Night:
+
+| Screen | Words | Controls | App-bar controls | Disclosures | Targets < 44 px | Font sizes (px) | Smallest px | Uppercase labels | App bar px | Page length (viewports) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 00-approach mobile | 27 → **47** | 1 | 8 → **1** | 0 | 8 → **0** | 11/13/16/43 → **12/13/14/16/43** | 11 → **12** | 3 → **2** | 87 → **56** | 1.1 → **1** |
+| 01-offer mobile | 80 → **90** | 13 | 8 → **1** | 6 | 13 → **0** | 11/13/14/16/30 → **12/13/14/16/30** | 11 → **12** | 2 → **1** | 87 → **56** | 1.1 → **1.2** |
+| 02-extraction mobile | 114 → **127** | 19 | 8 → **1** | 10 | 18 → **0** | 10/11/12/13/14/16/18/30 → **12/13/14/16/18/30** | 10 → **12** | 7 → **1** | 87 → **56** | 1.6 → **1.8** |
+| 03-machine mobile | 236 → **103** | 31 → **9** | 8 → **1** | 1 → **7** | 30 → **1** | 9/10/11/12/13/14/16/18/30 → **12/13/14/16/19/30** | 9 → **12** | 7 → **1** | 87 → **56** | 2.7 → **1.5** |
+| 04-loop mobile | 200 → **215** | 14 → **11** | 8 → **1** | 2 → **3** | 18 → **2** | 10/11/12/13/14/16/18/24/30 → **12/13/14/16/18/30** | 10 → **12** | 17 → **4** | 91 → **56** | 2.5 → **2** |
+| 05-revelation mobile | 96 → **99** | 11 → **9** | 8 → **1** | 2 → **1** | 15 → **6** | 11/12/13/14/16/30 → **12/13/16/18/30** | 11 → **12** | 10 → **1** | 87 → **56** | 1.7 → **1.5** |
+| 02b-sensors mobile | 52 → **56** | 16 | 8 → **1** | 1 | 11 → **3** | 10/11/12/13/25 | 10 | 26 → **25** | 87 → **56** | 1.4 |
+
+1280 × 860, Night:
+
+| Screen | Words | Controls | App-bar controls | Disclosures | Targets < 44 px | Font sizes (px) | Smallest px | Uppercase labels | App bar px | Page length (viewports) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 00-approach desktop | 27 → **47** | 1 | 8 → **6** | 0 | 8 → **0** | 11/12/13/18/67 → **12/13/16/18/67** | 11 → **12** | 3 → **2** | 49 → **56** | 1.1 → **1** |
+| 01-offer desktop | 80 → **90** | 13 | 8 → **6** | 6 | 14 → **0** | 11/12/13/16/18/48 → **12/13/16/18/48** | 11 → **12** | 2 → **1** | 49 → **56** | 1.1 → **1.3** |
+| 02-extraction desktop | 114 → **127** | 19 | 8 → **6** | 10 | 18 → **0** | 10/11/12/13/16/18/20/48 → **12/13/16/18/20/48** | 10 → **12** | 7 → **1** | 49 → **56** | 1.4 → **1.7** |
+| 03-machine desktop | 236 → **103** | 31 → **9** | 8 → **6** | 1 → **7** | 31 → **1** | 9/10/11/12/13/16/18/20/48 → **12/13/16/18/19/48** | 9 → **12** | 7 → **1** | 49 → **56** | 1.9 → **1.1** |
+| 04-loop desktop | 200 → **215** | 14 → **11** | 8 → **6** | 2 → **3** | 18 → **2** | 10/11/12/13/16/18/20/24/48 → **12/13/16/18/20/48** | 10 → **12** | 17 → **4** | 49 → **56** | 1.6 → **2** |
+| 05-revelation desktop | 96 → **99** | 11 → **9** | 8 → **6** | 2 → **1** | 15 → **6** | 11/12/13/16/18/48 → **12/13/18/20/48** | 11 → **12** | 10 → **1** | 49 → **56** | 1.2 |
+| 02b-sensors desktop | 52 → **56** | 16 | 8 → **6** | 1 | 11 → **3** | 10/11/12/13/25 | 10 | 26 → **25** | 49 → **56** | 1.1 → **1** |
+
+Targets under 44 px after WP6 are inline citation links only (`.cite`: "edit", "Who is in this loop? →", citations);
+none is under 24 px. Against the §9 aims (worst chapter): font sizes 9 → **6** (aim 6), smallest text 9 → **12 px**
+(aim 12), uppercase labels 17 → **4** (aim 6), app bar 87 → **56 px** (aim 56), controls 31 → **19** (aim 12; 02 has
+8 checkboxes + 8 chevrons), page length 2.7 → **2.0** (Feed; aim 2.0 for the lab), but 02 Footprint grew 1.6 → **1.8**
+(aim 1.5) because of the preview and the footer, and visible words 236 → **215** (aim 100; Feed: ten feed rows with
+shares, the result sentence and the two headline claims).
+
+Checks replaced (design changed on purpose; none is a privacy, determinism, contrast or axe check):
+
+| Old check | New check | Why |
+|---|---|---|
+| machine: node stepping + relation filter | machine: step disclosure shows its sourced claim and marks the ring; relation filter (now in the drawer) | WP4 replaced the button list + detail panel with a stepper; relations moved to the drawer |
+| loop: chronological baseline lowers concentration | loop: Newest first preset (the chronological baseline) lowers concentration | WP3: the CHRONOLOGICAL button became the Newest first preset |
+| reduced motion: PLAY THE LOOP disabled | reduced motion: nothing animates on 03 Machine | WP4 removed PLAY THE LOOP |
+| mobile: phase-rail targets ≥ 24px tall | mobile: chapter-nav target ≥ 44px tall | WP6 raised the target size |
+| names match: chapter kicker "NN · LABEL" equals HUD "NN LABEL" | names match: nav label = H1; kicker "Step N of 5"; HUD "Step N of 5 · Name" | WP6: one plain name per chapter |
+| v1.2 demo screens are labelled as part of 02 | … labelled as part of step 2 | WP6 rename |
+
+Changed in place: the lab flow reads the top-3 share from the result sentence (`data-top3`) instead of the removed
+metric tiles; export/format/clean-view steps open Options first (WP5); the mobile journey opens the phone nav before
+tapping a chapter (WP6); the extraction accordion check looks for "Recorded" instead of "OBSERVED" (WP6); the WP1 ring
+label check measures rendered font size (SVG font-size × scale) rather than bounding-box height (stricter).
+`contrast.mjs` now also measures the footer and opens the drawer's disclosures.
+
+Screenshots: `/workspace/oracle-qa/handover-ux/{before,after}/load-{dark,light}/` (every chapter, 390 and 1280,
+first viewport `*-fold.png` and full page), side-by-side sheets `/workspace/oracle-qa/handover-ux/compare/{mobile,desktop}-{dark,light}-{fold,full}.png`.
+
+Not done / not verified: WP7 (needs the owner's go-ahead). Real phones, Safari, Firefox and Brave are still untested
+(headless Chromium only). Native share is still only exercised with a stubbed `navigator.share`. The v1.2 sensor
+screens (`#sensors`, `#protocol`) were only renamed; their 10–11 px uppercase labels remain (out of scope).

@@ -1,24 +1,21 @@
-/* ORACLE PROTOCOL v2 — chapter shell: router, v2 state, navigation, sources drawer.
- * Classic script (no build). Depends on: app-core.js (state, syncHud, PHASES), data/evidence.js, data/content.js.
- * Chapters register with OracleChapters.register(id, renderFn). */
+/* ORACLE PROTOCOL v4 — shell: router, answers, navigation, the screen frame, footer.
+ * Classic script (no build). Depends on: core/*, ui/components.js, app-core.js (state, syncHud, PHASES),
+ * data/evidence.js, data/content.js. Screens register with OracleChapters.register(id, renderFn). */
 window.OracleChapters = (() => {
   const E = window.OracleEvidence;
   const registry = {};
   const reduceMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Visitor choices that drive simulations + artwork. Abstract values only — never sensor readings.
-  state.v2 = {
-    offers: 0, footprint: 0,
-    ex: { d: 50, c: 50, p: 50, y: 50, x: 50, i: 50 },
-    lab: { e: 50, r: 50, t: 30, k: 40, a: 40, n: 0, w: 30 }, // w = recency weight (model only, not artwork)
-    seed: null, format: 'portrait', title: true, fromUrl: false
-  };
+  // Visitor choices that drive the artwork. v5 rule: your choices, and if you allow it your device's readings, shape the
+  // artwork in this tab; readings never leave the tab (only an opt-in salted digest + three coarse buckets may).
+  // v4: the initial values come from core/state.js (same field names as v2, so links and art read the same values).
+  state.v2 = (() => { const i = OracleState.initial(); return { engine: i.engine, offers: i.offers, footprint: i.footprint, footprintEdited: i.footprintEdited, feed: i.feed, ex: i.ex, lab: i.lab, seed: i.seed, format: i.format, title: i.title, fromUrl: i.fromUrl }; })();
 
-  // v3: the Exchange simulator is hidden unless ?simulator=1. Without it the dials follow the marked exchanges.
-  const simulatorOn = /[?&]simulator=1\b/.test(location.search);
-  if (!simulatorOn && window.OracleContent && OracleContent.deriveEx) state.v2.ex = OracleContent.deriveEx(0);
+  // The six legacy dials (d…i) follow the ticked trades; they only matter to links on the legacy engine.
+  // v4 WP9: the hidden Exchange simulator (?simulator=1) was deleted.
+  state.v2.ex = OracleContent.deriveEx(0);
 
-  const ROUTES = ['offer', 'extraction', 'machine', 'loop', 'revelation'];
+  const ROUTES = PHASES.map(p => p.id).filter(id => id !== 'approach');
   const hashFor = (id) => id === 'approach' ? location.pathname + location.search : '#' + id;
 
   function go(id, opts) {
@@ -35,27 +32,22 @@ window.OracleChapters = (() => {
   }
 
   function fromLocation() {
-    const h = location.hash.replace(/^#/, '');
-    const [route, query] = h.split('?');
-    if ((route === 'art' || route === 'revelation') && query && window.OracleArt) {
-      const p = OracleArt.decode(query);
+    const T = window.OracleTheme || { PALETTES: ['observatory'], TYPES: ['signal'] };
+    const L = window.OracleArt ? OracleState.parseHash(location.hash, OracleArt.decode, T) : { route: location.hash.replace(/^#/, '').split('?')[0] };
+    const route = L.route;
+    if (L.params) {
+      const p = L.params;
       Object.assign(state.v2.ex, { d: p.d, c: p.c, p: p.p, y: p.y, x: p.x, i: p.i });
       Object.assign(state.v2.lab, { e: p.e, r: p.r, t: p.t, k: p.k, a: p.a, n: p.n });
-      state.v2.offers = p.o; state.v2.footprint = p.f; state.v2.seed = p.s; state.v2.fromUrl = true;
-      const fm = /(?:^|&)fmt=(portrait|story|square|hires)/.exec(query);
-      if (fm) state.v2.format = fm[1];
-      // Artwork look carried by the link (palette-mode-type). Links without one predate theming: legacy look.
-      const g = (k, list) => { const m = new RegExp('(?:^|&)' + k + '=([a-z]+)').exec(query); return m && list.includes(m[1]) ? m[1] : null; };
-      const T = window.OracleTheme || { PALETTES: ['observatory'], TYPES: ['signal'] };
-      const pal = g('pal', T.PALETTES), th = g('th', ['dark', 'light']), ty = g('ty', T.TYPES);
-      if (pal || th || ty) state.v2.look = { pal: pal || 'observatory', th: th || 'dark', ty: ty || 'signal' };
-      else if (route === 'art') state.v2.look = { pal: 'observatory', th: 'dark', ty: 'signal' };
-      else state.v2.look = null; // plain #revelation?… follows the site theme
+      state.v2.offers = p.o; state.v2.footprint = p.f; state.v2.footprintEdited = true; state.v2.seed = p.s; state.v2.fromUrl = true; state.v2.engine = L.engine;
+      if (L.fmt) state.v2.format = L.fmt;
+      if (L.engine === 3 && window.OracleFingerprint) OracleFingerprint.setContext(OracleFingerprint.parseDevice(L.device ? `dg=${L.device.dg}&db=${L.device.db}` : ''));
+      state.v2.look = L.look; // a link's look; #art links without one get the legacy look; plain #revelation follows the site
       return route;
     }
-    if (route === 'protocol') return 'handshake';
-    if (route === 'sensors') return 'permissions';
-    if (ROUTES.includes(route)) return route;
+    const S = OracleRouter.byRoute(route);
+    if (S && OracleRouter.ALIASES[route]) history.replaceState(null, '', '#' + S.route);
+    if (S && S.id !== 'art') return S.id;
     return 'approach';
   }
 
@@ -77,7 +69,7 @@ window.OracleChapters = (() => {
     };
     sel.onchange = () => { if (typeof state !== 'undefined' && state.v2) state.v2.look = null; T.setPref(sel.value); };
     T.onChange(sync); sync();
-    document.querySelector('.hud-bar').appendChild(wrap);
+    document.getElementById('sitefoot').appendChild(wrap); // WP6: theme switch lives in the in-flow footer
   }
   // Hidden dev switch (?themelab): compare palettes and type pairings; writes ?palette=&type= and keeps the hash.
   function buildThemeLab() {
@@ -97,18 +89,22 @@ window.OracleChapters = (() => {
 
   function boot() {
     buildThemeSwitch();
-    buildDrawer();
+    buildFooter();
     buildThemeLab();
     document.getElementById('phase-rail').addEventListener('click', (e) => {
+      const t = e.target.closest('.rail-toggle');
+      if (t) { const open = t.getAttribute('aria-expanded') !== 'true'; t.setAttribute('aria-expanded', open); t.parentElement.classList.toggle('open', open); return; }
       const b = e.target.closest('[data-go]');
       if (b) go(b.dataset.go);
     });
-    window.addEventListener('popstate', () => { const d = document.getElementById('sources-drawer'); if (d && !d.hidden) closeDrawer(); state.stage = fromLocation(); render(); });
+    window.addEventListener('popstate', () => { OracleSheet.close(); state.stage = fromLocation(); render(); });
     document.addEventListener('click', (e) => {
       const c = e.target.closest('.cite[data-source]');
-      if (c) { e.preventDefault(); openDrawer(c.dataset.source, c); }
+      if (c) { e.preventDefault(); OracleEvidenceSheet.openSource(c.dataset.source, c); }
       const g = e.target.closest('[data-goto]');
       if (g) { e.preventDefault(); go(g.dataset.goto); }
+      const bk = e.target.closest('[data-back]'); // v4: Back goes to the previous screen (and keeps the answers)
+      if (bk) { e.preventDefault(); go(bk.dataset.back); }
     });
     state.stage = fromLocation();
     render();
@@ -116,112 +112,61 @@ window.OracleChapters = (() => {
 
   // ── shared templates ────────────────────────────────────────────────────
   const esc = E.esc;
-  const chapterHead = (id, title, lead) => `
-    <header class="ch-head">
-      <div class="stage-label">${(PHASES.find(p => p.id === id) || { n: '', label: id }).n} \u00b7 ${(PHASES.find(p => p.id === id) || { label: id }).label}</div>
-      <h1 class="ch-title">${title}</h1>
-      ${lead ? `<p class="ch-lead">${lead}</p>` : ''}
-    </header>`;
-  // Forward only: going back is the phase rail (one navigation pattern, not two).
-  const chapterNav = (next, quiet) => { // quiet: the chapter already has its own primary action
-    const N = PHASES.find(p => p.id === next);
-    return N ? `<nav class="ch-nav" aria-label="Next chapter"><button type="button" class="btn-primary${quiet ? '' : ' btn-fill'}" data-goto="${N.id}">Next \u00b7 ${N.n} ${N.label} \u2192</button></nav>` : '';
-  };
-  const slider = (id, name, value, hint, extra) => `
-    <div class="slider">
-      <div class="slider-head"><label for="sl-${id}">${name}</label><output id="out-${id}" for="sl-${id}">${value}</output></div>
-      <input type="range" id="sl-${id}" data-key="${id}" min="0" max="100" step="1" value="${value}" ${extra || ''}>
-      ${hint ? `<small>${hint}</small>` : ''}
+  // ── v4 frame (WP3): top bar (Back · progress · n of 5), art stage, question, body, one in-flow primary action ──
+  const backIcon = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4 6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function topBar(id) {
+    const R = OracleRouter, pr = R.progress(id), prev = R.prev(id);
+    return `<div class="screen-top">
+      ${prev ? `<button type="button" class="btn-back" data-back="${prev}">${backIcon}Back</button>` : ''}
+      ${pr.step ? `${OracleUI.progress(pr.step, pr.total, pr.label)}<span class="step-of">${pr.step} of ${pr.total}</span>` : ''}
     </div>`;
-  const simNote = (text) => `<p class="sim-note">${E.badge('SIMULATED')} ${text || 'Illustrative model \u2014 not a measurement of you or any company\u2019s system.'}</p>`;
-  // Progressive disclosure: detail lives in <details>; the summary shows the evidence labels inside.
-  const more = (summary, body, id, labels) => `<details class="more"${id ? ` id="${id}"` : ''}><summary>${summary}${labels ? ' ' + [...new Set(labels)].map(l => E.badge(l)).join(' ') : ''}</summary><div class="more-body">${body}</div></details>`;
-
-  // v3: one list-row pattern (checkbox + title + one line + chevron disclosure), like a settings checklist.
-  const chevron = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
-  const row = ({ id, data, i, on, title, sub, body, checkLabel }) => `
-    <li class="row ${on ? 'on' : ''}">
-      <div class="row-main">
-        <input type="checkbox" class="row-check" id="${id}" ${data}="${i}" ${on ? 'checked' : ''} aria-describedby="${id}-sub">
-        <label class="row-text" for="${id}"><span class="row-title">${title}</span><span class="vh"> \u2014 ${checkLabel}</span><span class="row-sub" id="${id}-sub">${sub}</span></label>
-        ${body ? `<button type="button" class="row-exp" aria-expanded="false" aria-controls="${id}-more" aria-label="Details: ${title.replace(/<[^>]+>/g, '')}">${chevron}</button>` : ''}
+  }
+  const artStage = (caption, cls) => `<figure class="art-stage${cls ? ' ' + cls : ''}">
+      <canvas id="pv-canvas" width="432" height="540" role="img" aria-label="Your artwork so far"></canvas>
+      <figcaption><span id="pv-cap" aria-live="polite">${caption || 'Your artwork so far'}</span></figcaption>
+    </figure>`;
+  /** frame({ id, title, lead, body, cta, caption }) → one v4 screen. `title` is the screen's one question (h1). */
+  const frame = (o) => `<div class="screen v4s s-${o.id}">
+      ${topBar(o.id)}
+      <div class="screen-grid${o.grid ? ' ' + o.grid : ''}">
+        <header class="screen-head"><h1 tabindex="-1">${o.title}</h1>${o.lead ? `<p class="lead">${o.lead}</p>` : ''}</header>
+        ${o.noArt ? '' : artStage(o.caption)}
+        <div class="screen-main">${o.body || ''}${o.cta ? `<div class="screen-cta">${o.cta}</div>` : ''}</div>
       </div>
-      ${body ? `<div class="row-more" id="${id}-more" hidden>${body}</div>` : ''}
-    </li>`;
-  // Accordion: one row open at a time. onCheck(i, on) runs on every checkbox change.
-  function bindRows(root, data, onCheck, onCount) {
-    const boxes = [...root.querySelectorAll('[' + data + ']')];
-    const count = () => onCount && onCount(boxes.filter(b => b.checked).length, boxes.length);
-    boxes.forEach(b => b.addEventListener('change', () => {
-      b.closest('.row').classList.toggle('on', b.checked);
-      onCheck(+b.getAttribute(data), b.checked); count();
-    }));
-    root.querySelectorAll('.row-exp').forEach(btn => btn.addEventListener('click', () => {
-      const open = btn.getAttribute('aria-expanded') !== 'true';
-      root.querySelectorAll('.row-exp[aria-expanded=true]').forEach(o => { if (o !== btn) { o.setAttribute('aria-expanded', 'false'); document.getElementById(o.getAttribute('aria-controls')).hidden = true; } });
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      document.getElementById(btn.getAttribute('aria-controls')).hidden = !open;
-    }));
-    count();
-  }
-  const tally = (id, unit) => `<div class="tally" aria-live="polite"><span><b id="${id}">0</b> of <span id="${id}-n">0</span> ${unit}</span><span class="meter" aria-hidden="true"><i id="${id}-bar"></i></span></div>`;
-  const setTally = (id) => (n, total) => {
-    const b = document.getElementById(id); if (!b) return;
-    b.textContent = n; document.getElementById(id + '-n').textContent = total;
-    document.getElementById(id + '-bar').style.width = (100 * n / total) + '%';
-  };
-
-  // ── sources drawer ──────────────────────────────────────────────────────
-  let lastFocus = null;
-  function buildDrawer() {
-    const btn = document.createElement('button');
-    btn.type = 'button'; btn.id = 'btn-sources'; btn.className = 'hud-sources';
-    btn.textContent = 'SOURCES'; btn.setAttribute('aria-haspopup', 'dialog');
-    btn.onclick = () => openDrawer(null, btn);
-    document.querySelector('.hud-bar').appendChild(btn);
-
-    const d = document.createElement('div');
-    d.id = 'sources-drawer'; d.className = 'drawer'; d.hidden = true;
-    d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-labelledby', 'drawer-title');
-    d.innerHTML = `<div class="drawer-panel">
-      <div class="drawer-top"><h2 id="drawer-title">Sources &amp; provenance</h2><button type="button" class="drawer-close" aria-label="Close sources">\u00d7</button></div>
-      <dl class="legend">${Object.entries(E.LABELS).map(([k, v]) => `<div><dt>${E.badge(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
-      <p class="drawer-meta">${E.SOURCES.length} sources, each opened on ${E.ACCESSED}. \u201cRead via\u201d = the copy actually read when the publisher blocked access. Complaints are allegations, not findings.</p>
-      <ol class="source-list">${E.SOURCES.map(s => `<li id="src-${s.id}" tabindex="-1">
-        <div class="src-title">${esc(s.title)}</div>
-        <div class="src-meta">${esc(s.publisher)} \u00b7 ${esc(s.date)} \u00b7 ${esc(s.type)}</div>
-        <a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.url)}</a>
-        ${s.verifiedVia !== s.url ? `<div class="src-via">read via <a href="${esc(s.verifiedVia)}" target="_blank" rel="noopener noreferrer">${esc(s.verifiedVia.replace(/^https?:\/\//, '').slice(0, 64))}\u2026</a></div>` : ''}
-        <p class="src-supports">${esc(s.supports)}</p></li>`).join('')}</ol>
-      <p class="drawer-meta">Opening a source link leaves Oracle and loads that publisher\u2019s site; Oracle itself never makes network requests with your data.</p>
     </div>`;
-    document.body.appendChild(d);
-    d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('.drawer-close')) closeDrawer(); });
-    d.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeDrawer();
-      if (e.key === 'Tab') { // focus trap
-        const f = [...d.querySelectorAll('button, a[href]')];
-        const first = f[0], last = f[f.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      }
-    });
+  // Redraw the header preview from the current choices; optionally say what just changed (in visual terms).
+  function drawPreview(caption) {
+    const c = document.getElementById('pv-canvas');
+    if (!c || !window.OracleExport || !OracleExport.paintPreview) return;
+    OracleExport.paintPreview(c);
+    if (caption) document.getElementById('pv-cap').textContent = caption;
   }
-  function openDrawer(sourceId, from) {
-    const d = document.getElementById('sources-drawer');
-    lastFocus = from || document.activeElement;
-    d.hidden = false; document.body.classList.add('drawer-open');
-    d.querySelectorAll('.src-hit').forEach(n => n.classList.remove('src-hit'));
-    const target = sourceId && document.getElementById('src-' + sourceId);
-    if (target) { target.classList.add('src-hit'); target.scrollIntoView({ block: 'center' }); target.focus({ preventScroll: true }); }
-    else d.querySelector('.drawer-close').focus();
+  // ── footer (Start, Artwork, Extras): Sources · Extras · theme ──────────────
+  function buildFooter() {
+    const foot = document.getElementById('sitefoot');
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.id = 'btn-sources'; btn.className = 'foot-btn';
+    btn.textContent = 'Sources'; btn.setAttribute('aria-haspopup', 'dialog');
+    btn.onclick = () => OracleEvidenceSheet.openSources(null, btn);
+    const ex = document.createElement('a'); ex.href = '#extras'; ex.className = 'foot-btn'; ex.id = 'foot-extras'; ex.textContent = 'Extras';
+    foot.prepend(btn); btn.after(ex);
+    const fg = document.createElement('button'); fg.type = 'button'; fg.id = 'foot-forget'; fg.className = 'foot-btn'; fg.textContent = 'Forget everything';
+    fg.onclick = () => { forgetEverything(); render(); const n = document.querySelector('#sitefoot .foot-note'); if (n) n.textContent = 'Forgotten. Permissions you granted stay until you reset them in site settings.'; };
+    ex.after(fg);
   }
-  function closeDrawer() {
-    const d = document.getElementById('sources-drawer');
-    d.hidden = true; document.body.classList.remove('drawer-open');
-    if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+  // v5: one Forget everything (footer, Device step, Options): readings, salt, share mode, Remember, every oracle.* key,
+  // the device part of the address. Answers stay in memory (they are never stored); Start over clears them.
+  function forgetEverything() {
+    if (window.OraclePrivacy) OraclePrivacy.forgetEverything();
+    if (window.OracleFingerprint) OracleFingerprint.setContext(null);
+    if (window.OracleDeviceStep) OracleDeviceStep.reset();
+    if (/[?&]dg=/.test(location.hash)) history.replaceState(null, '', location.hash.replace(/&dg=[^&]*/g, '').replace(/&db=[^&]*/g, ''));
   }
 
+  // v4: every answer goes through the pure reducer in core/state.js; state.v2 is updated in place so the screens
+  // that still read it directly see the same object.
+  const deps = { deriveEx: (o) => OracleContent.deriveEx(o), prefill: (o) => OracleState.prefillFootprint(o) };
+  function dispatch(action) { Object.assign(state.v2, OracleState.reduce(state.v2, action, deps)); return state.v2; }
   function artParams() {
     const v = state.v2;
     return { s: v.seed, o: v.offers, f: v.footprint, ...v.ex, e: v.lab.e, r: v.lab.r, t: v.lab.t, k: v.lab.k, a: v.lab.a, n: v.lab.n };
@@ -230,8 +175,15 @@ window.OracleChapters = (() => {
   return {
     register: (id, fn) => { registry[id] = fn; },
     handles: (stage) => !!registry[stage],
-    renderStage: (stage, app) => registry[stage](app),
-    go, boot, openDrawer, closeDrawer, artParams, reduceMotion, simulatorOn,
-    ui: { chapterHead, chapterNav, slider, simNote, more, esc, row, bindRows, tally, setTally }
+    renderStage: (stage, app) => {
+      // WP2: the seed exists from the first chapter on, so every choice can show up in the preview.
+      // Random (crypto), never derived from device data.
+      if ((ROUTES.includes(stage) || stage === 'reveal') && !state.v2.seed && window.OracleArt) state.v2.seed = OracleArt.newSeed();
+      registry[stage](app);
+      drawPreview();
+    },
+    go, boot, artParams, dispatch, reduceMotion, forgetEverything,
+    openDrawer: (id, from) => id === '@who' ? OracleEvidenceSheet.openWho(from) : OracleEvidenceSheet.openSources(id, from),
+    ui: { frame, topBar, artStage, drawPreview, esc }
   };
 })();
