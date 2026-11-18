@@ -29,7 +29,7 @@
     if (focus) document.getElementById('card-title').focus({ preventScroll: true });
   }
   OracleChapters.register('reveal', (app) => {
-    if (state.v2.engine !== 2) { OracleChapters.go('revelation', { push: false }); return; }
+    if (state.v2.engine < 2) { OracleChapters.go('revelation', { push: false }); return; }
     at = 0;
     app.innerHTML = U.frame({
       id: 'reveal', title: 'What made your artwork', grid: 'art-grid reveal-grid',

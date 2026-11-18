@@ -40,6 +40,7 @@ window.OracleChapters = (() => {
       Object.assign(state.v2.lab, { e: p.e, r: p.r, t: p.t, k: p.k, a: p.a, n: p.n });
       state.v2.offers = p.o; state.v2.footprint = p.f; state.v2.footprintEdited = true; state.v2.seed = p.s; state.v2.fromUrl = true; state.v2.engine = L.engine;
       if (L.fmt) state.v2.format = L.fmt;
+      if (L.engine === 3 && window.OracleFingerprint) OracleFingerprint.setContext(OracleFingerprint.parseDevice(L.device ? `dg=${L.device.dg}&db=${L.device.db}` : ''));
       state.v2.look = L.look; // a link's look; #art links without one get the legacy look; plain #revelation follows the site
       return route;
     }

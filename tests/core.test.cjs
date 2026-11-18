@@ -124,3 +124,15 @@ test('toy ranker reproduces the handover values (top-3 share, round 0 → 4)', (
     assert.equal(pct(S.PRESETS[id], 4), b, id + ' round 4');
   }
 });
+
+test('v5: parseHash reads v=3 and a valid device pattern only; v=2 and plain links unchanged', () => {
+  const S = require('../core/state.js'), dec = require('../art/oracle-art.js').decode;
+  const q = 's=ORACLE-7K3F-Q9ZD&o=21&f=77';
+  assert.equal(S.parseHash('#revelation?' + q, dec).engine, 1);
+  assert.equal(S.parseHash('#revelation?' + q + '&v=2', dec).engine, 2);
+  assert.equal(S.parseHash('#revelation?' + q + '&v=2', dec).device, undefined);
+  const r = S.parseHash('#art?' + q + '&v=3&dg=1a2b3c4d&db=N2M&fmt=square', dec);
+  assert.equal(r.engine, 3); assert.deepEqual(r.device, { dg: '1a2b3c4d', db: 'N2M' }); assert.equal(r.fmt, 'square');
+  assert.equal(S.parseHash('#art?' + q + '&v=3&dg=1a2b3c4d&db=N2', dec).device, null);
+  assert.equal(S.parseHash('#art?' + q + '&v=3', dec).device, null);
+});

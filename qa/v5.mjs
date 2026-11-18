@@ -444,6 +444,27 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await ctx.close();
 }
 
+// ── v5 WP3: engine 3 (v=3) — fingerprint ring from a link's pattern; v4 layers untouched; exports carry only dg + db ──
+{
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await ctx.newPage(); instrument(page, 'v5-wp3');
+  const textsOf = async () => { const b64 = await page.evaluate(async () => { const p = OracleArt.normalize(OracleChapters.artParams()); const { blob } = await OracleExport.exportBlob(p, 'portrait');
+    const u = new Uint8Array(await blob.arrayBuffer()); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); });
+    const f = QA + '/v5-wp3.png'; fs.writeFileSync(f, Buffer.from(b64, 'base64')); return readPng(f).texts; };
+  await page.goto(BASE + '#art?' + FIXED + '&v=3&dg=1a2b3c4d&db=N2M&fmt=portrait'); await settle(page, 700);
+  const a = await page.evaluate(() => ({ engine: state.v2.engine, ctx: OracleFingerprint.context(), ring: OracleEngine.get(3).compose(OracleArt.normalize(OracleChapters.artParams()), 0.8).ring }));
+  const t = await textsOf();
+  check('v5 WP3 a v=3 link with a pattern opens on engine 3 and draws 5 ridge loops turned 120° (db=N2M)', a.engine === 3 && a.ctx.mode === 'pattern' && a.ring.loops === 5 && a.ring.turn === 120, a);
+  check('v5 WP3 its PNG metadata carries the link\'s pattern (&v=3&dg=1a2b3c4d&db=N2M) and nothing else device-related', /&v=3&dg=1a2b3c4d&db=N2M;id=C-/.test(t.Comment) && /fingerprint ring v1/.test(t.Software) && !/lat|lng|ua=|gpu=/i.test(t.Comment), t);
+  await page.goto(BASE + '#art?' + FIXED + '&v=3&dg=ZZZZ&db=N2M&fmt=portrait'); await page.reload(); await settle(page, 700);
+  const w = await page.evaluate(() => OracleFingerprint.context()), t2 = await textsOf();
+  check('v5 WP3 a malformed pattern falls back to the withheld ring and is not re-exported', w.mode === 'none' && /&v=3;id=/.test(t2.Comment) && !/dg=/.test(t2.Comment), { w, c: t2.Comment });
+  await page.goto(BASE + '#revelation?' + FIXED + '&v=2'); await page.reload(); await settle(page, 700);
+  const t3 = await textsOf();
+  check('v5 WP3 a v=2 link stays on engine 2 (v4 metadata, no ring)', /&v=2;id=/.test(t3.Comment) && /layered engine v2$/.test(t3.Software), t3);
+  await ctx.close();
+}
+
 // @@SECTIONS@@
 
 // ── network + console (always last) ──────────────────────────────────────

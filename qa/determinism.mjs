@@ -15,6 +15,14 @@ const FIXTURES = {
   'v4 layered': { q: FIXED + '&v=2', expect: {
     dark: { portrait: 'a71362dcf4cc', story: 'e61d200d0787', square: 'ca47ddb882da', hires: '8d60906c6cd0' },
     light: { portrait: 'f60fbd13ae48', story: '8cff23afd905', square: '700cd1aecb52', hires: 'c1bbda452b15' } } }
+  ,
+  // v5 engine 3: the five v4 layers + the fingerprint ring (withheld style without a pattern; drawn from dg + db with one)
+  'v5 ring withheld': { q: FIXED + '&v=3', expect: {
+    dark: { portrait: '71c09e2d8498', story: '49ac54ab1890', square: '68267f567074', hires: '96c7fca175e0' },
+    light: { portrait: '83e3b730e7a6', story: 'ebc72f4f8028', square: '4f7c3959e8c7', hires: 'a010a31acb5e' } } },
+  'v5 ring pattern': { q: FIXED + '&v=3&dg=1a2b3c4d&db=N2M', expect: {
+    dark: { portrait: '5b95d5f5bfe1', story: '776109f6ee74', square: '482773955eb6', hires: '2acbd2f2a97c' },
+    light: { portrait: '0b311f2dba28', story: '86d359b5f9af', square: '03f333720ccc', hires: '1b124c3188b1' } } }
   // @@V5_FIXTURES@@
 };
 const b = await chromium.launch({ executablePath: process.env.CHROME || '/usr/bin/google-chrome', args: ['--no-sandbox'] });
@@ -30,7 +38,7 @@ for (const [name, F] of Object.entries(FIXTURES)) for (const scheme of ['dark', 
     }, [fmt]);
     const h = crypto.createHash('sha256').update(Buffer.from(b64, 'base64')).digest('hex').slice(0, 12);
     const ok = h === F.expect[scheme][fmt]; if (!ok) fails++;
-    out.push(`${ok ? 'PASS' : 'FAIL'}  ${name.padEnd(11)} ${scheme} DPR${dpr} ${fmt.padEnd(8)} ${h}${ok ? '' : ' (expected ' + F.expect[scheme][fmt] + ')'}`);
+    out.push(`${ok ? 'PASS' : 'FAIL'}  ${name.padEnd(16)} ${scheme} DPR${dpr} ${fmt.padEnd(8)} ${h}${ok ? '' : ' (expected ' + F.expect[scheme][fmt] + ')'}`);
   }
   await ctx.close();
 }

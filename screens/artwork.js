@@ -8,7 +8,21 @@
 
   // v4: new artworks use the layered engine (v=2 in the link); older links keep the legacy engine (art/engine.js).
   const E = () => OracleEngine.get(state.v2.engine);
-  const enc = (p) => A.encode(p) + E().q;
+  // v5: what leaves the tab (link, PNG, caption, share) follows the share mode. A pattern that came in with a link is
+  // already public, so it travels on; this tab's own reading travels only when the visitor chose "Choices + device
+  // pattern" (core/privacy.js). Otherwise the exported ring is the withheld style. The canvas on screen shows the in-tab ring.
+  const FP = () => window.OracleFingerprint;
+  const devOut = () => {
+    if (E().v !== 3) return undefined;
+    const c = FP().context();
+    if (c.mode === 'pattern') return c;
+    if (c.mode === 'full' && window.OraclePrivacy && OraclePrivacy.share() === 'pattern') return FP().toPattern(c);
+    return FP().WITHHELD;
+  };
+  const devPart = (d) => d && d.mode === 'pattern' ? `&dg=${d.dg}&db=${OraclePrivacy.dbCode(d.db)}` : '';
+  const enc = (p) => A.encode(p) + E().q + devPart(devOut());
+  const capOf = (p, fmt) => { const d = devOut(); return E().caption(p, E().compositionId(p, d), shareLink(p, fmt), d); };
+  const encChoices = (p) => A.encode(p) + E().q; // history keeps choices only (PLAN-v5 §18.3)
   const ensureSeed = () => { if (!state.v2.seed) state.v2.seed = A.newSeed(); };
   const params = () => A.normalize(OracleChapters.artParams());
   const baseUrl = () => location.origin + location.pathname;
@@ -36,21 +50,22 @@
     const T = TYPEFACES[lookNow().ty] || TYPEFACES.signal;
     try { await Promise.all([...T.load, '400 22px "IBM Plex Mono"', '500 18px "IBM Plex Mono"'].map(f => document.fonts.load(f))); } catch (e) { /* fall back to system fonts */ }
   }
-  const overlay = (p, id) => ({
+  const overlay = (p, id, dev) => ({
     title: state.v2.title ? 'ORACLE // DIGITAL REMAINS' : '', subtitle: state.v2.title ? 'THE ANATOMY OF ATTENTION' : '',
-    seed: p.s, id, text: E().interpret(p), signature: 'ORACLE PROTOCOL'
+    seed: p.s, id, text: E().interpret(p, dev), signature: 'ORACLE PROTOCOL'
   });
 
-  function draw(canvas, p, fmt, animate) {
-    const F = A.FORMATS[fmt], scene = E().compose(p, F.w / F.h), id = E().compositionId(p);
+  // dev: undefined → the in-tab ring (screen); exportBlob passes devOut() so files follow the share mode.
+  function draw(canvas, p, fmt, animate, dev) {
+    const F = A.FORMATS[fmt], scene = E().compose(p, F.w / F.h, dev), id = E().compositionId(p, dev);
     canvas.width = F.w; canvas.height = F.h;
     const ctx = canvas.getContext('2d'), RO = renderOpts(lookNow());
     cancelAnimationFrame(raf);
-    if (!animate || OracleChapters.reduceMotion()) { A.render(ctx, scene, F.w, F.h, { ...RO, overlay: overlay(p, id) }); return id; }
+    if (!animate || OracleChapters.reduceMotion()) { A.render(ctx, scene, F.w, F.h, { ...RO, overlay: overlay(p, id, dev) }); return id; }
     const t0 = performance.now(), dur = 1400;
     const frame = (t) => {
       const k = Math.min(1, (t - t0) / dur);
-      A.render(ctx, scene, F.w, F.h, { ...RO, progress: 1 - Math.pow(1 - k, 3), overlay: k >= 1 ? overlay(p, id) : null });
+      A.render(ctx, scene, F.w, F.h, { ...RO, progress: 1 - Math.pow(1 - k, 3), overlay: k >= 1 ? overlay(p, id, dev) : null });
       if (k < 1 && document.contains(canvas)) raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
@@ -84,7 +99,7 @@
   async function exportBlob(p, fmt) {
     await fontsReady();
     const F = A.FORMATS[fmt], c = document.createElement('canvas');
-    const id = draw(c, p, fmt, false);
+    const id = draw(c, p, fmt, false, devOut());
     const blob = await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('toBlob failed')), 'image/png'));
     c.width = c.height = 0; // release backing store early (mobile)
     return { blob: await withMetadata(blob, p, id), id, w: F.w, h: F.h };
@@ -106,7 +121,7 @@
   const readHist = () => { try { return JSON.parse(localStorage.getItem(HKEY) || '[]'); } catch (e) { return []; } };
   function remember(p, id) {
     try {
-      const e = enc(p), h = readHist().filter(x => x.enc !== e);
+      const e = encChoices(p), h = readHist().filter(x => x.enc !== e);
       h.unshift({ enc: e, s: p.s, id }); localStorage.setItem(HKEY, JSON.stringify(h.slice(0, 12)));
     } catch (e) { /* storage unavailable: history is optional */ }
   }
@@ -119,7 +134,7 @@
   function parseRestore(str) {
     str = String(str || '').trim();
     const m = /#(art|revelation)\?(.*)$/.exec(str);
-    if (m) { state.v2.engine = OracleEngine.of(m[2]); return A.decode(m[2]); }
+    if (m) { state.v2.engine = OracleEngine.of(m[2]); if (state.v2.engine === 3) OracleFingerprint.setContext(OracleFingerprint.parseDevice(m[2])); return A.decode(m[2]); }
     if (/^ORACLE-[0-9A-Z]{4}-[0-9A-Z]{4}$/i.test(str)) return A.normalize({ ...OracleChapters.artParams(), s: str.toUpperCase() });
     return null;
   }
@@ -146,9 +161,9 @@
     <p class="small" id="rv-look">Look: ${esc(lookLabel(lookNow()))} \u00b7 ${state.v2.look ? 'from the link' : 'follows site theme'}
       ${state.v2.look ? '<button type="button" class="btn-link" id="rv-unpin">Use site theme</button>' : ''}</p>
     <div class="opt-row"><button type="button" class="btn-quiet" id="rv-new">New seed</button></div>
-    ${E().v === 2 ? `<h3>What you made it from</h3><ul class="made-from">${madeFrom(p).map(([t, ch]) => `<li><span>${esc(t)}</span> <button type="button" class="btn-link" data-goto="${ch}">Edit</button></li>`).join('')}</ul>` : `<h3>About this artwork</h3><p>${esc(E().interpret(p))}</p><p class="small">Made with the earlier engine; it renders exactly as when it was shared.</p>`}
+    ${E().v >= 2 ? `<h3>What you made it from</h3><ul class="made-from">${madeFrom(p).map(([t, ch]) => `<li><span>${esc(t)}</span> <button type="button" class="btn-link" data-goto="${ch}">Edit</button></li>`).join('')}</ul>` : `<h3>About this artwork</h3><p>${esc(E().interpret(p))}</p><p class="small">Made with the earlier engine; it renders exactly as when it was shared.</p>`}
     <label for="rv-caption"><h3>Caption</h3></label>
-    <textarea id="rv-caption" class="caption" rows="5" readonly>${esc(E().caption(p, id, shareLink(p, fmt)))}</textarea>
+    <textarea id="rv-caption" class="caption" rows="5" readonly>${esc(capOf(p, fmt))}</textarea>
     <label for="rv-restore"><h3>Open a seed or link</h3></label>
     <div class="opt-row"><input id="rv-restore" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="ORACLE-XXXX-XXXX or a link"><button type="button" class="btn-quiet" id="rv-restore-btn">Open</button></div>
     <h3 id="rv-hist-label">Recent (this browser only)</h3>
@@ -192,7 +207,7 @@
       status(`Saved ${fileName(p, fmt)} (${w}\u00d7${h}, ${(blob.size / 1024).toFixed(0)} KB).`);
     };
     document.getElementById('rv-share').onclick = async () => {
-      const caption = E().caption(p, id, shareLink(p, fmt));
+      const caption = capOf(p, fmt);
       status('Preparing image\u2026');
       const { blob } = await exportBlob(p, fmt);
       const file = typeof File === 'function' ? new File([blob], fileName(p, fmt), { type: 'image/png' }) : null;
@@ -218,7 +233,7 @@
         body.querySelectorAll('[name=rv-fmt]').forEach(r => r.onchange = () => { state.v2.format = r.value; rerender(true); });
         body.querySelector('#rv-title').onchange = (e) => { state.v2.title = e.target.checked; rerender(true); };
         body.querySelector('#rv-new').onclick = () => { state.v2.seed = A.newSeed(); state.v2.engine = OracleEngine.LAYERED.v; rerender(true); };
-        body.querySelector('#rv-copy').onclick = async () => st((await copy(E().caption(p, id, shareLink(p, fmt)))) ? 'Caption copied.' : 'Copy blocked \u2014 select the caption text.');
+        body.querySelector('#rv-copy').onclick = async () => st((await copy(capOf(p, fmt))) ? 'Caption copied.' : 'Copy blocked \u2014 select the caption text.');
         body.querySelector('#rv-link').onclick = async () => st((await copy(shareLink(p, fmt))) ? 'Link copied.' : 'Copy blocked.');
         body.querySelector('#rv-clean').onclick = () => { OracleSheet.close(); OracleChapters.go('art', { hash: '#art?' + enc(p) + '&fmt=' + fmt + lookQuery(lookNow()) }); };
         const unpin = body.querySelector('#rv-unpin');
@@ -228,7 +243,7 @@
         body.querySelector('#rv-restore').onkeydown = (e) => { if (e.key === 'Enter') doRestore(parseRestore(e.target.value)); };
         const clr = body.querySelector('#rv-clear');
         if (clr) clr.onclick = () => { try { localStorage.removeItem(HKEY); } catch (e) { /* ignore */ } skipRemember = true; rerender(true); status('History cleared from this browser.'); };
-        body.querySelectorAll('[data-hist]').forEach(b => b.onclick = () => { state.v2.engine = OracleEngine.of(hist[+b.dataset.hist].enc); doRestore(A.decode(hist[+b.dataset.hist].enc)); });
+        body.querySelectorAll('[data-hist]').forEach(b => b.onclick = () => { state.v2.engine = OracleEngine.of(hist[+b.dataset.hist].enc); if (state.v2.engine === 3) OracleFingerprint.setContext(OracleFingerprint.parseDevice(hist[+b.dataset.hist].enc)); doRestore(A.decode(hist[+b.dataset.hist].enc)); });
         body.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => OracleSheet.close()));
       } });
     }
@@ -264,7 +279,7 @@
   function paintPreview(canvas, focus) {
     const p = params(), w = canvas.width, h = canvas.height;
     let scene = E().compose(p, A.FORMATS.portrait.w / A.FORMATS.portrait.h);
-    if (focus && E().v === 2) scene = OracleLayers.focus(scene, focus);
+    if (focus && E().v >= 2) scene = OracleLayers.focus(scene, focus);
     A.render(canvas.getContext('2d'), scene, w, h, { ...renderOpts(lookNow()), overlay: null });
     canvas.setAttribute('aria-label', 'Your artwork so far: ' + E().interpret(p));
   }

@@ -10,6 +10,7 @@
   'use strict';
   const SCHEMA = 4;
   const ENGINE_NEW = 2;     // layered engine (art/layers.js) for every artwork made in v4
+  const ENGINE_V3 = 3;      // v5: layered engine + fingerprint ring (art/fingerprint.js); links carry v=3
   const ENGINE_LEGACY = 1;  // art/oracle-art.js for links made before v4 (no v=2 in the link)
   // Feed presets (toy ranker weights). Values measured in the handover (top-3 share round 0 → 4).
   const PRESETS = {
@@ -83,7 +84,7 @@
         n.ex = { d: p.d, c: p.c, p: p.p, y: p.y, x: p.x, i: p.i };
         n.lab = { ...n.lab, e: p.e, r: p.r, t: p.t, k: p.k, a: p.a, n: p.n };
         n.feed = Object.keys(PRESETS).find(id => ['e', 'r', 't', 'k', 'a'].every(k => PRESETS[id][k] === n.lab[k])) || null;
-        n.engine = a.engine === ENGINE_NEW ? ENGINE_NEW : ENGINE_LEGACY;
+        n.engine = a.engine === ENGINE_NEW || a.engine === ENGINE_V3 ? a.engine : ENGINE_LEGACY;
         n.fromUrl = !!a.fromUrl;
         if (a.format) n.format = a.format;
         if ('look' in a) n.look = a.look;
@@ -106,7 +107,11 @@
     const out = { route: route || '' };
     if ((route === 'art' || route === 'revelation') && query && decode) {
       out.params = decode(query);
-      out.engine = /(?:^|&)v=2(?:&|$)/.test(query) ? ENGINE_NEW : ENGINE_LEGACY;
+      out.engine = /(?:^|&)v=3(?:&|$)/.test(query) ? ENGINE_V3 : /(?:^|&)v=2(?:&|$)/.test(query) ? ENGINE_NEW : ENGINE_LEGACY;
+      if (out.engine === ENGINE_V3) { // the device pattern part, validated; anything malformed → withheld
+        const dg = /(?:^|&)dg=([0-9a-f]{8})(?:&|$)/.exec(query), db = /(?:^|&)db=([XAINDQR][X0-4][X0-9A-HJKMNP-T])(?:&|$)/.exec(query);
+        out.device = dg && db ? { dg: dg[1], db: db[1] } : null;
+      }
       const fm = /(?:^|&)fmt=(portrait|story|square|hires)/.exec(query); if (fm) out.fmt = fm[1];
       const L = lists || { PALETTES: ['observatory'], TYPES: ['signal'] };
       const g = (k, list) => { const m = new RegExp('(?:^|&)' + k + '=([a-z]+)').exec(query); return m && list.includes(m[1]) ? m[1] : null; };
@@ -129,7 +134,7 @@
     };
   }
 
-  const api = { presetOf, OFFER_IDS, FOOTPRINT_IDS, TRADE_FOOTPRINT, prefillFootprint, SCHEMA, ENGINE_NEW, ENGINE_LEGACY, PRESETS, LAB_KEYS, initial, reduce, toParams, parseHash, create };
+  const api = { presetOf, OFFER_IDS, FOOTPRINT_IDS, TRADE_FOOTPRINT, prefillFootprint, SCHEMA, ENGINE_NEW, ENGINE_V3, ENGINE_LEGACY, PRESETS, LAB_KEYS, initial, reduce, toParams, parseHash, create };
   root.OracleState = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
