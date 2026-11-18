@@ -317,14 +317,6 @@ const doBioAuth = async () => {
   }
 };
 
-const getGeo = () => new Promise(res => {
-  navigator.geolocation.getCurrentPosition(
-    p => res({ lat: p.coords.latitude.toFixed(4), lng: p.coords.longitude.toFixed(4), acc: p.coords.accuracy }),
-    e => res({ error: e.message }),
-    { timeout: 8000 }
-  );
-});
-
 const getBattery = async () => {
   if (!navigator.getBattery) return null;
   try {
@@ -343,20 +335,9 @@ const getCameraInfo = async () => {
   } catch (e) { return { error: e.message }; }
 };
 
+// v5 WP1: the microphone row reads through core/device.js — the RMS level of the waveform over 2 s, in dBFS, bucketed
+// quiet / room / loud. (v1.1–v4 showed the average FFT bin value labelled "hz avg", which was not a frequency.)
 const getMicEnergy = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const audioCtx = new AudioContext();
-    const analyser = audioCtx.createAnalyser();
-    const source = audioCtx.createMediaStreamSource(stream);
-    source.connect(analyser);
-    analyser.fftSize = 256;
-    const buf = new Uint8Array(analyser.frequencyBinCount);
-    await new Promise(r => setTimeout(r, 500));
-    analyser.getByteFrequencyData(buf);
-    const avg = buf.reduce((a, b) => a + b, 0) / buf.length;
-    stream.getTracks().forEach(t => t.stop());
-    audioCtx.close();
-    return { avgFreq: avg.toFixed(1), bins: analyser.frequencyBinCount, sampleRate: audioCtx.sampleRate };
-  } catch (e) { return { error: e.message }; }
+  const r = await OracleDevice.readMic(2000);
+  return r.state === 'ok' ? { dbfs: r.dbfs, level: r.level } : { error: r.state === 'denied' ? 'Microphone permission denied' : 'Microphone not available' };
 };

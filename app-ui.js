@@ -88,7 +88,7 @@ const renderHandshake = () => {
   bindDemoBack();
 };
 
-const geoFn = typeof harvestGeo === 'function' ? harvestGeo : getGeo;
+const geoFn = harvestGeo; // v5 WP1: the dead getGeo fallback (unused since v1.2) was removed
 const batFn = async () => {
   const r = await getBattery();
   return r || { error: 'Battery API withheld (Safari/iOS)' };
@@ -99,7 +99,7 @@ const fmtPreview = (id, g) => {
   if (id === 'geo') return g.lat ? `${g.lat}, ${g.lng}` : '';
   if (id === 'bat') return g.level ? `${g.level}${g.charging ? ', charging' : ''}` : '';
   if (id === 'cam') return g.w ? `${g.w}\u00d7${g.h}` : '';
-  if (id === 'mic') return g.avgFreq ? `${g.avgFreq} hz avg` : '';
+  if (id === 'mic') return g.level ? `${g.dbfs} dBFS (${g.level})` : '';
   if (id === 'base') return `${g.cores || '?'} cores \u00b7 ${g.memory || g.deviceMem || '?'}GB`;
   if (id === 'orient') return `${g.screen || 'live'}  \u03b2 ${g.beta ?? '\u2014'}`;
   if (id === 'shake') return `${g.peaks || 0} peaks \u00b7 ${g.g || '\u2014'}g`;
@@ -132,7 +132,7 @@ const permReads = {
  "cpu": "Runs a 24 ms local loop, reads core count, JS heap and storage quota estimate. No prompt; local only.",
  "bt": "Asks only whether a Bluetooth radio is available. Does not scan or pair. Local only.",
  "cam": "Opens the camera, reads resolution/frame rate/label, then immediately stops every track. No frame is drawn, kept or sent.",
- "mic": "Opens the microphone for 0.5 s, reads the average spectrum energy, then stops the track and closes the audio context. No audio is recorded or sent.",
+ "mic": "Opens the microphone for 2 s, measures how loud the room is (RMS level in dBFS), then stops the track and closes the audio context. No audio is recorded or sent.",
  "bat": "Reads battery level/charging where the browser exposes it (Chromium). Local only.",
  "net": "Reads the browser's coarse connection estimate (type, downlink, RTT) and online flag. Local only.",
  "base": "Reads navigator/screen/Intl properties, probes installed fonts and draws a canvas fingerprint — the passive profile any site can read without asking. Local only."
@@ -242,7 +242,7 @@ const renderPortrait = () => {
       <div class="data-panel"><div class="panel-header">NET</div><div class="panel-body">${row('TYPE', net.type || base.connType, 'accent')}${row('ONLINE', (net.online ?? base.online) ? 'YES' : 'NO', 'cyan')}${row('BT', bt.radio || (bt.error ? 'N/A' : '\u2014'))}</div></div>
       ${bat.level ? `<div class="data-panel"><div class="panel-header">ENERGY</div><div class="panel-body"><div class="big-number">${bat.level}</div>${row('CHARGING', bat.charging ? 'YES' : 'NO')}</div></div>` : ''}
       ${cam.w ? `<div class="data-panel"><div class="panel-header">CAM</div><div class="panel-body">${row('RES', cam.w + '\u00d7' + cam.h, 'cyan')}${row('FPS', cam.fps)}</div></div>` : ''}
-      ${mic.avgFreq ? `<div class="data-panel"><div class="panel-header">MIC</div><div class="panel-body">${row('AVG', mic.avgFreq + ' Hz', 'accent')}</div></div>` : ''}
+      ${mic.level ? `<div class="data-panel"><div class="panel-header">MIC</div><div class="panel-body">${row('LEVEL', mic.dbfs + ' dBFS', 'accent')}${row('ROOM', mic.level)}</div></div>` : ''}
       <div class="closing-verse"><p>Close or reload the tab to discard every reading.</p>
         <div class="screen-cta">
           ${window.OracleChapters ? `<button type="button" class="btn-primary" id="btn-continue-machine">Back to Extras</button>` : ''}

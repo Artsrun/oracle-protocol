@@ -12,6 +12,7 @@ const { PNG } = require('pngjs');
 const crypto = require('node:crypto');
 const Art = require(new URL('../art/oracle-art.js', import.meta.url).pathname);
 const Lay = require(new URL('../art/layers.js', import.meta.url).pathname);
+const FX = require(new URL('./fixtures/devices.cjs', import.meta.url).pathname);
 const FIXED = 's=ORACLE-7K3F-Q9ZD&o=21&f=77&d=80&c=40&p=70&y=60&x=65&i=55&e=75&r=60&t=50&k=60&a=70&n=4';
 const readPng = (file) => { const buf = fs.readFileSync(file), png = PNG.sync.read(buf), texts = {}; let o = 8;
   while (o < buf.length) { const len = buf.readUInt32BE(o), type = buf.toString('latin1', o + 4, o + 8); if (type === 'tEXt') { const d = buf.subarray(o + 8, o + 8 + len); const z = d.indexOf(0); texts[d.toString('latin1', 0, z)] = d.toString('latin1', z + 1); } o += 12 + len; }
@@ -401,6 +402,22 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   const inf = await sp.evaluate(() => document.getAnimations().filter(a => a.playState === 'running').map(a => a.animationName));
   check('WP10 after reading sensors every animation settles; re-render does not replay earlier rows', !inf.length && await sp.evaluate(() => !document.querySelector('[data-perm="orient"]').closest('.just')), inf);
   await sc.close();
+}
+
+// ── v5 WP1: core/device.js loaded, consent-gated; dead getGeo gone; mic level labelled correctly ──
+{
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  await ctx.addInitScript(FX.install, FX.PROFILES.pixel);
+  const page = await ctx.newPage(); instrument(page, 'v5-wp1');
+  await page.goto(BASE + '#offer'); await page.reload(); await settle(page, 300);
+  const g = await page.evaluate(async () => { let refused = false; try { await OracleDevice.readPassive(); } catch (e) { refused = /Show me/.test(e.message); }
+    return { loaded: typeof OracleDevice === 'object', refused, getGeo: typeof getGeo, snap: OracleDevice.snapshot() }; });
+  check('v5 WP1 core/device.js is loaded and refuses passive reads before Show me; nothing read at load', g.loaded && g.refused && g.getGeo === 'undefined' && g.snap.passive === null, g);
+  await page.goto(BASE + '#sensors'); await settle(page, 300);
+  await page.click('[data-perm=mic]'); await settle(page, 2600);
+  const mic = await page.evaluate(() => ({ b: document.querySelector('[data-perm=mic] .perm-badge').textContent, v: (document.getElementById('pval-mic') || {}).textContent || '', stopped: window.__micStopped || 0 }));
+  check('v5 WP1 microphone level reads in dBFS with a quiet/room/loud bucket (no "hz avg"); the track is stopped', mic.b === 'OK' && /^-?\d+ dBFS \((quiet|room|loud)\)$/.test(mic.v) && !/hz/i.test(mic.v) && mic.stopped >= 1, mic);
+  await ctx.close();
 }
 
 // @@SECTIONS@@
