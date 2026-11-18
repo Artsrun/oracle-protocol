@@ -661,3 +661,21 @@ first viewport `*-fold.png` and full page), side-by-side sheets `/workspace/orac
 Not done / not verified: WP7 (needs the owner's go-ahead). Real phones, Safari, Firefox and Brave are still untested
 (headless Chromium only). Native share is still only exercised with a stubbed `navigator.share`. The v1.2 sensor
 screens (`#sensors`, `#protocol`) were only renamed; their 10–11 px uppercase labels remain (out of scope).
+
+## v6 mobile pass (branch `oracle-v6`, started 2026-11-18, Asia/Yerevan)
+
+Plan: `docs/PLAN-v6.md` (approved with defaults D1–D10). Harness: `qa/mobile.mjs` — 13 screen states × 9 sizes
+(320×568, 360×640, 390×844, 430×932, 667×375, 844×390, 932×430, 768×1024, 1280×800), Night and Day, plus behaviours
+(safe-area insets via CDP, simulated keyboard, Back/history, swipe, 200 % text, offline, throttled load). It prints every
+PLAN-v6 target as MET/MISSED. Run: `cd qa && COLOR_SCHEME=dark OUT=/tmp/m node mobile.mjs` (`STRICT=1` fails on a miss).
+
+### WP0. Baseline (`prod` @ 35d33d5, before any v6 change)
+- Existing suites green: unit 64/64, determinism 64/64, e2e 128/128 Night and 128/128 Day, contrast 0 failing (lowest 4.5),
+  device-probe 11/11.
+- `qa/mobile.mjs`: **9/45 targets met** (Night and Day identical). Main misses: landscape art 2 px tall; Footprint 1.92–1.99 vp
+  in landscape; 360×640 Footprint 1.17 vp and Readout 1.27 vp; Trade 14 / Footprint 19 controls; Options 15–26 controls and
+  208–301 words on open; safe area 8 px top / 16 px bottom; inputs 13 px; type does not scale at 200 %; Reveal preview
+  backing 0.36× at 430; Back with the sheet open leaves the screen; no swipe; no manifest/offline; Begin visible 6.1 s on
+  Slow 4G + 4× CPU.
+- Word counts now skip visually hidden text (the audit counted the hidden figcaption: Device ask 42 → 38 visible words) and
+  Options counts the sheet only (the audit's 146 included the page behind it).
