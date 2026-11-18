@@ -96,8 +96,9 @@
   async function pattern(seed, snap) {
     const S = snap || (D && D.snapshot()); if (!S || !S.passive) return null;
     const salt = saltFor(seed), text = canonical(S), key = seed + '|' + text + '|' + hex(salt);
-    if (mem.cache && mem.cache.key === key) return mem.cache.value;
-    const b = buckets(S), value = { dg: await digest(salt, text), db: dbCode(b), b };
+    const b = buckets(S); // always fresh: location and mic buckets (in-tab only) are not in the digest's key
+    if (mem.cache && mem.cache.key === key) return { ...mem.cache.value, b };
+    const value = { dg: await digest(salt, text), db: dbCode(b), b };
     mem.cache = { key, value }; return value;
   }
   const setShare = (m) => { mem.share = m === 'pattern' ? 'pattern' : 'choices'; };

@@ -510,6 +510,56 @@ for (const prof of ['pixel', 'missing', 'brave']) {
   await ctx.close();
 }
 
+// ── v5 WP5: permission cards 3c–3e — tilt (live), rough location, 2 s mic level; Not now asks nothing ──
+for (const [prof, rm, mode] of [['pixel', 'no-preference', 'allow'], ['pixel', 'reduce', 'notnow'], ['macff', 'reduce', 'allow'], ['missing', 'reduce', 'allow']]) {
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: rm });
+  await ctx.addInitScript(FX.install, FX.PROFILES[prof]);
+  const page = await ctx.newPage(); instrument(page, `v5-wp5-${prof}-${mode}`);
+  await page.goto(BASE + '#device'); await page.reload(); await settle(page, 400);
+  await page.click('#dev-show'); await page.waitForSelector('#dev-next'); await page.click('#dev-next'); await settle(page, 300);
+  const res = {};
+  for (const c of ['tilt', 'loc', 'mic']) {
+    const card = await page.evaluate(() => ({ h: document.querySelector('h1').textContent, allow: !!document.getElementById('perm-allow'), skip: !!document.getElementById('perm-skip') }));
+    if (c === 'tilt' && prof === 'pixel' && mode === 'allow') {
+      const a = await axe(page, 'v5-device-card'); check('v5 WP5 permission card axe 0', !a.length, a);
+      await page.click('.btn-back'); await settle(page, 250);
+      check('v5 WP5 Back on the first card returns to the readout', await page.evaluate(() => !!document.getElementById('dev-next')));
+      await page.click('#dev-next'); await settle(page, 250);
+    }
+    if (mode === 'notnow') { await page.click('#perm-skip'); await settle(page, 250); res[c] = card; continue; }
+    await page.click('#perm-allow'); await page.waitForSelector('#perm-next', { timeout: 15000 }); await settle(page, 400);
+    res[c] = { ...card, r: await page.evaluate(() => document.getElementById('perm-result').textContent), tf: await page.evaluate(() => document.getElementById('pv-canvas').style.transform),
+      slider: await page.evaluate(() => !!document.getElementById('tilt-slider')) };
+    await page.click('#perm-next'); await settle(page, 300);
+  }
+  const end = await page.evaluate(() => ({ stage: state.stage, asked: [window.__motionAsked || 0, window.__geoAsked || 0, window.__micAsked || 0], stopped: window.__micStopped || 0,
+    snap: OracleDevice.snapshot(), ring: OracleFingerprint.describe(OracleFingerprint.context()), html: document.documentElement.outerHTML }));
+  const leak = ['40.18', '44.51', ((res.mic && res.mic.r || '').match(/-?\d+ dBFS/) || ['@@none'])[0]].filter(x => end.html.includes(x));
+  if (prof === 'pixel' && mode === 'allow') {
+    check('v5 WP5 tilt: Allow asks (orientation + motion permission), the preview follows live (CSS transform); nothing kept', res.tilt.allow && res.tilt.skip && /rotateY/.test(res.tilt.tf) && end.asked[0] >= 1 && end.asked[0] <= 2 && JSON.stringify(end.snap.tilt) === '{"state":"ok"}', { t: res.tilt, s: end.snap.tilt });
+    check('v5 WP5 location: shown once rounded to 1 decimal, only band + hemisphere kept', /40\.2° N, 44\.5° E/.test(res.loc.r) && JSON.stringify(end.snap.location) === '{"state":"ok","band":1,"hemi":"N"}', { r: res.loc.r, s: end.snap.location });
+    check('v5 WP5 mic: 2 s level (dBFS shown once), only the level kept, stream stopped', /^Level: (quiet|room|loud) \(-?\d+ dBFS over 2 s\)/.test(res.mic.r) && /^\{"state":"ok","level":"(quiet|room|loud)"\}$/.test(JSON.stringify(end.snap.mic)) && end.stopped >= 1, { r: res.mic.r, s: end.snap.mic, stopped: end.stopped });
+    check('v5 WP5 after the cards: on Loop, ring adds horizon arc and vibration, no coordinate or dB value left in the page', end.stage === 'machine' && /horizon arc/.test(end.ring) && /vibration/.test(end.ring) && !leak.length, { ring: end.ring, leak });
+  }
+  if (mode === 'notnow') check('v5 WP5 Not now on every card asks for nothing and reaches Loop', end.stage === 'machine' && end.asked.join() === '0,0,0' && end.snap.location === null && end.snap.mic === null, end.asked);
+  if (prof === 'macff') check('v5 WP5 denied / no sensor (macOS Firefox-like): honest messages, no re-prompt, journey continues', /doesn’t offer/.test(res.tilt.r) && /Not allowed/.test(res.loc.r) && /Not allowed/.test(res.mic.r) && end.stage === 'machine' && end.asked[1] === 1 && end.asked[2] === 1, res);
+  if (prof === 'missing') check('v5 WP5 APIs absent: every card says the browser doesn’t offer it, nothing throws', ['tilt', 'loc', 'mic'].every(c => /doesn’t offer/.test(res[c].r)) && end.stage === 'machine', res);
+  await ctx.close();
+}
+{ // reduced motion: a slider instead of live motion
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  await ctx.addInitScript(FX.install, FX.PROFILES.pixel);
+  const page = await ctx.newPage(); instrument(page, 'v5-wp5-rm');
+  await page.goto(BASE + '#device'); await page.reload(); await settle(page, 400);
+  await page.click('#dev-show'); await page.waitForSelector('#dev-next'); await page.click('#dev-next'); await settle(page, 300);
+  await page.click('#perm-allow'); await page.waitForSelector('#perm-next', { timeout: 8000 }); await settle(page, 400);
+  const before = await page.evaluate(() => document.getElementById('pv-canvas').style.transform);
+  await page.fill('#tilt-slider', '20'); await settle(page, 100);
+  const after = await page.evaluate(() => document.getElementById('pv-canvas').style.transform);
+  check('v5 WP5 reduced motion: tilt does not move the preview by itself; a labelled slider does', before === '' && /rotateY\(6\.7deg\)/.test(after), { before, after });
+  await ctx.close();
+}
+
 // @@SECTIONS@@
 
 // ── network + console (always last) ──────────────────────────────────────

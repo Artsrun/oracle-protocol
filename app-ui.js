@@ -12,6 +12,7 @@ const render = () => {
   document.body.dataset.stage = state.stage;
   document.body.classList.add('v4'); // v4: one look everywhere, the sensor demo included (WP9)
   syncHud();
+  if (state.stage !== 'device' && window.OracleDevice) OracleDevice.stopAll(); // v5: tilt and mic stop when the Device step is left
   if (window.OracleChapters && OracleChapters.handles(state.stage)) OracleChapters.renderStage(state.stage, app);
   else if (state.stage === 'approach') renderApproach();
   else if (state.stage === 'handshake') renderHandshake();
