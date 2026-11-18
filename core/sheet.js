@@ -28,6 +28,10 @@
       if (e.target.closest('[data-sheet-back]')) back();
     });
     dlg.addEventListener('close', () => {
+      if (dlg.open) return; // a stale close event: the sheet was reopened (e.g. Options re-rendered) before it fired
+      // v6 WP8: closed by Close, Escape, the backdrop or an Android close request → drop the history entry we added.
+      if (!closedByPop && isSentinel()) { ignorePop++; history.back(); }
+      closedByPop = false;
       const f = opener; opener = null; stack = []; cur = null;
       dlg.querySelector('.sheet-panel').style.removeProperty('--kb');
       document.documentElement.classList.remove('sheet-open');
@@ -36,13 +40,26 @@
     });
     return dlg;
   }
+  // v6 WP8: opening the sheet adds one history entry (same URL), so Back — including the iOS edge swipe — closes the
+  // sheet first. onPop() is called by the app's popstate handler before it routes.
+  let ignorePop = 0, closedByPop = false;
+  const isSentinel = () => !!(history.state && history.state.oracleSheet);
+  function onPop() {
+    if (ignorePop > 0) { ignorePop--; return true; }            // our own history.back() after a close
+    if (dlg && dlg.open && !isSentinel()) { closedByPop = true; dlg.close(); return true; }
+    if (isSentinel()) { history.replaceState(null, '', location.href); } // forward onto a stale sheet entry
+    return false;
+  }
   function keepVisible() {
     if (!dlg || !dlg.open) return;
     const vv = window.visualViewport, panel = dlg.querySelector('.sheet-panel');
     const kb = vv ? Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) : 0;
     panel.style.setProperty('--kb', kb + 'px');
     const a = document.activeElement;
-    if (a && dlg.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) requestAnimationFrame(() => a.scrollIntoView({ block: 'center' }));
+    if (a && dlg.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) {
+      const go = () => { if (document.activeElement === a) a.scrollIntoView({ block: 'center' }); };
+      requestAnimationFrame(go); setTimeout(go, 150); // again once the panel's new height has settled
+    }
   }
   function show(o) {
     const d = ensure();
@@ -66,6 +83,7 @@
     stack = [];
     document.documentElement.classList.add('sheet-open');
     d.showModal();
+    if (!isSentinel()) history.pushState({ oracleSheet: 1 }, '', location.href);
     show(o);
     return d;
   }
@@ -74,5 +92,5 @@
   function back() { if (stack.length) show(stack.pop()); }
   function close() { if (dlg && dlg.open) dlg.close(); }
   const isOpen = () => !!(dlg && dlg.open);
-  window.OracleSheet = { open, push, back, close, isOpen };
+  window.OracleSheet = { open, push, back, close, isOpen, onPop, isSentinel };
 })();

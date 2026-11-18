@@ -123,7 +123,7 @@
     } catch (e) { result = { state: 'unavailable' }; }
     busy = false; if (state.stage === 'device' && sub === c) paint(app, true);
   }
-  function leaveCard(app, c) { if (c === 'tilt') D.stopTilt(); result = null; const n = nextOf(c); if (n) { sub = n; paint(app, true); } else { D.stopAll(); OracleChapters.go('machine'); } }
+  function leaveCard(app, c) { if (c === 'tilt') D.stopTilt(); result = null; const n = nextOf(c); if (n) { sub = n; pushSub(); paint(app, true); } else { D.stopAll(); OracleChapters.go('machine'); } }
 
   function paint(app, focus) {
     const R = passive();
@@ -140,12 +140,12 @@
         : UI.button('Next', { primary: true, attrs: { id: 'dev-next' } })
     });
     const back = app.querySelector('[data-back]');
-    if (back && !ask) { back.removeAttribute('data-back'); back.onclick = (e) => { e.preventDefault(); sub = 'ask'; paint(app, true); }; }
+    if (back && !ask) { back.removeAttribute('data-back'); back.onclick = (e) => { e.preventDefault(); if (history.state && history.state.dev) { history.back(); return; } sub = 'ask'; paint(app, true); }; }
     if (ask) {
       app.querySelector('#dev-show').onclick = () => show(app);
       app.querySelector('#dev-skip').onclick = () => { D.stopAll(); OracleChapters.go('machine'); };
     } else {
-      app.querySelector('#dev-next').onclick = () => { result = null; sub = 'tilt'; paint(app, true); };
+      app.querySelector('#dev-next').onclick = () => { result = null; sub = 'tilt'; pushSub(); paint(app, true); };
       app.querySelectorAll('[data-dev-info]').forEach(b => b.onclick = () => { const g = GROUPS.find(x => x.id === b.dataset.devInfo); OracleSheet.open({ title: g.title, html: detail(g, passive()), from: b }); });
       app.querySelector('#dev-forget').onclick = () => forget(app);
       app.querySelector('#dev-ident').onclick = (e) => OracleSheet.open({ title: 'How identifying is this?', html: identifying(passive()), from: e.currentTarget });
@@ -162,7 +162,7 @@
         : `${UI.button(busy ? (c === 'mic' ? 'Listening\u2026' : 'Asking\u2026') : 'Allow', { primary: true, attrs: { id: 'perm-allow', disabled: busy } })}${UI.button('Not now', { link: true, attrs: { id: 'perm-skip' } })}`
     });
     const back = app.querySelector('[data-back]');
-    if (back) { back.removeAttribute('data-back'); back.onclick = (e) => { e.preventDefault(); if (c === 'tilt') D.stopTilt(); result = null; sub = prevOf(c); paint(app, true); }; }
+    if (back) { back.removeAttribute('data-back'); back.onclick = (e) => { e.preventDefault(); if (c === 'tilt') D.stopTilt(); result = null; if (history.state && history.state.dev) { history.back(); return; } sub = prevOf(c); paint(app, true); }; }
     const a = app.querySelector('#perm-allow'); if (a) a.onclick = () => allow(app, c);
     const k = app.querySelector('#perm-skip'); if (k) k.onclick = () => leaveCard(app, c);
     const n = app.querySelector('#perm-next'); if (n) n.onclick = () => leaveCard(app, c);
@@ -173,7 +173,7 @@
 
   async function show(app) {
     if (busy) return; busy = true; paint(app, false);
-    try { P.loadRemembered(); D.allowPassive(); await D.readPassive(); await refresh(); sub = 'readout'; }
+    try { P.loadRemembered(); D.allowPassive(); await D.readPassive(); await refresh(); sub = 'readout'; pushSub(); }
     catch (e) { sub = 'ask'; }
     busy = false; if (state.stage === 'device') paint(app, true);
   }
@@ -184,5 +184,8 @@
   }
 
   OracleChapters.register('device', (app) => { if (sub !== 'ask' && !passive()) sub = 'ask'; if (CARDS.includes(sub) && !busy) result = null; paint(app, false); if (passive()) refresh().then(() => { if (state.stage === 'device') U.drawPreview(); }); });
-  window.OracleDeviceStep = { refresh, GROUPS, NAME, reset: () => { sub = 'ask'; result = null; } };
+  // v6 WP8 (D4): each sub-step gets a history entry on the same URL, so the browser's Back walks them.
+  function pushSub() { if (state.stage === 'device') history.pushState({ dev: sub }, '', location.href); }
+  function fromHistory(dev) { if (sub === 'tilt' && dev !== 'tilt') D.stopTilt(); result = null; sub = ['readout', 'tilt', 'loc', 'mic'].includes(dev) ? dev : 'ask'; }
+  window.OracleDeviceStep = { refresh, GROUPS, NAME, fromHistory, reset: () => { sub = 'ask'; result = null; } };
 })();

@@ -117,7 +117,7 @@ body.v4 .sitefoot .foot-note{order:9;padding:12px 4px 0}
 /* one padding rule: the per-layout values above + the device's safe-area insets (notch, home bar, landscape sides) */
 body.v4 .screen{padding:calc(var(--s-pt,8px) + var(--safe-t)) max(var(--s-px,16px),calc(var(--safe-r) + 8px)) calc(var(--s-pb,16px) + var(--safe-b)) max(var(--s-px,16px),calc(var(--safe-l) + 8px))}
 body.v4 .sitefoot{padding-left:max(16px,calc(var(--safe-l) + 8px));padding-right:max(16px,calc(var(--safe-r) + 8px))}
-.sheet-panel{padding-left:var(--safe-l);padding-right:var(--safe-r);bottom:var(--kb,0px);max-height:calc(86svh - var(--kb,0px))}
+.sheet-panel{transition:none !important;padding-left:var(--safe-l);padding-right:var(--safe-r);bottom:var(--kb,0px);max-height:calc(86svh - var(--kb,0px))}
 .sheet-body{padding-bottom:calc(24px + var(--safe-b))}
 .sheet-top{padding-top:max(0px,calc(var(--safe-t) - 40px))}
 @media (min-width:900px){ .sheet-panel{max-height:none;padding-top:var(--safe-t)} }

@@ -23,7 +23,10 @@ window.OracleChapters = (() => {
     state.stage = id;
     if (opts.push !== false) {
       const target = opts.hash || hashFor(id);
-      if ((location.hash || '') !== target && !(id === 'approach' && !location.hash)) history.pushState(null, '', target);
+      // v6 WP8: leaving from inside a sheet replaces the sheet's history entry instead of stacking on it
+      const sheetTop = window.OracleSheet && OracleSheet.isSentinel && OracleSheet.isSentinel();
+      if (sheetTop) history.replaceState(null, '', id === 'approach' && !opts.hash ? location.pathname + location.search : target);
+      else if ((location.hash || '') !== target && !(id === 'approach' && !location.hash)) history.pushState(null, '', target);
     }
     render();
     window.scrollTo(0, 0);
@@ -97,7 +100,14 @@ window.OracleChapters = (() => {
       const b = e.target.closest('[data-go]');
       if (b) go(b.dataset.go);
     });
-    window.addEventListener('popstate', () => { OracleSheet.close(); state.stage = fromLocation(); render(); });
+    window.addEventListener('popstate', () => {
+      if (OracleSheet.onPop && OracleSheet.onPop()) return; // Back closed the sheet (or was our own clean-up)
+      OracleSheet.close(); state.stage = fromLocation();
+      if (state.stage === 'device' && window.OracleDeviceStep) OracleDeviceStep.fromHistory(history.state && history.state.dev);
+      render();
+      const h = document.querySelector('#app h1'); // v6 WP8: focus lands on the screen's question after Back
+      if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); }
+    });
     document.addEventListener('click', (e) => {
       const c = e.target.closest('.cite[data-source]');
       if (c) { e.preventDefault(); OracleEvidenceSheet.openSource(c.dataset.source, c); }
