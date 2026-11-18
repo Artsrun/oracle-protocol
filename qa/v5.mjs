@@ -560,6 +560,24 @@ for (const [prof, rm, mode] of [['pixel', 'no-preference', 'allow'], ['pixel', '
   await ctx.close();
 }
 
+// ── v5 WP6: "How identifying is this?" — VERIFIED figures with sources, INFERRED count, no invented statistic ──
+for (const prof of ['pixel', 'brave']) {
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  await ctx.addInitScript(FX.install, FX.PROFILES[prof]);
+  const page = await ctx.newPage(); instrument(page, 'v5-wp6-' + prof);
+  await page.goto(BASE + '#device'); await page.reload(); await settle(page, 400);
+  await page.click('#dev-show'); await page.waitForSelector('#dev-ident'); await page.click('#dev-ident'); await settle(page, 300);
+  const r = await page.evaluate(() => { const b = document.getElementById('sheet-body'); return { t: b.innerText, ver: b.querySelectorAll('.prov-verified').length, inf: b.querySelectorAll('.prov-inferred').length,
+    cites: [...b.querySelectorAll('.cite[data-source]')].map(c => c.dataset.source), links: [...b.querySelectorAll('a[href^=http]')].map(a => [a.href, a.rel, a.target]) }; });
+  if (prof === 'pixel') {
+    check('v5 WP6 three VERIFIED study figures, each with its source; one INFERRED line about this browser', r.ver === 3 && r.inf === 1 && ['eckersley10', 'laperdrix16', 'gomezboix18'].every(id => r.cites.includes(id)) && /83\.6% of 470,161/.test(r.t) && /89\.4% of 118,934/.test(r.t) && /33\.6% of 2,067,942/.test(r.t), r);
+    check('v5 WP6 no "1 in X", no "you are unique", no bits figure; says why it cannot measure', !/\b1 in\b|one in|you are unique|bits/i.test(r.t) && /sends nothing anywhere/.test(r.t), r.t);
+    check('v5 WP6 comparison links open a new tab with noopener noreferrer', r.links.length === 2 && r.links.every(l => /noopener/.test(l[1]) && /noreferrer/.test(l[1]) && l[2] === '_blank'), r.links);
+    const a = await axe(page, 'v5-identifying'); check('v5 WP6 sheet axe 0', !a.length, a);
+  } else check('v5 WP6 Brave-like: the count says some answers were blurred on purpose', /blurred \d+ on purpose/.test(r.t), r.t);
+  await ctx.close();
+}
+
 // @@SECTIONS@@
 
 // ── network + console (always last) ──────────────────────────────────────

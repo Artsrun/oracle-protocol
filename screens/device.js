@@ -67,6 +67,21 @@
       `<p class="small">Shown only in this tab. Nothing here is sent anywhere or saved.</p>`;
   }
 
+  // "How identifying is this?" — VERIFIED study figures, an INFERRED count for this browser, no invented statistic.
+  // We cannot measure uniqueness (it needs other people's fingerprints and we send nothing), so no "you are unique".
+  function identifying(R) {
+    const Ev = OracleEvidence, all = Object.values(R || {}), M = all.length;
+    const n = (st) => all.filter(e => e.state === st).length, N = n('ok'), RA = n('randomised'), NA = n('unavailable');
+    return `<h3>What studies found</h3>
+      ${Ev.claim('VERIFIED', 'EFF\u2019s Panopticlick (2010): 83.6% of 470,161 browsers had a unique fingerprint.', ['eckersley10'])}
+      ${Ev.claim('VERIFIED', 'AmIUnique (2016): 89.4% of 118,934 fingerprints were unique (desktop 90%, mobile 81%).', ['laperdrix16'])}
+      ${Ev.claim('VERIFIED', 'A general-audience site (2018): 33.6% of 2,067,942 fingerprints were unique (computers 35.7%, mobile 18.5%).', ['gomezboix18'])}
+      <h3>Your browser</h3>
+      ${Ev.claim('INFERRED', `This page asks ${M} questions without a prompt. Your browser answered ${N}${RA ? `, blurred ${RA} on purpose` : ''}${NA ? ` and kept ${NA} to itself` : ''}. More answers usually make a browser easier to tell apart; the studies above found 33.6% to 89.4% unique, depending on who was measured.`)}
+      <p>We can\u2019t tell how unique <em>you</em> are: that needs other people\u2019s fingerprints to compare with, and this page sends nothing anywhere.</p>
+      <p>To compare yourself, try <a href="https://coveryourtracks.eff.org/" target="_blank" rel="noopener noreferrer">EFF Cover Your Tracks</a> or <a href="https://amiunique.org/" target="_blank" rel="noopener noreferrer">AmIUnique</a> (new tab; we pass them nothing).</p>`;
+  }
+
   function askBody() {
     return `<p class="small">Optional. Skip and your artwork gets a plain ring.</p>`;
   }
@@ -75,7 +90,7 @@
       <button type="button" class="info" data-dev-info="${g.id}" aria-haspopup="dialog" aria-label="Details: ${g.title}">i</button></dd></div>`).join('');
     return `<dl class="dev-list" aria-label="What this browser shares">${rows}</dl>
       <p class="small" id="dev-count">${countRead(R)} readings. None left this tab.</p>
-      <p class="small"><button type="button" class="btn-link" id="dev-forget">Forget everything</button></p>`;
+      <p class="small"><button type="button" class="btn-link" id="dev-ident" aria-haspopup="dialog">How identifying is this?</button> <button type="button" class="btn-link" id="dev-forget">Forget everything</button></p>`;
   }
 
   function cardBody(c) {
@@ -127,6 +142,7 @@
       app.querySelector('#dev-next').onclick = () => { result = null; sub = 'tilt'; paint(app, true); };
       app.querySelectorAll('[data-dev-info]').forEach(b => b.onclick = () => { const g = GROUPS.find(x => x.id === b.dataset.devInfo); OracleSheet.open({ title: g.title, html: detail(g, passive()), from: b }); });
       app.querySelector('#dev-forget').onclick = () => forget(app);
+      app.querySelector('#dev-ident').onclick = (e) => OracleSheet.open({ title: 'How identifying is this?', html: identifying(passive()), from: e.currentTarget });
     }
     U.drawPreview();
     if (focus) { const h = app.querySelector('h1'); if (h) h.focus({ preventScroll: true }); }
