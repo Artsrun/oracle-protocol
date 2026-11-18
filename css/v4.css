@@ -286,3 +286,4 @@ body.v4[data-stage=extras] .screen{min-height:calc(100svh - 70px)}
 .dev-row dd>span{flex:1;overflow-wrap:anywhere;min-width:0}
 .sheet .dev-state{display:inline-block;font-family:var(--font-mono);font-size:var(--t-s);padding:0 6px;border:1px solid currentColor;border-radius:4px;vertical-align:2px;font-weight:400}
 .dev-ok{color:var(--v-accent)}.dev-randomised{color:var(--trace)}.dev-unavailable,.dev-denied{color:var(--v-ink-2)}
+.dev-note{margin:0 0 10px;padding:10px 12px;border:1px solid var(--v-line-2);border-radius:var(--r);font-size:var(--t-s);color:var(--v-ink)}

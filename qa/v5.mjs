@@ -636,6 +636,29 @@ for (const prof of ['pixel', 'brave']) {
   await ctx.close();
 }
 
+// ── v5 WP8: browser fallbacks — Brave card, Safari/Firefox copy, generic GPU, all six fixtures render the step ──
+{
+  const out = {};
+  for (const prof of Object.keys(FX.PROFILES)) {
+    const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+    await ctx.addInitScript(FX.install, FX.PROFILES[prof]);
+    const page = await ctx.newPage(); instrument(page, 'v5-wp8-' + prof);
+    await page.goto(BASE + '#device'); await page.reload(); await settle(page, 400);
+    await page.click('#dev-show'); await page.waitForSelector('#dev-next', { timeout: 10000 }); await settle(page, 200);
+    const copyW = await page.evaluate(() => { let n = 0; const w = document.createTreeWalker(document.getElementById('app'), NodeFilter.SHOW_TEXT);
+      while (w.nextNode()) { const el = w.currentNode.parentElement; if (el.getClientRects().length && !el.closest('.vh,[hidden],.dev-list,figcaption')) n += (w.currentNode.textContent.match(/[A-Za-z0-9'’]+/g) || []).length; } return n; });
+    out[prof] = await page.evaluate(() => ({ note: (document.querySelector('.dev-note') || {}).textContent || '', rows: document.querySelectorAll('.dev-row').length, ring: OracleFingerprint.context().mode, brave: OracleDevice.snapshot().brave }));
+    out[prof].copyW = copyW;
+    if (prof === 'brave') { const a = await axe(page, 'v5-device-brave'); check('v5 WP8 Brave readout axe 0', !a.length, a); }
+    await ctx.close();
+  }
+  check('v5 WP8 Brave: "Brave is protecting you" card; blurred values stay out of the pattern', /^Brave is protecting you\./.test(out.brave.note) && out.brave.brave === true, out.brave);
+  check('v5 WP8 Firefox (macOS, protections on): credits the browser for not sharing', /^Firefox doesn’t share \d+ of these/.test(out.macff.note), out.macff);
+  check('v5 WP8 Safari (iPhone-like): credits the browser for not sharing', /^Safari doesn’t share \d+ of these/.test(out.iphone.note), out.iphone);
+  check('v5 WP8 Chrome-like (Pixel, Windows): no browser note', !out.pixel.note && !out.windows.note, { p: out.pixel.note, w: out.windows.note });
+  check('v5 WP8 all six fixtures render six rows and a ring; readout copy ≤60 words (data rows excluded)', Object.values(out).every(o => o.rows === 6 && o.ring === 'full' && o.copyW <= 60), out);
+}
+
 // @@SECTIONS@@
 
 // ── network + console (always last) ──────────────────────────────────────

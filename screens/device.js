@@ -61,7 +61,7 @@
   function detail(g, R) {
     return g.items.map(id => { const e = R[id]; if (!e) return '';
       return `<h3>${NAME[id]} ${badge(e.state)}</h3>
-        <p><b>${esc(e.state === 'ok' || e.state === 'randomised' ? e.value : STATE_TEXT[e.state])}</b>${e.note ? `<br><span class="small">${esc(e.note)}</span>` : ''}</p>
+        <p><b>${esc(e.state === 'ok' || e.state === 'randomised' ? e.value : STATE_TEXT[e.state])}</b>${e.note ? `<br><span class="small">${esc(e.note)}</span>` : ''}${id === 'gpu' && e.state === 'ok' && e.raw && /^(Apple GPU|Mozilla)$|generic/i.test(e.raw.renderer || '') ? '<br><span class="small">Your browser hides the exact model; only the family shows.</span>' : ''}</p>
         <p class="small">Read with <code>${esc(e.api)}</code>, no prompt.</p>
         <p><b>Why sites read it:</b> ${WHY[id]}<br><b>In your artwork:</b> ${ART[id]}</p>`; }).join('') +
       `<p class="small">Shown only in this tab. Nothing here is sent anywhere or saved.</p>`;
@@ -85,10 +85,18 @@
   function askBody() {
     return `<p class="small">Optional. Skip and your artwork gets a plain ring.</p>`;
   }
+  // WP8: say plainly when the browser is protecting the visitor (Brave), or simply not sharing (Safari, Firefox).
+  function browserNote(R) {
+    const all = Object.values(R || {}), held = all.filter(e => e.state === 'randomised' || e.state === 'unavailable').length;
+    if (D.snapshot().brave) return `<p class="dev-note" role="note"><b>Brave is protecting you.</b> It blurs or blocks ${held} of these on purpose, so sites see a slightly different device each session. Blurred values stay out of your pattern.</p>`;
+    const b = R.browser && R.browser.raw && R.browser.raw.browser;
+    if ((b === 'Safari' || b === 'Firefox') && held >= 2) return `<p class="dev-note" role="note">${b} doesn\u2019t share ${held} of these. That protects you; the ring uses plain values for them.</p>`;
+    return '';
+  }
   function readoutBody(R) {
     const rows = GROUPS.map(g => `<div class="dev-row"><dt>${g.title}</dt><dd><span>${esc(summary(g, R))}</span>
       <button type="button" class="info" data-dev-info="${g.id}" aria-haspopup="dialog" aria-label="Details: ${g.title}">i</button></dd></div>`).join('');
-    return `<dl class="dev-list" aria-label="What this browser shares">${rows}</dl>
+    return `${browserNote(R)}<dl class="dev-list" aria-label="What this browser shares">${rows}</dl>
       <p class="small" id="dev-count">${countRead(R)} readings. None left this tab.</p>
       <p class="small"><button type="button" class="btn-link" id="dev-ident" aria-haspopup="dialog">How identifying is this?</button> <button type="button" class="btn-link" id="dev-forget">Forget everything</button></p>`;
   }
