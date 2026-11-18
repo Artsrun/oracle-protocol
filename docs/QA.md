@@ -23,7 +23,48 @@ v4 reference hashes (SHA-256 prefix, identical at DPR 1 and 3): Night portrait `
 square `ca47ddb882da`, hi-res `8d60906c6cd0`; Day portrait `f60fbd13ae48`, story `8cff23afd905`, square
 `700cd1aecb52`, hi-res `c1bbda452b15`.
 
-<!-- @@V5_WP@@ -->
+## v5 build (branch `oracle-v5`, 2026-11-18, Asia/Yerevan)
+
+Final run (WP10), logs in `/workspace/oracle-qa/v5/wp/10/`, Chrome 156 headless, sensors and browser APIs mocked in JS
+(`qa/fixtures/devices.cjs`: pixel, iphone, windows, macff, brave, missing). No CDP sensor overrides, no real prompts.
+
+| Suite | Result |
+|---|---|
+| Unit (`npm test`) | 64/64 |
+| Determinism (v1, v2, v4 references + v5 ring withheld/pattern, Night/Day, DPR1/3, 4 formats) | 64/64 byte-identical |
+| End-to-end `qa/v5.mjs` | Night 128/128, Day 128/128 |
+| Contrast (6 looks × 14 views incl. 5 Device views) | 0 failing elements in 84 checks, lowest 4.5:1 |
+| axe WCAG 2.1 A/AA | 0 violations on every screen, Device ask/readout/sheets/cards, Options, Brave readout |
+| Device probe (API calls before consent) | 11/11; 0 calls to tilt/location/mic APIs before Allow |
+
+Privacy leak scan (sentinel strings in the fixtures, plus coordinates): 0 hits in the URL, history, `localStorage`,
+`sessionStorage`, PNG tEXt metadata (choices-only and pattern), caption and share payload; 0 requests leave localhost;
+the pattern mode adds only `&dg=<8 hex>&db=<3 chars>`. Forget everything (Device step, Options, footer) leaves no `oracle.*`
+key and strips `dg`/`db` from the address bar.
+
+Targets (load.mjs, 390 × 844 and 1280 × 800, Night and Day identical except full-path word count ±8):
+
+| Target | Measured | |
+|---|---|---|
+| Fast path ≤ 300 words | 298 (est. 80 s) | met |
+| Taps to artwork ≤ 7 | 7 (e2e); load.mjs counts 10 incl. option ticks | met |
+| ≤ 60 words per Device screen | ask 42, card 44–50, readout 110 incl. six data rows (≤ 60 copy excl. rows, e2e) | met with the rows-excluded reading |
+| Device ask ≤ 40 words (§4 table) | 42 | missed by 2 |
+| Permission cards ≤ 30 words each (§4 table) | 44–50 | missed |
+| 1.0 viewport, ≤ 4 font sizes on Device screens | 1.0; 3 sizes (13/16/26 phone, 13/16/38 desktop) | met |
+| Unsourced statistics 0 | every figure on the sheet links a source | met |
+
+### Real-device matrix (to be completed by hand — not run)
+
+| Device / browser | Rows shown on 3b (OK / UNAVAILABLE / RANDOMISED) | Tilt | Location | Mic | Forget | Errors / stuck spinners |
+|---|---|---|---|---|---|---|
+| iPhone, Safari | | | | | | |
+| Android, Chrome | | | | | | |
+| Windows, Chrome or Edge | | | | | | |
+| macOS, Firefox | | | | | | |
+| Any, Brave (shields on) | | | | | | |
+
+
 
 ## v4 build (branch `oracle-v4`, from 2026-11-17, Asia/Yerevan)
 

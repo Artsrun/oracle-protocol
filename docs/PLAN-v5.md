@@ -370,8 +370,8 @@ Wireframes (390 × 844): see the Page "Oracle Protocol v5 — Device Footprint P
 
 1. **No bits bar.** §6 item 3 (SIMULATED bits-per-attribute bar, WP6b) was "only if the owner approves"; the approval
    covered the defaults only, so it is not built.
-2. **No "1 in X" text anywhere**, not even quoting a study: the site gives sample sizes, percentages unique and Eckersley's
-   entropy in bits, never a "one in N" figure.
+2. **No "1 in X" text anywhere**, not even quoting a study: the site gives sample sizes and percentages unique, never a
+   "one in N" figure. (As built, the sheet also leaves out Eckersley's entropy-in-bits figure, which is stricter still.)
 3. **History keeps choices only.** The "Recent" list in this browser stores the choices-only link even when the visitor
    shares with the device pattern, so a digest is never written to storage unless "Remember this device" is on (and then
    only the salt is stored, never the digest or a reading).
@@ -379,8 +379,13 @@ Wireframes (390 × 844): see the Page "Oracle Protocol v5 — Device Footprint P
    visitor sees what a site gets; only the 30° band and hemisphere stay in memory. The raw value is not kept for a later
    sheet.
 5. **Screen vs file.** In this tab the artwork shows the full device ring. Save image, Share, the link, the caption and
-   the PNG metadata follow the share mode, and a line under the actions says which mode applies.
+   the PNG metadata follow the share mode. As built, the mode is stated in the Artwork lead (`#rv-mode`, e.g. "Image and
+   link: choices only.") rather than a separate line under the actions, to keep the Artwork screen within 30 words.
 6. **CSP unchanged.** Removing the wallet does not allow a stricter CSP: the wallet's traffic went through the browser
    extension, which the page CSP never governed. `connect-src 'none'` stays.
-7. **Forget everything** clears every `oracle.*` key, including the theme preference and the recent-artwork history.
+7. **Forget everything** clears every `oracle.*` key, including the theme preference and the recent-artwork history,
+   and strips `&dg`/`&db` from the address bar. Answers stay in memory so the page still works; *Start over* clears them.
+9. **The GPU family is never named in text**, only encoded as one coarse letter in `db` (`X` = generic or unknown).
+10. **Word targets as built:** the readout's ≤ 60 words excludes the six data rows (110 words with them); the v5 Artwork
+   screen allows ≤ 30 words (v4 was ≤ 25) because it now states the share mode.
 8. **Old demo links** (`#sensors`, `#protocol`, `#portrait`) open the Device step instead of a removed screen.
