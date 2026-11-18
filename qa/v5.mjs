@@ -230,6 +230,8 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await page.click('label.radio-card:has([value=story])'); await settle(page, 600);
   const story = await page.evaluate(() => ({ fmt: state.v2.format, open: document.getElementById('sheet').open, hash: location.hash }));
   check('WP7 changing the format keeps the sheet open and updates the link', story.fmt === 'story' && story.open && /fmt=story/.test(story.hash), story);
+  // v6 WP5 (deliberate): New seed, Open a seed and Recent sit under "More"; it stays open across the re-render.
+  await page.click('#sheet .more-opts summary'); await settle(page, 200);
   await page.click('#rv-new'); await settle(page, 500);
   const seed2 = await page.evaluate(() => state.v2.seed);
   await page.fill('#rv-restore', p1.s); await page.click('#rv-restore-btn'); await settle(page, 500);
@@ -593,7 +595,7 @@ for (const prof of ['pixel', 'brave']) {
   check('v5 WP7 a pattern link redraws the same composition in a fresh browser with no readings', idA === idB, { idA, idB });
   await fc.close();
   // Remember this device: stores the salt only
-  await page.click('#rv-options'); await settle(page, 300); await page.click('#rv-remember'); await settle(page, 600);
+  await page.click('#rv-options'); await settle(page, 300); await page.click('#sheet .more-opts summary'); await settle(page, 200); await page.click('#rv-remember'); await settle(page, 600);
   const rm = await page.evaluate(() => Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith('oracle.')).map(k => [k, localStorage.getItem(k).slice(0, 60)])));
   check('v5 WP7 Remember this device stores only a 128-bit salt (oracle.v5.salt), nothing read from the device', /^[0-9a-f]{32}$/.test(rm['oracle.v5.salt'] || '') && !scan(JSON.stringify(rm)).length, rm);
   await page.click('#rv-forget'); await settle(page, 600);

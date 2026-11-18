@@ -56,7 +56,7 @@ window.OracleChapters = (() => {
     const T = window.OracleTheme; if (!T) return;
     const wrap = document.createElement('span');
     wrap.className = 'theme-switch';
-    wrap.innerHTML = `<label for="theme-select" class="vh">Colour theme</label>
+    wrap.innerHTML = `<label for="theme-select" class="foot-label">Colour theme</label>
       <select id="theme-select" title="Colour theme">
         <option value="auto">Auto</option><option value="dark">Night</option><option value="light">Day</option>
       </select><span class="vh" id="theme-now" aria-live="polite"></span>`;
@@ -141,18 +141,17 @@ window.OracleChapters = (() => {
     OracleExport.paintPreview(c);
     if (caption) document.getElementById('pv-cap').textContent = caption;
   }
-  // ── footer (Start, Artwork, Extras): Sources · Extras · theme ──────────────
+  // ── footer (Start, Artwork, Extras): Sources · Forget everything · theme, one per row ──
   function buildFooter() {
     const foot = document.getElementById('sitefoot');
     const btn = document.createElement('button');
     btn.type = 'button'; btn.id = 'btn-sources'; btn.className = 'foot-btn';
     btn.textContent = 'Sources'; btn.setAttribute('aria-haspopup', 'dialog');
     btn.onclick = () => OracleEvidenceSheet.openSources(null, btn);
-    const ex = document.createElement('a'); ex.href = '#extras'; ex.className = 'foot-btn'; ex.id = 'foot-extras'; ex.textContent = 'Extras';
-    foot.prepend(btn); btn.after(ex);
+    foot.prepend(btn); // v6 WP5: vertical list — Sources, Forget everything, theme; the duplicate Extras is gone
     const fg = document.createElement('button'); fg.type = 'button'; fg.id = 'foot-forget'; fg.className = 'foot-btn'; fg.textContent = 'Forget everything';
     fg.onclick = () => { forgetEverything(); render(); const n = document.querySelector('#sitefoot .foot-note'); if (n) n.textContent = 'Forgotten. Permissions you granted stay until you reset them in site settings.'; };
-    ex.after(fg);
+    btn.after(fg);
   }
   // v5: one Forget everything (footer, Device step, Options): readings, salt, share mode, Remember, every oracle.* key,
   // the device part of the address. Answers stay in memory (they are never stored); Start over clears them.
