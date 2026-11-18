@@ -6,7 +6,8 @@ window.OracleChapters = (() => {
   const registry = {};
   const reduceMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Visitor choices that drive simulations + artwork. Abstract values only — never sensor readings.
+  // Visitor choices that drive the artwork. v5 rule: your choices, and if you allow it your device's readings, shape the
+  // artwork in this tab; readings never leave the tab (only an opt-in salted digest + three coarse buckets may).
   // v4: the initial values come from core/state.js (same field names as v2, so links and art read the same values).
   state.v2 = (() => { const i = OracleState.initial(); return { engine: i.engine, offers: i.offers, footprint: i.footprint, footprintEdited: i.footprintEdited, feed: i.feed, ex: i.ex, lab: i.lab, seed: i.seed, format: i.format, title: i.title, fromUrl: i.fromUrl }; })();
 
@@ -45,7 +46,8 @@ window.OracleChapters = (() => {
       return route;
     }
     const S = OracleRouter.byRoute(route);
-    if (S && !['art', 'portrait'].includes(S.id)) return S.id;
+    if (S && OracleRouter.ALIASES[route]) history.replaceState(null, '', '#' + S.route);
+    if (S && S.id !== 'art') return S.id;
     return 'approach';
   }
 

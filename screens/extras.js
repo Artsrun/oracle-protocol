@@ -1,4 +1,4 @@
-/* v4 Extras — optional, after the artwork: the live sensor demo (v1.2, restyled) and the sources.
+/* v4 Extras — optional, after the artwork: the sources (v5: the sensor demo is retired; readings live in step 3).
  * Nothing here feeds the artwork. */
 (() => {
   const E = OracleEvidence;
@@ -8,9 +8,9 @@
       <header class="screen-head"><h1 tabindex="-1">Extras</h1><p class="lead">Optional. Nothing here changes your artwork.</p></header>
       <div class="extras-list">
         <section class="story-card">
-          <h2 class="card-title">Sensor demo</h2>
-          <p>See what this browser can expose, one permission at a time. Readings stay in this tab and are gone when you close it.</p>
-          <p><button type="button" class="btn-quiet" id="ex-sensors">Open the sensor demo</button></p>
+          <h2 class="card-title">Your device</h2>
+          <p>What this browser shares, and the ring it draws, are in step 3. Readings stay in this tab.</p>
+          <p><button type="button" class="btn-quiet" id="ex-device" data-goto="device">Device step</button></p>
         </section>
         <section class="story-card">
           <h2 class="card-title">Sources</h2>
@@ -19,7 +19,6 @@
         </section>
       </div>
     </div>`;
-    document.getElementById('ex-sensors').onclick = () => OracleChapters.go('permissions', { hash: '#sensors' });
     document.getElementById('ex-sources').onclick = (e) => OracleEvidenceSheet.openSources(null, e.currentTarget);
     document.getElementById('ex-who').onclick = (e) => OracleEvidenceSheet.openWho(e.currentTarget);
   });

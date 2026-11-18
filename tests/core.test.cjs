@@ -100,7 +100,7 @@ test('router: one ordered list drives the flow and the 6-step progress (v5: Devi
   assert.equal(R.prev('offer'), 'approach');
   assert.equal(R.progress('loop').step, 5);
   assert.equal(R.progress('loop').total, 6);
-  assert.equal(R.byRoute('sensors').id, 'permissions');
+  assert.equal(R.byRoute('sensors').id, 'device'); assert.equal(R.byRoute('protocol').id, 'device'); assert.equal(R.byRoute('portrait').id, 'device');
   const ids = R.SCREENS.map(s => s.id); assert.equal(new Set(ids).size, ids.length, 'unique ids');
 });
 

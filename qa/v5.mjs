@@ -278,20 +278,8 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await page.goto(BASE + '#revelation'); await page.reload(); await settle(page, 600);
   await page.click('#app [data-goto=extras]'); await settle(page, 300);
   check('WP9 Extras is reached from the artwork (after it, optional)', await page.evaluate(() => state.stage) === 'extras');
-  await page.click('#ex-sensors'); await settle(page, 400);
-  const d = await page.evaluate(() => ({ stage: state.stage, hash: location.hash, rows: document.querySelectorAll('.perm-row').length, badges: [...document.querySelectorAll('.perm-badge')].map(b => b.textContent),
-    emoji: /\p{Extended_Pictographic}/u.test(document.getElementById('app').innerText),
-    small: Math.min(...[...document.querySelectorAll('#app *')].filter(el => [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && el.getClientRects().length).map(el => parseFloat(getComputedStyle(el).fontSize))) }));
-  check('WP9 sensor demo: 11 rows, all TAP before asking, no emoji, no text under 12 px', d.stage === 'permissions' && d.hash === '#sensors' && d.rows === 11 && d.badges.every(b => b === 'TAP') && !d.emoji && d.small >= 12, d);
-  await page.click('[data-perm=geo]'); await settle(page, 1500);
-  const geo = await page.$eval('[data-perm=geo] .perm-badge', b => b.textContent);
-  check('WP9 location without permission reads DENIED (refused), never LIVE', geo === 'DENIED', geo);
-  await page.click('[data-perm=gpu]'); await settle(page, 600);
-  const gpu = await page.$eval('[data-perm=gpu] .perm-badge', b => b.textContent);
-  check('WP9 a passive read shows OK (LIVE is reserved for real sensor events)', gpu === 'OK' || gpu === 'UNAVAILABLE', gpu);
-  await page.click('#btn-portrait'); await settle(page, 400);
-  check('WP9 portrait opens and leads back to Extras', await page.evaluate(() => state.stage === 'portrait' && !!document.getElementById('btn-continue-machine')));
-  await page.click('#btn-continue-machine'); await settle(page, 300);
+  const ex = await page.evaluate(() => ({ device: !!document.getElementById('ex-device'), demo: !!document.getElementById('ex-sensors') }));
+  check('v5 WP9 Extras: the sensor demo is retired; a Device step link and Sources remain', ex.device && !ex.demo, ex);
   await page.click('#ex-sources'); await settle(page, 300);
   const src = await page.evaluate(() => ({ n: document.querySelectorAll('#sheet .source-list li').length, total: OracleEvidence.SOURCES.length, legend: document.querySelectorAll('#sheet .legend .prov').length }));
   check('WP9 Sources open in the sheet: every source plus the four label meanings', src.n === src.total && src.legend === 4, src);
@@ -302,12 +290,14 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   check('WP9 the hidden Exchange simulator is gone (?simulator=1 shows no sliders)', await page.evaluate(() => !document.querySelector('input[type=range]') && !document.getElementById('exsim-title')));
   check('WP9 no legacy chapter scripts are loaded', await page.evaluate(() => ![...document.scripts].some(s => /chapters\//.test(s.src))));
   await ctx.close();
-  const ctx2 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, permissions: ['geolocation'], geolocation: { latitude: 40.18, longitude: 44.51 } });
-  const p2 = await ctx2.newPage(); instrument(p2, 'wp9-granted');
-  await p2.goto(BASE + '#sensors'); await p2.reload(); await settle(p2, 300);
-  await p2.click('[data-perm=geo]'); await settle(p2, 1500);
-  const g2 = await p2.evaluate(() => ({ b: document.querySelector('[data-perm=geo] .perm-badge').textContent, v: (document.getElementById('pval-geo') || {}).textContent, stored: JSON.stringify(localStorage).includes('40.18') }));
-  check('WP9 granted location reads OK, is shown only on the page and is never stored', g2.b === 'OK' && /40\.18/.test(g2.v || '') && !g2.stored, g2);
+  const ctx2 = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 } });
+  const p2 = await ctx2.newPage(); instrument(p2, 'v5-wp9-routes');
+  const routes = {};
+  for (const r of ['sensors', 'protocol', 'portrait']) { await p2.goto(BASE + '#' + r); await p2.reload(); await settle(p2, 400); routes[r] = await p2.evaluate(() => [state.stage, location.hash, !!document.getElementById('dev-show') || !!document.getElementById('dev-next')]); }
+  check('v5 WP9 old demo routes (#sensors, #protocol, #portrait) open the Device step and rewrite the address to #device', Object.values(routes).every(r => r[0] === 'device' && r[1] === '#device' && r[2]), routes);
+  const gone = await p2.evaluate(() => ({ scripts: [...document.scripts].map(x => x.src).filter(x => /app-vitals/.test(x)), fns: ['connectCrypto', 'doBioAuth', 'getCameraInfo', 'harvestBase', 'renderPermissions', 'renderHandshake', 'getMicEnergy'].filter(f => typeof window[f] !== 'undefined' || (() => { try { return typeof eval(f) !== 'undefined'; } catch (e) { return false; } })()) }));
+  check('v5 WP9 retired code is gone: no app-vitals.js, no wallet, passkey creation, camera or demo readers', !gone.scripts.length && !gone.fns.length, gone);
+  await ctx2.close();
   await ctx2.close();
 }
 
@@ -386,26 +376,9 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
     ts.sort((a, b) => a - b); return +ts[7].toFixed(1); });
   check('WP10 preview redraw at maximum density (216×270, layered engine): median under 50 ms (desktop CPU, not a phone)', perf < 50, perf);
   await fc.close();
-  // sensor demo: identity step, sensors this device lacks, keyboard rows, settling
-  const sc = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 860 } });
-  const sp = await sc.newPage(); instrument(sp, 'wp10-demo');
-  await sp.goto(BASE + '#protocol'); await sp.reload(); await settle(sp, 400);
-  const deep = await sp.isVisible('#btn-crypto');
-  await sp.click('#btn-crypto'); await settle(sp, 500);
-  check('WP10 #protocol opens the optional identity step; an anonymous ID links without a wallet', deep && /Linked/.test(await sp.textContent('.auth-card')));
-  await sp.goto(BASE + '#sensors'); await settle(sp, 400);
-  for (const id of ['orient', 'shake']) { await sp.click(`[data-perm="${id}"]`); await settle(sp, 1600); }
-  const bd = await sp.$$eval('.perm-item', els => els.map(e => [e.dataset.perm, e.querySelector('.perm-badge').textContent]));
-  check('WP10 sensors this device lacks read UNAVAILABLE, never LIVE (orientation, shake)', ['orient', 'shake'].every(id => bd.find(b => b[0] === id)?.[1] === 'UNAVAILABLE') && !bd.some(b => b[1] === 'LIVE'), bd);
-  await sp.focus('[data-perm="gpu"]'); await sp.keyboard.press('Enter'); await settle(sp, 500);
-  check('WP10 sensor rows are native buttons that work with Enter', await sp.$eval('[data-perm="gpu"]', e => e.tagName === 'BUTTON' && e.tabIndex === 0 && /OK/.test(e.textContent)));
-  await settle(sp, 3000);
-  const inf = await sp.evaluate(() => document.getAnimations().filter(a => a.playState === 'running').map(a => a.animationName));
-  check('WP10 after reading sensors every animation settles; re-render does not replay earlier rows', !inf.length && await sp.evaluate(() => !document.querySelector('[data-perm="orient"]').closest('.just')), inf);
-  await sc.close();
 }
 
-// ── v5 WP1: core/device.js loaded, consent-gated; dead getGeo gone; mic level labelled correctly ──
+// ── v5 WP1: core/device.js loaded, consent-gated; dead getGeo gone (the mic level is checked with the Device step, WP5) ──
 {
   const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   await ctx.addInitScript(FX.install, FX.PROFILES.pixel);
@@ -414,10 +387,6 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   const g = await page.evaluate(async () => { let refused = false; try { await OracleDevice.readPassive(); } catch (e) { refused = /Show me/.test(e.message); }
     return { loaded: typeof OracleDevice === 'object', refused, getGeo: typeof getGeo, snap: OracleDevice.snapshot() }; });
   check('v5 WP1 core/device.js is loaded and refuses passive reads before Show me; nothing read at load', g.loaded && g.refused && g.getGeo === 'undefined' && g.snap.passive === null, g);
-  await page.goto(BASE + '#sensors'); await settle(page, 300);
-  await page.click('[data-perm=mic]'); await settle(page, 2600);
-  const mic = await page.evaluate(() => ({ b: document.querySelector('[data-perm=mic] .perm-badge').textContent, v: (document.getElementById('pval-mic') || {}).textContent || '', stopped: window.__micStopped || 0 }));
-  check('v5 WP1 microphone level reads in dBFS with a quiet/room/loud bucket (no "hz avg"); the track is stopped', mic.b === 'OK' && /^-?\d+ dBFS \((quiet|room|loud)\)$/.test(mic.v) && !/hz/i.test(mic.v) && mic.stopped >= 1, mic);
   await ctx.close();
 }
 

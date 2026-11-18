@@ -62,6 +62,7 @@ Mapping (handover §8 table):
 
 * **Seed**: `ORACLE-XXXX-XXXX` from `crypto.getRandomValues` (Crockford base32). Never derived from device data.
 * **URL / metadata** contain only seed + abstract parameters. Raw sensor readings, location, device ids: never.
+  *(Superseded in v5 — see docs/PLAN-v5.md §7: "Your choices, and if you allow it your device's readings, shape the artwork in this tab. Readings never leave the tab. A shared image or link carries your choices only, unless you choose to add your device pattern: a salted one-way digest and three coarse buckets that cannot be turned back into readings." Raw readings still never appear in a URL or metadata.)*
 * **Exports**: 1080×1350 portrait, 1080×1920 story, 1080×1080 square, 2160×2700 high-res PNG. Optional animated
   export: **not implemented** (limitation, see QA).
 * Overlay: optional editorial title, small "ORACLE PROTOCOL" signature, seed + composition id, 1–2 line interpretation

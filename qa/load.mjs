@@ -9,9 +9,10 @@ const BASE = process.env.BASE || 'http://127.0.0.1:8765/oracle-protocol/';
 const OUT = process.env.OUT || '/tmp/oracle-load';
 const SCHEME = process.env.COLOR_SCHEME === 'light' ? 'light' : 'dark';
 const FIXED = 's=ORACLE-7K3F-Q9ZD&o=21&f=77&d=80&c=40&p=70&y=60&x=65&i=55&e=75&r=60&t=50&k=60&a=70&n=4';
-const SCREENS = [['00-approach', ''], ['01-offer', '#offer'], ['02-extraction', '#extraction'], ['03-machine', '#machine'],
-  ['04-loop', '#loop'], ['04b-reveal', '#reveal'], ['05-revelation', `#revelation?${FIXED}&fmt=portrait`], ['06-extras', '#extras'],
-  ['02b-sensors', '#sensors']];
+// v5: the Device step (03a ask, 03b readout, 03c first permission card); the retired sensor demo is gone.
+const SCREENS = [['00-approach', ''], ['01-offer', '#offer'], ['02-extraction', '#extraction'], ['03a-device', '#device'],
+  ['03b-device-readout', '#device', ['#dev-show']], ['03c-device-card', '#device', ['#dev-show', '#dev-next']], ['04-machine', '#machine'],
+  ['05-loop', '#loop'], ['06a-reveal', '#reveal'], ['06b-revelation', `#revelation?${FIXED}&fmt=portrait`], ['07-extras', '#extras']];
 const VIEWS = [['mobile', { width: 390, height: 844 }], ['desktop', { width: 1280, height: 860 }]];
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -66,9 +67,10 @@ const res = {};
 for (const [view, viewport] of VIEWS) {
   const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, reducedMotion: 'reduce', colorScheme: SCHEME });
   const page = await ctx.newPage();
-  for (const [name, hash] of SCREENS) {
+  for (const [name, hash, clicks] of SCREENS) {
     await page.goto(BASE + hash); await page.reload();
     await page.evaluate(() => document.fonts.ready); await page.waitForTimeout(400);
+    for (const c of clicks || []) { await page.click(c); await page.waitForTimeout(c === '#dev-show' ? 1500 : 400); }
     res[`${name} ${view}`] = await page.evaluate(measure);
     await page.screenshot({ path: `${OUT}/${name}-${view}-fold.png` });
     await page.screenshot({ path: `${OUT}/${name}-${view}.png`, fullPage: true });
@@ -88,12 +90,16 @@ const walk = async (full) => {
   await tap('#btn-begin'); await read('trade');
   await tap('label[for=offer-0]', 1); await tap('label[for=offer-2]', 1); await tap('[data-goto=extraction]'); await read('footprint');
   decisions++; // reading the pre-ticked footprint and accepting it is one decision
-  await tap('[data-goto=machine]'); await read('loop card 1');
+  await tap('[data-goto=device]'); await read('device ask');
+  if (full) { await tap('#dev-show', 1); await p.waitForTimeout(1500); await read('device readout'); await tap('#dev-next');
+    for (const c of ['tilt', 'location', 'mic']) { await read('device card ' + c); await tap('#perm-skip', 1); } }
+  else await tap('#dev-skip', 1);
+  await read('loop card 1');
   if (full) { for (let i = 2; i <= 7; i++) { await tap('#card-next'); await read('loop card ' + i); } await tap('#card-next'); }
   else await tap('#card-skip');
   await read('feed'); await tap('label.radio-card', 1);
   await tap('.v4s .btn-primary[data-goto]'); await read('reveal card 1');
-  if (full) { for (let i = 2; i <= 5; i++) { await tap('#card-next'); await read('reveal card ' + i); } await tap('#card-next'); }
+  if (full) { for (let i = 2; i <= 6; i++) { await tap('#card-next'); await read('reveal card ' + i); } await tap('#card-next'); }
   else await tap('#card-skip');
   await read('artwork');
   const onArt = await p.evaluate(() => location.hash.startsWith('#revelation') || !!document.getElementById('rv-download'));

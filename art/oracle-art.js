@@ -3,6 +3,7 @@
  * Contract
  *   - Inputs are ONLY the seed and abstract composition parameters chosen by the visitor (see KEYS).
  *     No sensor readings, location, device identifiers or personal data are accepted: unknown keys are dropped.
+ *     (v5: the optional fingerprint ring is engine 3, art/fingerprint.js; it takes buckets + a salted digest only.)
  *   - compose(params, aspect) is pure: same (params, aspect) → identical scene (quantized to 1e-4), on any platform.
  *   - render(ctx, scene, w, h, opts) only touches the 2D context it is given.
  *   - No network, no storage, no DOM lookups. Works in Node for tests (compose/hash/encode only).

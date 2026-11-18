@@ -1,6 +1,7 @@
-/* ORACLE PROTOCOL v4 — one store for the visitor's answers.
- * Classic script and CommonJS module (unit-tested in Node). Holds abstract choices only: never sensor readings,
- * never device data. The shape keeps the v2/v3 field names (offers, footprint, ex, lab) so links and the legacy
+/* ORACLE PROTOCOL v4/v5 — one store for the visitor's answers.
+ * Classic script and CommonJS module (unit-tested in Node). Holds abstract choices only, never device data: v5 rule —
+ * your choices, and if you allow it your device's readings, shape the artwork in this tab; readings never leave the tab
+ * and never enter this store (they live in memory in core/device.js; only buckets + a salted digest reach the art). The shape keeps the v2/v3 field names (offers, footprint, ex, lab) so links and the legacy
  * art engine read the same values.
  *   OracleState.create()              → store { get, dispatch(action), subscribe(fn) }
  *   OracleState.reduce(state, action) → new state (pure)

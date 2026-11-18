@@ -83,7 +83,7 @@
   }
 
   function askBody() {
-    return `<p class="small">Optional. Skip and your artwork gets a plain ring.</p>`;
+    return `<p class="small">Optional. Skip for a plain ring.</p>`;
   }
   // WP8: say plainly when the browser is protecting the visitor (Brave), or simply not sharing (Safari, Firefox).
   function browserNote(R) {

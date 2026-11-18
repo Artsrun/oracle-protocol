@@ -41,6 +41,8 @@ These six items are re-run against v2 (see QA.md).
 
 ## 4. Privacy findings
 
+> **v5 note (2026-11-18):** the privacy rule changed with the owner's approval of docs/PLAN-v5.md: "Your choices, and if you allow it your device's readings, shape the artwork in this tab. Readings never leave the tab. A shared image or link carries your choices only, unless you choose to add your device pattern: a salted one-way digest and three coarse buckets that cannot be turned back into readings." The v1.2 sensor demo, wallet, passkey creation and camera reading described below were retired in v5 WP9.
+
 | # | Finding | Severity | v2 action |
 |---|---|---|---|
 | P1 | Google Fonts loaded from `fonts.googleapis.com`/`fonts.gstatic.com` — 6 third-party requests on every load (baseline run). Exposes visitor IP + Referer to a third party. Not a personal *sensor* signal, but it contradicts "zero server". | Medium | Self-host the latin subsets (OFL 1.1) under `fonts/`. |
