@@ -164,7 +164,7 @@
   }
   const optionsHtml = (p, id, fmt, hist) => `
     <h3>Format</h3>
-    <div class="radio-cards compact">${Object.entries(A.FORMATS).map(([k, f]) => `<label class="radio-card${k === fmt ? ' on' : ''}"><input type="radio" name="rv-fmt" value="${k}"${k === fmt ? ' checked' : ''}><span class="rc-text"><span class="row-title">${f.label}</span><span class="row-sub">${f.w}\u00d7${f.h}</span></span></label>`).join('')}</div>
+    <div class="radio-cards compact">${Object.entries(A.FORMATS).map(([k, f]) => `<label class="radio-card${k === fmt ? ' on' : ''}"><input type="radio" name="rv-fmt" value="${k}"${k === fmt ? ' checked' : ''}><span class="rc-text"><span class="row-title">${f.label.replace(/\s*\d+\u00d7\d+$/, '')}</span><span class="row-sub">${f.w}\u00d7${f.h}</span></span></label>`).join('')}</div>
     <label class="opt-check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}> Title on the image</label>
     <div class="opt-row"><button type="button" class="btn-quiet" id="rv-link">Copy link</button><button type="button" class="btn-quiet" id="rv-copy">Copy caption</button><button type="button" class="btn-quiet" id="rv-clean">Clean view</button></div>
     <h3>Seed</h3>

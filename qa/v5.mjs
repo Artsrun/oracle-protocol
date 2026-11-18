@@ -448,7 +448,7 @@ for (const prof of ['pixel', 'missing', 'brave']) {
     show: !!document.getElementById('dev-show'), skip: !!document.getElementById('dev-skip'), read: OracleDevice.snapshot().passive, ring: OracleFingerprint.context().mode }));
   const askW = await copyWords();
   if (prof === 'pixel') {
-    check('v5 WP4 3a: step 3 of 6, Show me + Skip, ≤60 words, nothing read yet, ring withheld', ask.stage === 'device' && ask.now === 3 && ask.total === 6 && ask.show && ask.skip && ask.read === null && ask.ring === 'none' && askW <= 60, { ask, askW });
+    check('v5 WP4 3a: step 3 of 6, Show me + Skip, ≤40 words (v6 WP4), nothing read yet, ring withheld', ask.stage === 'device' && ask.now === 3 && ask.total === 6 && ask.show && ask.skip && ask.read === null && ask.ring === 'none' && askW <= 40, { ask, askW });
     const a1 = await axe(page, 'v5-device-ask'); check('v5 WP4 3a axe 0', !a1.length, a1);
     await page.click('#dev-skip'); await settle(page, 400);
     check('v5 WP4 Skip goes straight to Loop in one tap; nothing read; ring stays withheld', await page.evaluate(() => state.stage === 'machine' && OracleDevice.snapshot().passive === null && OracleFingerprint.context().mode === 'none'));

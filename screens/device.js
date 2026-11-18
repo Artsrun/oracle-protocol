@@ -8,7 +8,7 @@
   let sub = 'ask', busy = false, result = null; // result: the last card's answer, shown once, never stored
   const CARDS = ['tilt', 'loc', 'mic'];
   const CARD = {
-    tilt: { title: 'Let the artwork follow your phone?', lead: 'It moves as you hold your phone, only while you\u2019re on this screen. Not saved.' },
+    tilt: { title: 'Let the artwork follow your phone?', lead: 'The art follows your phone, only on this screen. Not saved.' },
     loc: { title: 'Use your rough location?', lead: 'We keep only your hemisphere and a 30\u00b0 band, never the exact spot.' },
     mic: { title: 'Listen to the room for 2 seconds?', lead: 'Only how loud it is. Sound is never recorded or saved.' }
   };
@@ -100,7 +100,7 @@
   }
 
   function cardBody(c) {
-    if (!result) return `<p class="small">Optional. Skip it and nothing is asked.</p>`;
+    if (!result) return '';
     const r = result, ok = r.state === 'ok';
     let t = !ok ? NO[r.state] || NO.unavailable
       : c === 'tilt' ? (OracleChapters.reduceMotion() ? 'Allowed. Motion is reduced on this device, so use the slider instead.' : 'Allowed. Tilt your phone: the preview follows. Nothing is kept.')
@@ -133,7 +133,7 @@
     app.innerHTML = U.frame({
       id: 'device',
       title: ask ? 'What does your device say?' : 'Any website could read this',
-      lead: ask ? 'Every website can read things about your device without asking. Want to see what yours says? Nothing leaves this tab.' : `<span id="dev-count">${countRead(passive())} readings</span>, no prompt. None left this tab.`,
+      lead: ask ? 'Websites can read your device without asking. See what yours says? Nothing leaves this tab.' : `<span id="dev-count">${countRead(passive())} readings</span>, no prompt. None left this tab.`,
       caption: ask ? 'Your artwork so far' : FP.describe(FP.context()),
       body: ask ? askBody() : readoutBody(R),
       cta: ask ? `${UI.button(busy ? 'Reading\u2026' : 'Show me', { primary: true, attrs: { id: 'dev-show', disabled: busy } })}${UI.button('Skip', { link: true, attrs: { id: 'dev-skip' } })}`
