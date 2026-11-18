@@ -242,7 +242,11 @@
       status('Rendering ' + A.FORMATS[fmt].label + '\u2026');
       const { blob, w, h } = await exportBlob(p, fmt);
       download(blob, fileName(p, fmt));
-      status(`Saved ${fileName(p, fmt)} (${w}\u00d7${h}, ${(blob.size / 1024).toFixed(0)} KB).`);
+      // v6 WP10 (D8): where this browser can share image files (iOS Safari, Android Chrome), a download lands in
+      // Files/Downloads, so say how to reach Photos. Feature detection only — no user-agent read.
+      let tip = '';
+      try { tip = navigator.canShare && navigator.canShare({ files: [new File([blob], fileName(p, fmt), { type: 'image/png' })] }) ? ' To put it in Photos, use Share \u2192 Save Image.' : ''; } catch (e) { tip = ''; }
+      status(`Saved ${fileName(p, fmt)} (${w}\u00d7${h}, ${(blob.size / 1024).toFixed(0)} KB).${tip}`);
     };
     document.getElementById('rv-share').onclick = async () => {
       const caption = capOf(p, fmt);

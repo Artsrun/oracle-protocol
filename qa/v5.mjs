@@ -214,6 +214,8 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#rv-download')]);
   const f = QA + '/wp7-' + dl.suggestedFilename(); await dl.saveAs(f); const png = readPng(f);
   const p1 = await page.evaluate(() => OracleArt.normalize(OracleChapters.artParams()));
+  await settle(page, 200); const st0 = await page.textContent('#rv-status');
+  check('v6 WP10 Save image where files cannot be shared: no Photos tip', /^Saved /.test(st0) && !/Photos/.test(st0), st0);
   check('WP7 Save image: 1080×1350 PNG whose metadata holds only the seed, answers and v=3 (choices only)', png.w === 1080 && png.h === 1350 && png.texts.Comment.startsWith('oracle:s=' + p1.s) && /&v=3;id=/.test(png.texts.Comment) && !/lat|lng|ua=|gpu/i.test(png.texts.Comment), png.texts);
   const id1 = await page.evaluate(() => OracleFingerprint.compositionId(OracleArt.normalize(OracleChapters.artParams())));
   check('WP7 cross-engine: Node engine-3 compositionId (ring withheld) === browser', Fp.compositionId(p1) === id1, { node: Fp.compositionId(p1), id1 });
@@ -224,6 +226,9 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await page.click('#rv-share'); await page.waitForFunction(() => window.__shared, null, { timeout: 10000 }).catch(() => {});
   const shared = await page.evaluate(() => window.__shared);
   check('WP7 Share native path (stubbed) receives the PNG and a caption without personal data', shared && shared.files[0][1] === 'image/png' && shared.text.includes(p1.s) && /no personal data/.test(shared.text), shared);
+  await Promise.all([page.waitForEvent('download'), page.click('#rv-download')]); await settle(page, 200);
+  const st1 = await page.textContent('#rv-status');
+  check('v6 WP10 Save image where files can be shared (stubbed canShare): one line says Share → Save Image reaches Photos', /Share \u2192 Save Image/.test(st1) || /Share → Save Image/.test(st1), st1);
   await page.click('#rv-options'); await settle(page, 300);
   const opt = await page.evaluate(() => ({ open: document.getElementById('sheet').open, fmts: document.querySelectorAll('#sheet [name=rv-fmt]').length, made: document.querySelectorAll('#sheet .made-from li').length, seed: document.getElementById('seed-line').textContent }));
   check('WP7 Options open in the sheet: 4 formats, title, link, caption, seed, what it was made from', opt.open && opt.fmts === 4 && opt.made === 6 && opt.seed.includes(p1.s), opt);
