@@ -22,7 +22,6 @@
   const pcos = (x) => psin(x + Math.PI / 2);
   const lerp = (a, b, t) => a + (b - a) * t;
   const GPU_ROLE = [1, 2, 0, 2, 1, 0, 2];                     // palette role per GPU class (never 3: red is the shards')
-  const GPU_NAME = ['generic', 'Apple', 'Intel', 'NVIDIA', 'AMD', 'Qualcomm', 'Arm'];
   const DG = /^[0-9a-f]{8}$/, DB = /^[XAINDQR][X0-4][X0-9A-HJKMNP-T]$/;
   const GPU_CODE = 'XAINDQR', CORE_CODE = '01234', TZ_CODE = '0123456789ABCDEFGHJKMNPQRST';
   const WITHHELD = Object.freeze({ mode: 'none' });
@@ -117,7 +116,7 @@
     if (d.mode === 'none') return 'Device ring withheld: dashed circles stand in for it.';
     const K = 3 + (d.db.cores == null ? 0 : d.db.cores), turn = (d.db.tzh == null ? 0 : d.db.tzh) * 15;
     const extra = d.mode === 'full' ? ring(A.normalize({ s: 'ORACLE-0000-0000' }), 1, d).info.details : [];
-    return `Device ring: ${K} ridge loops, turned ${turn}\u00b0` + (d.db.gpu != null && d.db.gpu > 0 ? `, ${GPU_NAME[d.db.gpu]} colour` : '') + (extra.length ? `, ${extra.join(', ')}` : '') + '.';
+    return `Device ring: ${K} ridge loops, turned ${turn}\u00b0`  + (extra.length ? `, ${extra.join(', ')}` : '') + '.';
   }
   const interpret = (p, dev) => L.interpret(p) + ' ' + describe(dev);
   function caption(p, id, link, dev) {

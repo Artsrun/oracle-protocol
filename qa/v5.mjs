@@ -200,11 +200,11 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await page.click('label.radio-card:has([value=foryou])'); await settle(page, 150);
   await tap('[data-goto=reveal]');
   const cards = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 6; i++) {
     cards.push(await page.evaluate(() => ({ t: document.getElementById('card-title').textContent, w: (document.getElementById('card-title').textContent.match(/[A-Za-z0-9'’]+/g) || []).length })));
-    if (i < 4) { await page.click('#card-next'); await settle(page, 150); }
+    if (i < 5) { await page.click('#card-next'); await settle(page, 150); }
   }
-  check('WP7 Reveal: five cards, ≤12 words each, naming what the answers drew', cards.length === 5 && cards.every(c => c.w <= 12) && /2 red shards/.test(cards[0].t) && /For you/.test(cards[3].t), cards);
+  check('WP7 Reveal (v5): six cards, ≤12 words each, naming what the answers drew; the sixth says the ring is plain (Device skipped)', cards.length === 6 && cards.every(c => c.w <= 12) && /2 red shards/.test(cards[0].t) && /For you/.test(cards[3].t) && /plain ring/i.test(cards[5].t), cards);
   await page.click('#card-next'); await settle(page, 900);
   check('WP7 shortest path from Start to the artwork is ≤7 taps (v5: Begin, Next, Next, Skip device, Skip, See your artwork, Skip/Next)', taps + 1 <= 7, taps + 1);
   const art = await page.evaluate(() => ({ stage: state.stage, hash: location.hash, w: (document.getElementById('app').innerText.match(/[A-Za-z0-9'’]+/g) || []).length, primaries: document.querySelectorAll('#app .btn-primary').length,
@@ -225,7 +225,7 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   check('WP7 Share native path (stubbed) receives the PNG and a caption without personal data', shared && shared.files[0][1] === 'image/png' && shared.text.includes(p1.s) && /no personal data/.test(shared.text), shared);
   await page.click('#rv-options'); await settle(page, 300);
   const opt = await page.evaluate(() => ({ open: document.getElementById('sheet').open, fmts: document.querySelectorAll('#sheet [name=rv-fmt]').length, made: document.querySelectorAll('#sheet .made-from li').length, seed: document.getElementById('seed-line').textContent }));
-  check('WP7 Options open in the sheet: 4 formats, title, link, caption, seed, what it was made from', opt.open && opt.fmts === 4 && opt.made === 5 && opt.seed.includes(p1.s), opt);
+  check('WP7 Options open in the sheet: 4 formats, title, link, caption, seed, what it was made from', opt.open && opt.fmts === 4 && opt.made === 6 && opt.seed.includes(p1.s), opt);
   await page.click('label.radio-card:has([value=story])'); await settle(page, 600);
   const story = await page.evaluate(() => ({ fmt: state.v2.format, open: document.getElementById('sheet').open, hash: location.hash }));
   check('WP7 changing the format keeps the sheet open and updates the link', story.fmt === 'story' && story.open && /fmt=story/.test(story.hash), story);
@@ -575,6 +575,64 @@ for (const prof of ['pixel', 'brave']) {
     check('v5 WP6 comparison links open a new tab with noopener noreferrer', r.links.length === 2 && r.links.every(l => /noopener/.test(l[1]) && /noreferrer/.test(l[1]) && l[2] === '_blank'), r.links);
     const a = await axe(page, 'v5-identifying'); check('v5 WP6 sheet axe 0', !a.length, a);
   } else check('v5 WP6 Brave-like: the count says some answers were blurred on purpose', /blurred \d+ on purpose/.test(r.t), r.t);
+  await ctx.close();
+}
+
+// ── v5 WP7: Reveal ring card, share modes, Remember, Forget, v=3 links, PNG metadata, history, caption ──
+{
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce', acceptDownloads: true, timezoneId: 'Asia/Kathmandu' });
+  await ctx.addInitScript(FX.install, FX.PROFILES.pixel);
+  await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(BASE).origin });
+  const page = await ctx.newPage(); instrument(page, 'v5-wp7');
+  const SENT = FX.SENTINELS(FX.PROFILES.pixel);
+  const scan = (txt) => SENT.filter(x => String(txt).includes(x));
+  const savePng = async (tag) => { const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#rv-download')]); const f = QA + `/v5-wp7-${tag}.png`; await dl.saveAs(f); await settle(page, 300); return readPng(f); };
+  await page.goto(BASE); await page.reload(); await settle(page, 300);
+  await page.click('#btn-begin'); await page.click('label[for=offer-0]'); await page.click('[data-goto=extraction]'); await page.click('[data-goto=device]'); await settle(page, 300);
+  await page.click('#dev-show'); await page.waitForSelector('#dev-next'); await page.click('#dev-next'); await settle(page, 200);
+  await page.click('#perm-skip'); await settle(page, 150);
+  await page.click('#perm-allow'); await page.waitForSelector('#perm-next'); await page.click('#perm-next'); await settle(page, 150); // location
+  await page.click('#perm-skip'); await settle(page, 250);
+  await page.click('#card-skip'); await settle(page, 200); await page.click('label.radio-card:has([value=foryou])'); await page.click('[data-goto=reveal]'); await settle(page, 300);
+  for (let i = 0; i < 5; i++) { await page.click('#card-next'); await settle(page, 120); }
+  const ring = await page.evaluate(() => document.getElementById('card-title').textContent);
+  check('v5 WP7 Reveal sixth card: "The fingerprint ring: N readings from this device."', /^The fingerprint ring: \d+ readings from this device\.$/.test(ring), ring);
+  await page.click('#card-next'); await settle(page, 900);
+  const a = await page.evaluate(() => ({ hash: location.hash, mode: (document.getElementById('rv-mode') || {}).textContent, w: (document.getElementById('app').innerText.match(/[A-Za-z0-9'’]+/g) || []).length }));
+  check('v5 WP7 default Choices only: link has v=3 and no device part; the lead says so; Artwork ≤30 words with the mode line', a.w <= 30 && /&v=3(&|$)/.test(a.hash) && !/dg=|db=/.test(a.hash) && /Image and link: choices only\./.test(a.mode), a);
+  const png1 = await savePng('choices');
+  check('v5 WP7 Choices only PNG: metadata has no dg/db and no raw value', /&v=3;id=/.test(png1.texts.Comment) && !/dg=|db=/.test(png1.texts.Comment) && !scan(JSON.stringify(png1.texts)).length, png1.texts);
+  await page.click('#rv-options'); await settle(page, 300);
+  const o = await page.evaluate(() => ({ radios: [...document.querySelectorAll('[name=rv-share-mode]')].map(r => [r.value, r.checked]), rem: document.getElementById('rv-remember').checked, made: [...document.querySelectorAll('.made-from li span')].map(x => x.textContent).pop() }));
+  check('v5 WP7 Options: share mode radios default to Choices only; Remember off; made-from lists the ring', JSON.stringify(o.radios) === '[["choices",true],["pattern",false]]' && o.rem === false && /ridge loops/.test(o.made), o);
+  const axo = await axe(page, 'v5-options-share'); check('v5 WP7 Options sheet axe 0 with share controls', !axo.length, axo);
+  await page.click('label.radio-card:has([value=pattern])'); await settle(page, 600);
+  const pm = await page.evaluate(() => ({ hash: location.hash, cap: document.getElementById('rv-caption').value }));
+  check('v5 WP7 Choices + device pattern: link adds only &dg=8hex&db=3 chars; caption says "salted device pattern"', /&v=3&dg=[0-9a-f]{8}&db=[XAINDQR][X0-4][X0-9A-HJKMNP-T](&|$)/.test(pm.hash) && /salted device pattern/.test(pm.cap) && !scan(pm.hash + pm.cap).length, pm);
+  await page.keyboard.press('Escape'); await settle(page, 200);
+  const png2 = await savePng('pattern');
+  check('v5 WP7 pattern PNG: metadata carries dg + db only; no raw value, no coordinates', /&v=3&dg=[0-9a-f]{8}&db=[A-Z0-9]{3};id=/.test(png2.texts.Comment) && !scan(JSON.stringify(png2.texts)).length && !/40\.1|44\.5/.test(png2.texts.Comment), png2.texts);
+  const st = await page.evaluate(() => ({ ls: JSON.stringify(localStorage), ss: JSON.stringify(sessionStorage), hist: localStorage.getItem('oracle.v2.history') }));
+  check('v5 WP7 history keeps choices-only links; storage holds no raw value', st.hist && !/dg=|db=/.test(st.hist) && !scan(st.ls + st.ss).length, st);
+  // a pattern link redraws the same ring in a fresh browser (no readings there)
+  const link = 'revelation?' + pm.hash.split('?')[1];
+  const fc = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 } }); const fp = await fc.newPage(); instrument(fp, 'v5-wp7-fresh');
+  const idA = await page.evaluate(() => OracleEngine.get(3).compositionId(OracleArt.normalize(OracleChapters.artParams()), OracleFingerprint.toPattern(OracleFingerprint.context())));
+  await fp.goto(BASE + '#' + link); await settle(fp, 700);
+  const idB = await fp.evaluate(() => OracleEngine.get(state.v2.engine).compositionId(OracleArt.normalize(OracleChapters.artParams())));
+  check('v5 WP7 a pattern link redraws the same composition in a fresh browser with no readings', idA === idB, { idA, idB });
+  await fc.close();
+  // Remember this device: stores the salt only
+  await page.click('#rv-options'); await settle(page, 300); await page.click('#rv-remember'); await settle(page, 600);
+  const rm = await page.evaluate(() => Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith('oracle.')).map(k => [k, localStorage.getItem(k).slice(0, 60)])));
+  check('v5 WP7 Remember this device stores only a 128-bit salt (oracle.v5.salt), nothing read from the device', /^[0-9a-f]{32}$/.test(rm['oracle.v5.salt'] || '') && !scan(JSON.stringify(rm)).length, rm);
+  await page.click('#rv-forget'); await settle(page, 600);
+  const fg = await page.evaluate(() => ({ keys: Object.keys(localStorage).filter(k => k.startsWith('oracle.')), ss: Object.keys(sessionStorage).filter(k => k.startsWith('oracle.')), hash: location.hash, ring: OracleFingerprint.context().mode, snap: OracleDevice.snapshot(), share: OraclePrivacy.share(), rem: OraclePrivacy.remember() }));
+  check('v5 WP7 Forget everything (Options): readings, salt, share mode, Remember, every oracle.* key and the link\'s device part gone', !fg.keys.length && !fg.ss.length && !/dg=|db=/.test(fg.hash) && fg.ring === 'none' && fg.snap.passive === null && fg.share === 'choices' && !fg.rem, fg);
+  await page.keyboard.press('Escape');
+  await page.goto(BASE); await settle(page, 400);
+  const ff = await page.evaluate(() => !!document.getElementById('foot-forget'));
+  check('v5 WP7 Forget everything is also in the footer', ff);
   await ctx.close();
 }
 

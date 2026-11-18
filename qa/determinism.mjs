@@ -20,9 +20,10 @@ const FIXTURES = {
   'v5 ring withheld': { q: FIXED + '&v=3', expect: {
     dark: { portrait: '71c09e2d8498', story: '49ac54ab1890', square: '68267f567074', hires: '96c7fca175e0' },
     light: { portrait: '83e3b730e7a6', story: 'ebc72f4f8028', square: '4f7c3959e8c7', hires: 'a010a31acb5e' } } },
+  // reference re-recorded at WP7 (the overlay text no longer names the GPU family; v3 was not yet released)
   'v5 ring pattern': { q: FIXED + '&v=3&dg=1a2b3c4d&db=N2M', expect: {
-    dark: { portrait: '5b95d5f5bfe1', story: '776109f6ee74', square: '482773955eb6', hires: '2acbd2f2a97c' },
-    light: { portrait: '0b311f2dba28', story: '86d359b5f9af', square: '03f333720ccc', hires: '1b124c3188b1' } } }
+    dark: { portrait: 'bb9eae303bae', story: '020faecf403a', square: '3a9d93d96d62', hires: 'f08c02b0b537' },
+    light: { portrait: 'ca68d63307a5', story: '400f676a89cc', square: '3d2901ea6efb', hires: 'c03e6f8c0dc2' } } }
   // @@V5_FIXTURES@@
 };
 const b = await chromium.launch({ executablePath: process.env.CHROME || '/usr/bin/google-chrome', args: ['--no-sandbox'] });

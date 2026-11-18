@@ -20,8 +20,17 @@
     return FP().WITHHELD;
   };
   const devPart = (d) => d && d.mode === 'pattern' ? `&dg=${d.dg}&db=${OraclePrivacy.dbCode(d.db)}` : '';
-  const enc = (p) => A.encode(p) + E().q + devPart(devOut());
-  const capOf = (p, fmt) => { const d = devOut(); return E().caption(p, E().compositionId(p, d), shareLink(p, fmt), d); };
+  // Runtime guard: nothing written to a link, file or caption may contain a raw reading (core/privacy.js findRaw).
+  const clean = (text) => !(window.OraclePrivacy && window.OracleDevice && OraclePrivacy.findRaw(text, OracleDevice.snapshot()).length);
+  const enc = (p) => { const out = A.encode(p) + E().q + devPart(devOut()); return clean(out) ? out : A.encode(p) + E().q; };
+  // The lead under the artwork says what made it and what a saved image or link carries (PLAN-v5 §18.5).
+  const leadText = () => {
+    const c = E().v === 3 ? FP().context() : { mode: 'none' };
+    if (c.mode === 'pattern') return 'Made from the link\u2019s answers and device pattern.';
+    if (c.mode !== 'full') return 'Made only from your answers. Nothing left this tab.';
+    return devOut().mode === 'pattern' ? 'Made from your answers and this device. Image and link add your device pattern.' : 'Made from your answers and this device. Image and link: choices only.';
+  };
+  const capOf = (p, fmt) => { const d = devOut(), c = E().caption(p, E().compositionId(p, d), shareLink(p, fmt), d); return clean(c) ? c : E().caption(p, E().compositionId(p, d), '', FP() ? FP().WITHHELD : d); };
   const encChoices = (p) => A.encode(p) + E().q; // history keeps choices only (PLAN-v5 §18.3)
   const ensureSeed = () => { if (!state.v2.seed) state.v2.seed = A.newSeed(); };
   const params = () => A.normalize(OracleChapters.artParams());
@@ -88,6 +97,7 @@
     const buf = new Uint8Array(await blob.arrayBuffer());
     const iend = buf.length - 12; // IEND is always the final 12-byte chunk
     const chunks = [textChunk('Software', E().software), textChunk('Comment', `oracle:${enc(p)};id=${id};look=${lookNow().pal}-${lookNow().th}-${lookNow().ty}`)];
+    if (!clean(E().software + ' oracle:' + enc(p))) throw new Error('Oracle: a raw reading reached the file metadata'); // never expected: enc() already guards
     const total = chunks.reduce((a, c) => a + c.length, 0);
     const out = new Uint8Array(buf.length + total);
     out.set(buf.subarray(0, iend), 0);
@@ -135,6 +145,7 @@
     str = String(str || '').trim();
     const m = /#(art|revelation)\?(.*)$/.exec(str);
     if (m) { state.v2.engine = OracleEngine.of(m[2]); if (state.v2.engine === 3) OracleFingerprint.setContext(OracleFingerprint.parseDevice(m[2])); return A.decode(m[2]); }
+    if (/^ORACLE-[0-9A-Z]{4}-[0-9A-Z]{4}$/i.test(str)) { state.v2.fromUrl = false; if (window.OracleFingerprint && OracleFingerprint.context().mode === 'pattern') OracleFingerprint.setContext(null); }
     if (/^ORACLE-[0-9A-Z]{4}-[0-9A-Z]{4}$/i.test(str)) return A.normalize({ ...OracleChapters.artParams(), s: str.toUpperCase() });
     return null;
   }
@@ -149,7 +160,7 @@
       [`Network lines: social relationships ${F.rel ? 'ticked' : 'not ticked'}`, 'extraction'],
       [`Flow lines: ${fd ? OracleLayers.FEED_NAME[fd] : 'your own feed mix'}`, 'loop'],
       [`${pl(1 + Math.round(F.feedback * 5 + n.n / 4), 'echo', 'echoes')} around the core: ${pl(n.n, 'round', 'rounds')}`, 'loop']
-    ];
+    ].concat(E().v === 3 ? [[FP().describe(FP().context()).replace(/\.$/, ''), 'device']] : []);
   }
   const optionsHtml = (p, id, fmt, hist) => `
     <h3>Format</h3>
@@ -161,6 +172,7 @@
     <p class="small" id="rv-look">Look: ${esc(lookLabel(lookNow()))} \u00b7 ${state.v2.look ? 'from the link' : 'follows site theme'}
       ${state.v2.look ? '<button type="button" class="btn-link" id="rv-unpin">Use site theme</button>' : ''}</p>
     <div class="opt-row"><button type="button" class="btn-quiet" id="rv-new">New seed</button></div>
+    ${E().v === 3 ? shareHtml() : ''}
     ${E().v >= 2 ? `<h3>What you made it from</h3><ul class="made-from">${madeFrom(p).map(([t, ch]) => `<li><span>${esc(t)}</span> <button type="button" class="btn-link" data-goto="${ch}">Edit</button></li>`).join('')}</ul>` : `<h3>About this artwork</h3><p>${esc(E().interpret(p))}</p><p class="small">Made with the earlier engine; it renders exactly as when it was shared.</p>`}
     <label for="rv-caption"><h3>Caption</h3></label>
     <textarea id="rv-caption" class="caption" rows="5" readonly>${esc(capOf(p, fmt))}</textarea>
@@ -169,7 +181,20 @@
     <h3 id="rv-hist-label">Recent (this browser only)</h3>
     ${hist.length ? `<ul class="history" aria-labelledby="rv-hist-label">${hist.map((h, i) => `<li><span>${esc(h.s)} \u00b7 ${esc(h.id)}</span><button type="button" class="btn-link" data-hist="${i}">Open</button></li>`).join('')}</ul>
     <button type="button" class="btn-quiet" id="rv-clear">Clear history</button>` : '<p class="small">Nothing yet.</p>'}
-    <p class="small">The link and the file hold only the seed and your answers as numbers. No personal data, no server.</p>`;
+    <p class="small">${E().v === 3 && devOut().mode === 'pattern' ? 'The link and the file hold the seed, your answers as numbers and an 8-character device pattern with a 3-character code. No readings, no server.' : 'The link and the file hold only the seed and your answers as numbers. No personal data, no server.'}</p>`;
+  // v5: share mode (Choices only by default), Remember this device (off by default), Forget everything.
+  function shareHtml() {
+    const c = FP().context(), mode = OraclePrivacy.share();
+    if (c.mode !== 'full') return `<h3>Device ring</h3><p class="small">${c.mode === 'pattern' ? 'Drawn from the device pattern in the link you opened.' : 'Plain ring: no device readings used. Add them on the Device step.'}</p>
+      <div class="opt-row"><button type="button" class="btn-link" data-goto="device">Device step</button><button type="button" class="btn-link" id="rv-forget">Forget everything</button></div>`;
+    const r = (v, t, sub) => `<label class="radio-card${mode === v ? ' on' : ''}"><input type="radio" name="rv-share-mode" value="${v}"${mode === v ? ' checked' : ''}><span class="rc-text"><span class="row-title">${t}</span><span class="row-sub">${sub}</span></span></label>`;
+    return `<fieldset class="radio-cards compact"><legend><h3>Shared image</h3></legend>
+      ${r('choices', 'Choices only', 'Nothing about this device leaves the tab.')}
+      ${r('pattern', 'Choices + device pattern', 'Can\u2019t be turned back into your readings. Shows your rough time zone, core-count band and GPU family.')}</fieldset>
+      <label class="opt-check"><input type="checkbox" id="rv-remember" ${OraclePrivacy.remember() ? 'checked' : ''}> Remember this device</label>
+      <p class="small">Draws the same pattern next visit. Anyone using this browser profile could redraw it.</p>
+      <div class="opt-row"><button type="button" class="btn-link" id="rv-forget">Forget everything</button></div>`;
+  }
 
   OracleChapters.register('revelation', (app) => {
     ensureSeed();
@@ -184,7 +209,7 @@
         <header class="screen-head"><h1 tabindex="-1">Your artwork</h1><p class="small seed-tag">${esc(p.s)}</p></header>
         <figure class="art-frame art-stage"><canvas id="art-canvas" role="img" aria-label="Generative artwork ${esc(p.s)}: ${esc(E().interpret(p))}"></canvas></figure>
         <div class="screen-main">
-          <p class="lead">Made only from your answers. Nothing left this tab.</p>
+          <p class="lead" id="rv-mode">${esc(leadText())}</p>
           <div class="screen-cta art-actions">
             <button type="button" class="btn-primary" id="rv-download">Save image</button>
             <button type="button" class="btn-quiet" id="rv-share">${canNative ? 'Share\u2026' : 'Share'}</button>
@@ -223,7 +248,7 @@
     };
     document.getElementById('rv-restart').onclick = () => {
       Object.assign(state.v2, OracleState.reduce(state.v2, { type: 'reset' }));
-      state.v2.look = null; state.v2.ex = OracleContent.deriveEx(0); OracleChapters.go('approach');
+      state.v2.look = null; state.v2.ex = OracleContent.deriveEx(0); if (window.OracleFingerprint) OracleFingerprint.setContext(null); OracleChapters.go('approach');
     };
     function openOptions() {
       const hist = readHist();
@@ -238,13 +263,18 @@
         body.querySelector('#rv-clean').onclick = () => { OracleSheet.close(); OracleChapters.go('art', { hash: '#art?' + enc(p) + '&fmt=' + fmt + lookQuery(lookNow()) }); };
         const unpin = body.querySelector('#rv-unpin');
         if (unpin) unpin.onclick = () => { state.v2.look = null; rerender(true); };
-        const doRestore = (q) => { if (!q) { st('Not a seed or Oracle link.'); return; } apply(q); status('Opened ' + q.s + '.'); rerender(false); };
+        const doRestore = (q) => { if (!q) { st('Not a seed or Oracle link.'); return; } apply(q); status('Opened ' + q.s + '.'); (window.OracleDeviceStep ? OracleDeviceStep.refresh() : Promise.resolve()).then(() => rerender(false)); };
         body.querySelector('#rv-restore-btn').onclick = () => doRestore(parseRestore(body.querySelector('#rv-restore').value));
         body.querySelector('#rv-restore').onkeydown = (e) => { if (e.key === 'Enter') doRestore(parseRestore(e.target.value)); };
         const clr = body.querySelector('#rv-clear');
         if (clr) clr.onclick = () => { try { localStorage.removeItem(HKEY); } catch (e) { /* ignore */ } skipRemember = true; rerender(true); status('History cleared from this browser.'); };
         body.querySelectorAll('[data-hist]').forEach(b => b.onclick = () => { state.v2.engine = OracleEngine.of(hist[+b.dataset.hist].enc); if (state.v2.engine === 3) OracleFingerprint.setContext(OracleFingerprint.parseDevice(hist[+b.dataset.hist].enc)); doRestore(A.decode(hist[+b.dataset.hist].enc)); });
         body.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => OracleSheet.close()));
+        body.querySelectorAll('[name=rv-share-mode]').forEach(r => r.onchange = () => { OraclePrivacy.setShare(r.value); rerender(true); st(r.value === 'pattern' ? 'Saved images and links now add your device pattern.' : 'Saved images and links carry your choices only.'); });
+        const rem = body.querySelector('#rv-remember');
+        if (rem) rem.onchange = () => { OraclePrivacy.setRemember(rem.checked); OracleDeviceStep.refresh().then(() => rerender(true)); };
+        const fg = body.querySelector('#rv-forget');
+        if (fg) fg.onclick = () => { OracleChapters.forgetEverything(); skipRemember = true; rerender(true); st('Forgotten. Browser permissions you granted stay until you reset them in site settings.'); };
       } });
     }
     document.getElementById('rv-options').onclick = openOptions;

@@ -148,6 +148,17 @@ window.OracleChapters = (() => {
     btn.onclick = () => OracleEvidenceSheet.openSources(null, btn);
     const ex = document.createElement('a'); ex.href = '#extras'; ex.className = 'foot-btn'; ex.id = 'foot-extras'; ex.textContent = 'Extras';
     foot.prepend(btn); btn.after(ex);
+    const fg = document.createElement('button'); fg.type = 'button'; fg.id = 'foot-forget'; fg.className = 'foot-btn'; fg.textContent = 'Forget everything';
+    fg.onclick = () => { forgetEverything(); render(); const n = document.querySelector('#sitefoot .foot-note'); if (n) n.textContent = 'Forgotten. Permissions you granted stay until you reset them in site settings.'; };
+    ex.after(fg);
+  }
+  // v5: one Forget everything (footer, Device step, Options): readings, salt, share mode, Remember, every oracle.* key,
+  // the device part of the address. Answers stay in memory (they are never stored); Start over clears them.
+  function forgetEverything() {
+    if (window.OraclePrivacy) OraclePrivacy.forgetEverything();
+    if (window.OracleFingerprint) OracleFingerprint.setContext(null);
+    if (window.OracleDeviceStep) OracleDeviceStep.reset();
+    if (/[?&]dg=/.test(location.hash)) history.replaceState(null, '', location.hash.replace(/&dg=[^&]*/g, '').replace(/&db=[^&]*/g, ''));
   }
 
   // v4: every answer goes through the pure reducer in core/state.js; state.v2 is updated in place so the screens
@@ -169,7 +180,7 @@ window.OracleChapters = (() => {
       registry[stage](app);
       drawPreview();
     },
-    go, boot, artParams, dispatch, reduceMotion,
+    go, boot, artParams, dispatch, reduceMotion, forgetEverything,
     openDrawer: (id, from) => id === '@who' ? OracleEvidenceSheet.openWho(from) : OracleEvidenceSheet.openSources(id, from),
     ui: { frame, topBar, artStage, drawPreview, esc }
   };

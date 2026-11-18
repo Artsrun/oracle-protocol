@@ -1,4 +1,4 @@
-/* v4 Reveal — five short cards; each lights up the layer one answer drew, then the full artwork. Skip any time.
+/* v4 Reveal — five short cards (v5: six, the last is the fingerprint ring); each lights up the layer one answer drew, then the full artwork. Skip any time.
  * Links made with the earlier engine have no separate layers, so they go straight to the artwork. */
 (() => {
   const U = OracleChapters.ui, UI = OracleUI, L = OracleLayers, A = OracleArt;
@@ -13,7 +13,14 @@
       { g: 'network', t: F.rel ? 'Network lines: your social relationships.' : 'Few network lines: relationships not ticked.' },
       { g: 'flow', t: `Flow lines: how ${fd ? 'a ' + L.FEED_NAME[fd] + ' feed' : 'your feed'} pulls attention.` },
       { g: 'core', t: `${pl(echoes, 'echo', 'echoes')} around the core: the loop repeating.` }
-    ];
+    ].concat(state.v2.engine === 3 ? [{ g: 'device', t: ringText() }] : []);
+  }
+  function ringText() { // v5: the fingerprint ring card
+    const c = OracleFingerprint.context();
+    if (c.mode === 'pattern') return 'The fingerprint ring: drawn from the link\u2019s device pattern.';
+    if (c.mode !== 'full') return 'A plain ring: no device readings were used.';
+    const k = Object.entries(c.b || {}).filter(([n, v]) => n !== 'charging' && v !== null && v !== undefined).length;
+    return `The fingerprint ring: ${pl(k, 'reading', 'readings')} from this device.`;
   }
   function paint(app, focus) {
     const C = cards(), c = C[at];
@@ -38,10 +45,10 @@
         ${UI.button('Skip', { link: true, attrs: { id: 'card-skip', 'data-goto': 'revelation' } })}`
     });
     app.classList.add('reveal-on');
-    app.querySelector('#card-next').onclick = () => { if (at < 4) { at++; paint(app, true); } else OracleChapters.go('revelation'); };
+    app.querySelector('#card-next').onclick = () => { if (at < cards().length - 1) { at++; paint(app, true); } else OracleChapters.go('revelation'); };
     app.querySelector('#card-prev').onclick = () => { if (at > 0) { at--; paint(app, true); } };
     app.querySelector('#cards').addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight' && at < 4) { at++; paint(app, true); }
+      if (e.key === 'ArrowRight' && at < cards().length - 1) { at++; paint(app, true); }
       if (e.key === 'ArrowLeft' && at > 0) { at--; paint(app, true); }
     });
     requestAnimationFrame(() => paint(app, false)); // after the shell's own preview draw

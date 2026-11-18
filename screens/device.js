@@ -167,16 +167,16 @@
 
   async function show(app) {
     if (busy) return; busy = true; paint(app, false);
-    try { D.allowPassive(); await D.readPassive(); await refresh(); sub = 'readout'; }
+    try { P.loadRemembered(); D.allowPassive(); await D.readPassive(); await refresh(); sub = 'readout'; }
     catch (e) { sub = 'ask'; }
     busy = false; if (state.stage === 'device') paint(app, true);
   }
   function forget(app) {
-    P.forgetEverything(); FP.setContext(null); sub = 'ask';
+    OracleChapters.forgetEverything(); sub = 'ask';
     paint(app, true);
     const s = app.querySelector('.screen-main'); if (s) s.insertAdjacentHTML('afterbegin', '<p class="small" role="status">Forgotten. Browser permissions you granted stay until you reset them in your browser\u2019s site settings.</p>');
   }
 
-  OracleChapters.register('device', (app) => { if (sub !== 'ask' && !passive()) sub = 'ask'; if (CARDS.includes(sub) && !busy) result = null; paint(app, false); });
+  OracleChapters.register('device', (app) => { if (sub !== 'ask' && !passive()) sub = 'ask'; if (CARDS.includes(sub) && !busy) result = null; paint(app, false); if (passive()) refresh().then(() => { if (state.stage === 'device') U.drawPreview(); }); });
   window.OracleDeviceStep = { refresh, GROUPS, NAME, reset: () => { sub = 'ask'; result = null; } };
 })();
