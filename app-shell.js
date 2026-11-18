@@ -138,9 +138,55 @@ window.OracleChapters = (() => {
   function drawPreview(caption) {
     const c = document.getElementById('pv-canvas');
     if (!c || !window.OracleExport || !OracleExport.paintPreview) return;
+    fitArt(); sizeCanvas(c); // v6 WP7: answers can change the text height; keep the preview fitted and sharp
     OracleExport.paintPreview(c);
     if (caption) document.getElementById('pv-cap').textContent = caption;
   }
+  // ── v6 WP7: sharp, larger art on phones ──────────────────────────────────────────
+  // Backing store = CSS size × min(devicePixelRatio, 3), capped at 1440 × 1800. devicePixelRatio is
+  // a rendering read only (as before); nothing from it reaches the artwork's parameters or any link.
+  function sizeCanvas(c) {
+    if (!c || !c.getClientRects().length) return false;
+    const r = c.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const w = Math.max(1, Math.min(1440, Math.round(r.width * dpr))), h = Math.round(w * 5 / 4);
+    if (c.width === w && c.height === h) return false;
+    c.width = w; c.height = h; return true;
+  }
+  // Portrait phones: grow the question-screen preview into the empty band above the button row, up to 34 % of the
+  // viewport height and 45 % of its width; never smaller than the CSS size, never pushing Next off-screen.
+  function fitArt() {
+    const grid = document.querySelector('#app .screen-grid:not(.art-grid)'), c = document.getElementById('pv-canvas');
+    if (!grid || !c) return;
+    // styles.css's reduced-motion rule gives every property a 0.01 ms transition; without this the measured
+    // column would lag one frame behind the value just set.
+    grid.style.setProperty('transition', 'none', 'important');
+    grid.style.removeProperty('grid-template-columns');
+    const W = innerWidth, H = innerHeight;
+    if (W >= 900 || W > H) return;
+    const screen = grid.closest('.screen'), cta = grid.querySelector('.screen-cta');
+    if (!screen || !cta) return;
+    const base = c.closest('.art-stage').getBoundingClientRect().width;
+    const maxW = Math.min(W * 0.45, H * 0.34 * 0.8);
+    if (maxW <= base + 2) return;
+    // fits = the screen stays one viewport tall and a 12 px band is left above the button row
+    const fits = (w) => { grid.style.gridTemplateColumns = `minmax(0,1fr) ${Math.round(w)}px`;
+      const sr = screen.getBoundingClientRect(); if (sr.bottom + scrollY > H + 0.5 && sr.height > H + 0.5) return false;
+      let prev = cta.previousElementSibling; while (prev && !prev.getClientRects().length) prev = prev.previousElementSibling;
+      return !prev || cta.getBoundingClientRect().top - prev.getBoundingClientRect().bottom >= 12; };
+    if (!fits(base)) { grid.style.removeProperty('grid-template-columns'); return; }
+    let lo = base, hi = maxW;
+    if (fits(hi)) lo = hi; else for (let i = 0; i < 7; i++) { const mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; }
+    if (lo - base < 2) grid.style.removeProperty('grid-template-columns'); else grid.style.gridTemplateColumns = `minmax(0,1fr) ${Math.round(lo)}px`;
+  }
+  // Re-fit after layout settles (web fonts change line heights) and on resize; repaint only a canvas whose size changed.
+  function refit() {
+    if (window.OracleSheet && OracleSheet.isOpen()) return; // the keyboard or a sheet: leave the page as it is
+    fitArt();
+    for (const c of document.querySelectorAll('#pv-canvas, #start-art')) if (sizeCanvas(c)) (c.__paint || drawPreview)();
+  }
+  let fitT = 0;
+  window.addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(refit, 200); });
+
   // ── footer (Start, Artwork, Extras): Sources · Forget everything · theme, one per row ──
   function buildFooter() {
     const foot = document.getElementById('sitefoot');
@@ -179,10 +225,11 @@ window.OracleChapters = (() => {
       // Random (crypto), never derived from device data.
       if ((ROUTES.includes(stage) || stage === 'reveal') && !state.v2.seed && window.OracleArt) state.v2.seed = OracleArt.newSeed();
       registry[stage](app);
-      drawPreview();
+      drawPreview(); // v6 WP7: fits and sizes the preview first, then draws once
+      requestAnimationFrame(refit); if (document.fonts) document.fonts.ready.then(refit);
     },
     go, boot, artParams, dispatch, reduceMotion, forgetEverything,
     openDrawer: (id, from) => id === '@who' ? OracleEvidenceSheet.openWho(from) : OracleEvidenceSheet.openSources(id, from),
-    ui: { frame, topBar, artStage, drawPreview, esc }
+    ui: { frame, topBar, artStage, drawPreview, esc, sizeCanvas, fitArt }
   };
 })();

@@ -31,7 +31,7 @@
     app.querySelector('#card-prev').hidden = at === 0;
     app.querySelector('#card-next').textContent = at === C.length - 1 ? 'See your artwork' : 'Next';
     const cv = document.getElementById('pv-canvas');
-    if (cv) OracleExport.paintPreview(cv, c.g === 'network' ? ['network'] : [c.g]);
+    if (cv) { U.sizeCanvas(cv); cv.__paint = () => OracleExport.paintPreview(cv, c.g === 'network' ? ['network'] : [c.g]); cv.__paint(); }
     document.getElementById('pv-cap').textContent = c.t;
     if (focus) document.getElementById('card-title').focus({ preventScroll: true });
   }
