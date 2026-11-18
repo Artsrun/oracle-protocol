@@ -329,3 +329,33 @@ Priority: P0 = broken, P1 = clearly worse on phones, P2 = polish/robustness.
 - Web Share with files: developer.mozilla.org/en-US/docs/Web/API/Navigator/canShare
 - CSP `worker-src` fallback: developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/worker-src
 - Brave fingerprinting protections: github.com/brave/brave-browser/wiki/Fingerprinting-Protections
+
+## 9. As-built notes (2026-11-18, Asia/Yerevan; branch `oracle-v6` @ 7055c9e, PR into `prod`, not merged)
+
+Result: final harness 46/46 targets Night and Day (prod 13/46 on the same harness). Numbers: `docs/QA.md`, v6 section.
+
+- **WP0** `qa/mobile.mjs` as planned. Changes to counting, documented in QA.md: visible words only; Options counts the sheet only;
+  the "Next under the last option" gap is the empty band above the CTA row; an edge swipe that makes Chrome go Back counts as ignored by the app.
+- **WP1** `css/v6.css` (loaded after v4.css). Height ≤ 500 px → art | heading | controls columns; art floors scoped to < 900 px wide so desktop sizes do not change.
+- **WP2** compact rows under 700 px height. Readout values are no longer shortened with "…" (`short()` removed); the count moved into the lead.
+- **WP3** one "Why these?" link per question (`#why-offer`, `#why-fp`); the sheet lists the options, each opens its evidence (2 taps).
+- **WP4** Device ask 33 words, permission cards 24–25. The card body paragraph was dropped; Format rows name the format once with the size as the sub-line.
+- **WP5** Options is one vertical list; seed, look, New seed, Remember/Forget, made-from, caption, restore and recent sit under a `More` disclosure
+  (open state persists while the sheet is open, resets when Options is opened again). Footer is a vertical list; the duplicate Extras is gone.
+- **WP6** type tokens in rem; `--s-pt/--s-px/--s-pb` include `env(safe-area-inset-*)`; sheet panel `bottom: var(--kb)` from `visualViewport`;
+  focused fields scroll into view on focus and again after the panel settles (rAF + 150 ms).
+- **WP7** `sizeCanvas` = CSS × min(DPR, 3), capped at 1440 px wide; `fitArt` binary-searches the largest preview that keeps Next in view
+  (portrait < 900 px, ≤ min(45 % vw, 34 % vh)). Measured elements get `transition: none` because the reduced-motion rule
+  (`transition-duration: .01ms`) otherwise lags computed sizes by a frame. Exports unchanged; determinism 64/64.
+- **WP8** sheet adds one `{oracleSheet:1}` entry; Close/Esc/backdrop/Android close remove it; Device sub-steps push `{dev}` entries; focus on H1 after Back.
+  WP12 fix: a navigation to a different URL while a sheet is open closes the sheet and routes (it used to be swallowed as Back).
+- **WP9** `UI.swipe` (pointer events, touch only, 40 px, |dx| > 1.5|dy|, outer 24 px ignored), `touch-action: pan-y` on cards.
+- **WP10** one line after Save image where `navigator.canShare({files})` is true ("Share → Save Image" for Photos); feature detection only, no UA.
+- **WP11** scripts `defer` in `<head>`; static Start in `index.html` (hidden on deep links by `theme-boot.js`); 3 fonts preloaded
+  (the plan said 4: IBM Plex Mono 500 is not on the Start screen, so preloading it would only waste bytes); `manifest.webmanifest`,
+  icons rendered once from the reference seed (`tools/make-icons.mjs`); `sw.js` same-origin cache-first, version = content hash
+  (`node tools/sw-version.cjs` after any site change, enforced by `tests/sw.test.cjs`); `?nosw=1` removes it; `beforeinstallprompt`
+  suppressed, no update banner. CSP unchanged. `qa/sw-origin.mjs` checks every SW request and cache entry is same-origin.
+- **WP12** suites, comparisons, QA.md real-device checklist (Brave first). Real-device matrix still to be filled by the owner.
+- **Not met / not targeted:** Device readout 1.33 vp at 667×375 and 1.17 at 844×390; Extras 1.07–1.26 vp in landscape. Everything
+  under SIMULATED (insets, keyboard, throttling) and all of WP10's Photos path still need a real phone.
