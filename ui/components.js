@@ -55,7 +55,17 @@
   /** Provenance badge. One meaning each: VERIFIED (sourced), INFERRED, SIMULATED, UNKNOWN. */
   const badge = (label) => `<span class="prov prov-${esc(String(label).toLowerCase())}">${esc(label)}</span>`;
 
-  const api = { esc, strip, checkList, radioCards, progress, dots, button, badge };
+  // v6 WP3: the rows inside a "Why these?" sheet — one full-width button per option; each pushes its evidence view.
+  function whyRows(name, titles) {
+    return `<ul class="why-rows">${titles.map((t, i) => `<li><button type="button" class="why-row" data-why="${esc(name)}:${i}"><span>${t}</span><span class="why-go" aria-hidden="true">\u203a</span></button></li>`).join('')}</ul>`;
+  }
+  function bindWhyRows(body, view) {
+    body.querySelectorAll('[data-why]').forEach(b => b.addEventListener('click', () => {
+      const o = view(+b.dataset.why.split(':')[1]);
+      root.OracleSheet.push({ ...o, onOpen: (bd) => bindWhyRows(bd, view) });
+    }));
+  }
+  const api = { esc, strip, checkList, radioCards, progress, dots, button, badge, whyRows, bindWhyRows };
   root.OracleUI = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

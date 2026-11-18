@@ -113,17 +113,18 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   check('WP4 Trade: ≤45 words on screen', tradeWords <= 45, tradeWords);
   check('WP4 ticking a trade redraws the preview and changes only the shards layer', pv0 !== pv1 && changed.join() === 'shards', changed);
   await page.tap('label[for=offer-3]'); await settle(page, 150);
-  await page.click('[data-info="offer:0"]'); await settle(page, 300);
+  // v6 WP3 (deliberate): the per-row ⓘ became one "Why these?" link; the option's evidence is the second tap.
+  await page.click('#why-offer'); await settle(page, 300); await page.click('[data-why="offer:0"]'); await settle(page, 300);
   const sh = await page.evaluate(() => ({ open: document.getElementById('sheet').open, modal: document.getElementById('sheet').matches(':modal'), verified: !!document.querySelector('#sheet .prov-verified'), cite: !!document.querySelector('#sheet .cite[data-source]'), inferred: !!document.querySelector('#sheet .prov-inferred') }));
-  check('WP4 tapping ⓘ opens a modal sheet with the VERIFIED claim, its source and the INFERRED reading', sh.open && sh.modal && sh.verified && sh.cite && sh.inferred, sh);
+  check('WP4 (v6 WP3) Why these? → Social apps opens a modal sheet with the VERIFIED claim, its source and the INFERRED reading', sh.open && sh.modal && sh.verified && sh.cite && sh.inferred, sh);
   await page.click('#sheet .cite'); await settle(page, 200);
   const src = await page.evaluate(() => ({ t: document.getElementById('sheet-title').textContent, back: !document.querySelector('[data-sheet-back]').hidden, link: (document.querySelector('#sheet-body a[href^="http"]') || {}).rel }));
   await page.click('[data-sheet-back]'); await settle(page, 150);
   const backT = await page.evaluate(() => document.getElementById('sheet-title').textContent);
   check('WP4 a source opens inside the sheet; Back returns to the claim; source links are noopener', src.back && /noopener/.test(src.link || '') && backT === 'Social apps', { src, backT });
   await page.keyboard.press('Escape'); await settle(page, 200);
-  const after = await page.evaluate(() => ({ open: document.getElementById('sheet').open, focus: document.activeElement.dataset.info }));
-  check('WP4 Esc closes the sheet and focus returns to the ⓘ button', !after.open && after.focus === 'offer:0', after);
+  const after = await page.evaluate(() => ({ open: document.getElementById('sheet').open, focus: document.activeElement.id }));
+  check('WP4 (v6 WP3) Esc closes the sheet and focus returns to the Why these? link', !after.open && after.focus === 'why-offer', after);
   await page.click('[data-goto=extraction]'); await settle(page, 300);
   const fp = await page.evaluate(() => ({ mask: state.v2.footprint, expect: OracleState.prefillFootprint(state.v2.offers), lead: document.querySelector('.lead').textContent, checked: document.querySelectorAll('[data-fp]:checked').length }));
   check('WP4 Footprint is pre-filled from the trades and says it is our assumption', fp.mask === fp.expect && fp.checked > 0 && /our assumption/i.test(fp.lead), fp);
@@ -631,10 +632,10 @@ for (const prof of ['pixel', 'brave']) {
 // @@SECTIONS@@
 
 // ── network + console (always last) ──────────────────────────────────────
-const ext = R.requests.filter(r => !/^http:\/\/127\.0\.0\.1:8765\//.test(r.url) && !/^(data|blob):/.test(r.url));
+const ext = R.requests.filter(r => !r.url.startsWith(new URL(BASE).origin + '/') && !/^(data|blob):/.test(r.url));
 check('network: zero requests leave localhost (the CSP probe is blocked before it is sent)', ext.every(r => /example\.com\/x$/.test(r.url)) , ext.slice(0, 5));
 check('network: only GET requests', R.requests.every(r => r.method === 'GET'));
-const leaky = R.requests.filter(r => /[?&](lat|lng|latitude|longitude|ua|gpu)=|40\.18|51\.50|Mozilla|ORACLE_HASH/i.test(r.url.replace(/^http:\/\/127\.0\.0\.1:8765\/oracle-protocol\/[^?#]*/, '')));
+const leaky = R.requests.filter(r => /[?&](lat|lng|latitude|longitude|ua|gpu)=|40\.18|51\.50|Mozilla|ORACLE_HASH/i.test(r.url.replace(new RegExp('^' + BASE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[^?#]*'), '')));
 check('network: no request carries location, user agent, GPU or hash values', !leaky.length, leaky.slice(0, 3));
 const errs = R.consoleErrors.filter(e => !/Content Security Policy|example\.com|Failed to fetch|net::ERR_/.test(e.text));
 check('console: zero app errors', !errs.length, errs.slice(0, 5));
