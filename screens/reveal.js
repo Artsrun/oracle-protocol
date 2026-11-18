@@ -47,6 +47,7 @@
     app.classList.add('reveal-on');
     app.querySelector('#card-next').onclick = () => { if (at < cards().length - 1) { at++; paint(app, true); } else OracleChapters.go('revelation'); };
     app.querySelector('#card-prev').onclick = () => { if (at > 0) { at--; paint(app, true); } };
+    UI.swipe(app.querySelector('#cards'), () => { if (at < cards().length - 1) { at++; paint(app, true); } }, () => { if (at > 0) { at--; paint(app, true); } }); // v6 WP9
     app.querySelector('#cards').addEventListener('keydown', (e) => {
       if (e.key === 'ArrowRight' && at < cards().length - 1) { at++; paint(app, true); }
       if (e.key === 'ArrowLeft' && at > 0) { at--; paint(app, true); }

@@ -123,3 +123,6 @@ body.v4 .sitefoot{padding-left:max(16px,calc(var(--safe-l) + 8px));padding-right
 @media (min-width:900px){ .sheet-panel{max-height:none;padding-top:var(--safe-t)} }
 /* fields at 16 px: readable, and iOS Safari does not zoom the page when they get focus */
 .opt-row input[type=text],.sheet .caption,body.v4 .sitefoot .theme-switch select,#tilt-slider{font-size:var(--t-b)}
+
+/* ── WP9 — cards take horizontal swipes; vertical scrolling stays with the browser ── */
+.cards{touch-action:pan-y}

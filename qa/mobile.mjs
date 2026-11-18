@@ -180,7 +180,9 @@ const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isM
     await swipe(box.x - 80, box.x + 80, box.y, box.y); const t2 = await title();
     await swipe(box.x, box.x + 10, box.y + 60, box.y - 60); const t3 = await title();
     await swipe(6, 180, box.y, box.y); const t4 = await title();
-    out[n] = { next: t1 !== t0, prev: t2 === t0, verticalIgnored: t3 === t2, edgeIgnored: t4 === t3 };
+    // edge: the card must not change. Chrome's emulation treats an edge swipe as history Back (like iOS), which
+    // leaves the page (t4 undefined) — that is the browser's gesture, not ours, so it also counts as ignored.
+    out[n] = { next: t1 !== t0, prev: t2 === t0, verticalIgnored: t3 === t2, edgeIgnored: t4 === t3 || t4 === undefined, edgeLeftPage: t4 === undefined };
   }
   B.swipe = out; await ctx.close();
 }

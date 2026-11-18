@@ -65,7 +65,22 @@
       root.OracleSheet.push({ ...o, onOpen: (bd) => bindWhyRows(bd, view) });
     }));
   }
-  const api = { esc, strip, checkList, radioCards, progress, dots, button, badge, whyRows, bindWhyRows };
+  // v6 WP9: horizontal swipe on a card area (touch only). 40 px threshold, mostly horizontal, and never from the
+  // outer 24 px of the screen, so it does not fight the iOS edge-swipe Back. Buttons and arrow keys stay.
+  function swipe(el, onNext, onPrev) {
+    let id = null, x0 = 0, y0 = 0;
+    el.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch') return;
+      id = (e.clientX < 24 || e.clientX > window.innerWidth - 24) ? null : e.pointerId; x0 = e.clientX; y0 = e.clientY;
+    });
+    el.addEventListener('pointerup', (e) => {
+      if (e.pointerId !== id) return; id = null;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      if (Math.abs(dx) >= 40 && Math.abs(dx) > 1.5 * Math.abs(dy)) (dx < 0 ? onNext : onPrev)();
+    });
+    el.addEventListener('pointercancel', () => { id = null; });
+  }
+  const api = { esc, strip, checkList, radioCards, progress, dots, button, badge, whyRows, bindWhyRows, swipe };
   root.OracleUI = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
