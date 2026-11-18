@@ -96,6 +96,7 @@ res.push(await run('device step (all allowed)', { permissions: ['geolocation', '
   await phase('device: ask (nothing tapped)'); await W(p, 300);
   await phase('device: show me'); await p.click('#dev-show'); await W(p, 1200);
   await phase('device: readout next'); await p.click('#dev-next'); await W(p, 300);
+  if (!(await has(p, '#perm-allow'))) { res.noPermCards = true; return; } // before v5 WP5
   await phase('device: tilt allow'); await p.click('#perm-allow'); await W(p, 1800);
   await phase('device: tilt next'); await p.click('#perm-next'); await W(p, 300);
   await phase('device: location allow'); await p.click('#perm-allow'); await W(p, 1500);
@@ -113,7 +114,9 @@ if (res.noDeviceStep) console.log('SKIP  Device step not built yet (before v5 WP
 else {
   const pre = (D.phases['load'] || []).concat(D.phases['device: ask (nothing tapped)'] || []).filter(k => !RENDERING.has(k));
   check('consent gate: opening the Device step reads nothing until Show me', !pre.length, pre);
+  if (res.noPermCards) console.log('SKIP  permission cards not built yet (before v5 WP5)');
   for (const [ph, allow] of Object.entries(ALLOW)) {
+    if (res.noPermCards && ph !== 'device: show me') continue;
     const got = D.phases[ph] || [], extra = got.filter(k => !allow.has(k));
     check(`"${ph}" reads only its own APIs`, got.length && !extra.length, { got, extra });
   }

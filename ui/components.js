@@ -35,7 +35,7 @@
     </fieldset>`;
   }
 
-  /** 5-segment progress. Announced as "Step n of 5". */
+  /** n-segment progress (6 in v5). Announced as "Step n of total". */
   function progress(step, total, label) {
     total = total || 5;
     return `<div class="progress" role="progressbar" aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${step}" aria-label="Step ${step} of ${total}${label ? ': ' + esc(label) : ''}">

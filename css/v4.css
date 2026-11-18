@@ -278,3 +278,11 @@ body.v4{background:var(--v-bg)}
 body.v4:not([data-stage=approach]):not([data-stage=revelation]):not([data-stage=extras]) .sitefoot{display:none}
 body.v4[data-stage=extras] .screen{min-height:calc(100svh - 70px)}
 .demo .screen-cta{max-width:640px}
+/* v5 Step 3 · Device — readout list (a <dl>), state labels */
+.dev-list{margin:0;border-top:1px solid var(--v-line)}
+.dev-row{display:flex;align-items:center;gap:8px;min-height:52px;border-bottom:1px solid var(--v-line);padding:4px 0 4px 2px}
+.dev-row dt{flex:none;width:7.5em;font-size:var(--t-s);color:var(--v-ink-2)}
+.dev-row dd{flex:1;margin:0;display:flex;align-items:center;gap:8px;font-size:var(--t-b);color:var(--v-ink);min-width:0}
+.dev-row dd>span{flex:1;overflow-wrap:anywhere;min-width:0}
+.sheet .dev-state{display:inline-block;font-family:var(--font-mono);font-size:var(--t-s);padding:0 6px;border:1px solid currentColor;border-radius:4px;vertical-align:2px;font-weight:400}
+.dev-ok{color:var(--v-accent)}.dev-randomised{color:var(--trace)}.dev-unavailable,.dev-denied{color:var(--v-ink-2)}

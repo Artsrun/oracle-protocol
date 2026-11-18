@@ -232,7 +232,7 @@
         body.insertAdjacentHTML('afterbegin', '<p class="small" id="rv-opt-status" role="status" aria-live="polite"></p>');
         body.querySelectorAll('[name=rv-fmt]').forEach(r => r.onchange = () => { state.v2.format = r.value; rerender(true); });
         body.querySelector('#rv-title').onchange = (e) => { state.v2.title = e.target.checked; rerender(true); };
-        body.querySelector('#rv-new').onclick = () => { state.v2.seed = A.newSeed(); state.v2.engine = OracleEngine.LAYERED.v; rerender(true); };
+        body.querySelector('#rv-new').onclick = () => { state.v2.seed = A.newSeed(); state.v2.engine = (OracleEngine.DEVICE || OracleEngine.LAYERED).v; state.v2.fromUrl = false; if (window.OracleDeviceStep) OracleDeviceStep.refresh().then(() => rerender(true)); else rerender(true); };
         body.querySelector('#rv-copy').onclick = async () => st((await copy(capOf(p, fmt))) ? 'Caption copied.' : 'Copy blocked \u2014 select the caption text.');
         body.querySelector('#rv-link').onclick = async () => st((await copy(shareLink(p, fmt))) ? 'Link copied.' : 'Copy blocked.');
         body.querySelector('#rv-clean').onclick = () => { OracleSheet.close(); OracleChapters.go('art', { hash: '#art?' + enc(p) + '&fmt=' + fmt + lookQuery(lookNow()) }); };

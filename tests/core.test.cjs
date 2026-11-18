@@ -10,9 +10,9 @@ const UI = require('../ui/components.js');
 const deps = { deriveEx: C.deriveEx, prefill: S.prefillFootprint };
 const store = () => S.create(S.initial(), deps);
 
-test('initial state is the new engine with nothing chosen', () => {
+test('initial state is the new engine (v5: engine 3) with nothing chosen', () => {
   const s = S.initial();
-  assert.equal(s.engine, 2); assert.equal(s.offers, 0); assert.equal(s.footprint, 0); assert.equal(s.feed, null);
+  assert.equal(s.engine, 3); assert.equal(s.offers, 0); assert.equal(s.footprint, 0); assert.equal(s.feed, null);
 });
 
 test('trade toggle flips one bit and re-derives the abstract dials', () => {
@@ -93,12 +93,13 @@ test('toParams round-trips through the link encoding', () => {
   assert.deepEqual(A.decode(A.encode(p)), A.normalize(p));
 });
 
-test('router: one ordered list drives the flow and the 5-step progress', () => {
-  assert.deepEqual(R.FLOW.slice(0, 5), ['approach', 'offer', 'extraction', 'machine', 'loop']);
+test('router: one ordered list drives the flow and the 6-step progress (v5: Device is step 3)', () => {
+  assert.deepEqual(R.FLOW.slice(0, 6), ['approach', 'offer', 'extraction', 'device', 'machine', 'loop']);
+  assert.equal(R.next('extraction'), 'device'); assert.equal(R.prev('machine'), 'device'); assert.equal(R.progress('device').step, 3);
   assert.equal(R.next('offer'), 'extraction');
   assert.equal(R.prev('offer'), 'approach');
-  assert.equal(R.progress('loop').step, 4);
-  assert.equal(R.progress('loop').total, 5);
+  assert.equal(R.progress('loop').step, 5);
+  assert.equal(R.progress('loop').total, 6);
   assert.equal(R.byRoute('sensors').id, 'permissions');
   const ids = R.SCREENS.map(s => s.id); assert.equal(new Set(ids).size, ids.length, 'unique ids');
 });

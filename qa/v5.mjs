@@ -12,6 +12,7 @@ const { PNG } = require('pngjs');
 const crypto = require('node:crypto');
 const Art = require(new URL('../art/oracle-art.js', import.meta.url).pathname);
 const Lay = require(new URL('../art/layers.js', import.meta.url).pathname);
+const Fp = require(new URL('../art/fingerprint.js', import.meta.url).pathname);
 const FX = require(new URL('./fixtures/devices.cjs', import.meta.url).pathname);
 const FIXED = 's=ORACLE-7K3F-Q9ZD&o=21&f=77&d=80&c=40&p=70&y=60&x=65&i=55&e=75&r=60&t=50&k=60&a=70&n=4';
 const readPng = (file) => { const buf = fs.readFileSync(file), png = PNG.sync.read(buf), texts = {}; let o = 8;
@@ -46,7 +47,7 @@ const overlayFree = (page) => page.evaluate(() => [...document.querySelectorAll(
 const running = (page) => page.evaluate(() => document.getAnimations().filter(a => a.playState === 'running' && a.effect && a.effect.getComputedTiming().iterations === Infinity).length);
 
 // ── 0. invariants on every main screen (both widths) ─────────────────────
-const SCREENS = (process.env.SCREENS || 'approach:,offer:#offer,extraction:#extraction,machine:#machine,loop:#loop,reveal:#reveal,revelation:#revelation,extras:#extras,sensors:#sensors,identity:#protocol').split(',').map(s => s.split(':'));
+const SCREENS = (process.env.SCREENS || 'approach:,offer:#offer,extraction:#extraction,device:#device,machine:#machine,loop:#loop,reveal:#reveal,revelation:#revelation,extras:#extras,sensors:#sensors,identity:#protocol').split(',').map(s => s.split(':'));
 for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['desktop', { width: 1280, height: 860 }]]) {
   const ctx = await browser.newContext({ colorScheme: SCHEME, viewport, reducedMotion: 'reduce' });
   const page = await ctx.newPage(); instrument(page, view);
@@ -71,7 +72,7 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
 for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['desktop', { width: 1280, height: 860 }]]) {
   const ctx = await browser.newContext({ colorScheme: SCHEME, viewport, reducedMotion: 'reduce' });
   const page = await ctx.newPage(); instrument(page, 'wp3-' + view);
-  const steps = [['offer', 1, 'approach'], ['extraction', 2, 'offer'], ['machine', 3, 'extraction'], ['loop', 4, 'machine']];
+  const steps = [['offer', 1, 'approach'], ['extraction', 2, 'offer'], ['device', 3, 'extraction'], ['machine', 4, 'device'], ['loop', 5, 'machine']];
   const bad = [];
   for (const [id, n, prev] of steps) {
     await page.goto(BASE + '#' + id); await page.reload(); await settle(page, 500);
@@ -83,7 +84,7 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
     });
     if (!f.art || f.now !== n || f.back !== prev || f.primaries !== 1) bad.push([id, f]);
   }
-  check(`${view}: WP3 every step screen has Back, "n of 5" progress, the artwork in view and one primary action`, !bad.length, bad);
+  check(`${view}: WP3 every step screen has Back, "n of 6" progress (v5), the artwork in view and one primary action`, !bad.length, bad);
   await page.goto(BASE + '#extraction'); await page.reload(); await settle(page, 400);
   await page.click('[data-back]'); await settle(page, 400);
   check(`${view}: WP3 Back returns to the previous screen`, await page.evaluate(() => state.stage) === 'offer');
@@ -192,10 +193,10 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce', acceptDownloads: true, hasTouch: true });
   const page = await ctx.newPage(); instrument(page, 'wp7');
   await page.goto(BASE); await page.reload(); await settle(page, 300);
-  // shortest path: Begin → Next → Next → Skip → See your artwork → Skip = 6 taps
+  // shortest path (v5): Begin → Next → Next → Skip device → Skip cards → See your artwork → Skip/Next = 7 taps
   let taps = 0; const tap = async (sel) => { await page.click(sel); taps++; await settle(page, 250); };
   await tap('#btn-begin'); await page.tap('label[for=offer-0]'); await page.tap('label[for=offer-5]');
-  await tap('[data-goto=extraction]'); await tap('[data-goto=machine]'); await tap('#card-skip');
+  await tap('[data-goto=extraction]'); await tap('[data-goto=device]'); await tap('#dev-skip'); await tap('#card-skip');
   await page.click('label.radio-card:has([value=foryou])'); await settle(page, 150);
   await tap('[data-goto=reveal]');
   const cards = [];
@@ -205,16 +206,16 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   }
   check('WP7 Reveal: five cards, ≤12 words each, naming what the answers drew', cards.length === 5 && cards.every(c => c.w <= 12) && /2 red shards/.test(cards[0].t) && /For you/.test(cards[3].t), cards);
   await page.click('#card-next'); await settle(page, 900);
-  check('WP7 shortest path from Start to the artwork is ≤7 taps (6: Begin, Next, Next, Skip, See your artwork, Skip/Next)', taps + 1 <= 7, taps + 1);
+  check('WP7 shortest path from Start to the artwork is ≤7 taps (v5: Begin, Next, Next, Skip device, Skip, See your artwork, Skip/Next)', taps + 1 <= 7, taps + 1);
   const art = await page.evaluate(() => ({ stage: state.stage, hash: location.hash, w: (document.getElementById('app').innerText.match(/[A-Za-z0-9'’]+/g) || []).length, primaries: document.querySelectorAll('#app .btn-primary').length,
     canvas: (() => { const r = document.getElementById('art-canvas').getBoundingClientRect(); return r.width > 250 && r.bottom <= innerHeight; })() }));
-  check('WP7 Artwork: link carries v=2, ≤25 words, one primary action, the artwork fully in view', art.stage === 'revelation' && /&v=2(&|$)/.test(art.hash) && art.w <= 25 && art.primaries === 1 && art.canvas, art);
+  check('WP7 Artwork: link carries v=3 (v5 engine, choices only), ≤25 words, one primary action, the artwork fully in view', art.stage === 'revelation' && /&v=3(&|$)/.test(art.hash) && !/dg=|db=/.test(art.hash) && art.w <= 25 && art.primaries === 1 && art.canvas, art);
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#rv-download')]);
   const f = QA + '/wp7-' + dl.suggestedFilename(); await dl.saveAs(f); const png = readPng(f);
   const p1 = await page.evaluate(() => OracleArt.normalize(OracleChapters.artParams()));
-  check('WP7 Save image: 1080×1350 PNG whose metadata holds only the seed, answers and v=2', png.w === 1080 && png.h === 1350 && png.texts.Comment.startsWith('oracle:s=' + p1.s) && /&v=2;id=/.test(png.texts.Comment) && !/lat|lng|ua=|gpu/i.test(png.texts.Comment), png.texts);
-  const id1 = await page.evaluate(() => OracleLayers.compositionId(OracleArt.normalize(OracleChapters.artParams())));
-  check('WP7 cross-engine: Node layered compositionId === browser', Lay.compositionId(p1) === id1, { node: Lay.compositionId(p1), id1 });
+  check('WP7 Save image: 1080×1350 PNG whose metadata holds only the seed, answers and v=3 (choices only)', png.w === 1080 && png.h === 1350 && png.texts.Comment.startsWith('oracle:s=' + p1.s) && /&v=3;id=/.test(png.texts.Comment) && !/lat|lng|ua=|gpu/i.test(png.texts.Comment), png.texts);
+  const id1 = await page.evaluate(() => OracleFingerprint.compositionId(OracleArt.normalize(OracleChapters.artParams())));
+  check('WP7 cross-engine: Node engine-3 compositionId (ring withheld) === browser', Fp.compositionId(p1) === id1, { node: Fp.compositionId(p1), id1 });
   const hasShare = await page.evaluate(() => typeof navigator.share === 'function');
   const [sdl] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('#rv-share')]); await settle(page, 300);
   check('WP7 Share without Web Share: image downloaded + caption copy attempted', !hasShare && !!sdl && /downloaded/.test(await page.textContent('#rv-status')), await page.textContent('#rv-status'));
@@ -231,7 +232,7 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await page.click('#rv-new'); await settle(page, 500);
   const seed2 = await page.evaluate(() => state.v2.seed);
   await page.fill('#rv-restore', p1.s); await page.click('#rv-restore-btn'); await settle(page, 500);
-  const back = await page.evaluate(() => ({ s: state.v2.seed, id: OracleLayers.compositionId(OracleArt.normalize(OracleChapters.artParams())) }));
+  const back = await page.evaluate(() => ({ s: state.v2.seed, id: OracleFingerprint.compositionId(OracleArt.normalize(OracleChapters.artParams())) }));
   check('WP7 new seed differs; opening the old seed restores the same composition', seed2 !== p1.s && back.s === p1.s && back.id === id1, { seed2, back });
   const hist = await page.evaluate(() => JSON.parse(localStorage.getItem('oracle.v2.history') || '[]'));
   check('WP7 history stays in this browser and holds parameters only', hist.length >= 2 && hist.every(h => Object.keys(h).join() === 'enc,s,id'), hist.slice(0, 2));
@@ -352,7 +353,7 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await ctx.close();
   const rc = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 860 }, reducedMotion: 'reduce', acceptDownloads: true });
   const rp = await rc.newPage(); instrument(rp, 'wp10-reduced');
-  await rp.goto(BASE); await rp.click('#btn-begin'); await rp.click('label[for=offer-0]'); await rp.click('[data-goto=extraction]'); await rp.click('[data-goto=machine]');
+  await rp.goto(BASE); await rp.click('#btn-begin'); await rp.click('label[for=offer-0]'); await rp.click('[data-goto=extraction]'); await rp.click('[data-goto=device]'); await rp.click('#dev-skip');
   await rp.click('#card-skip'); await rp.click('.v4s .btn-primary[data-goto]'); await settle(rp, 200); await rp.click('#card-skip'); await settle(rp, 250);
   const drawn = await rp.$eval('#art-canvas', c => { const L = OracleExport.lookNow(), bg = OracleArt.PALETTES[L.pal + '-' + L.th].bg, v = parseInt(bg.slice(1), 16), B = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
     const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let lit = 0; for (let i = 0; i < d.length; i += 4 * 97) if (Math.abs(d[i] - B[0]) + Math.abs(d[i + 1] - B[1]) + Math.abs(d[i + 2] - B[2]) > 60) lit++; return lit; });
@@ -373,7 +374,7 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   const fp = await fc.newPage(); instrument(fp, 'wp10-fresh');
   await fp.goto(BASE + link); await settle(fp, 700);
   const id2 = await fp.evaluate(() => OracleEngine.get(state.v2.engine).compositionId(OracleArt.normalize(OracleChapters.artParams())));
-  check('WP10 a shared v=2 link restores the same composition id in a fresh browser', /&v=2(&|$)/.test(link) && id1 === id2, { link, id1, id2 });
+  check('WP10 a shared v=3 link restores the same composition id in a fresh browser', /&v=3(&|$)/.test(link) && id1 === id2, { link, id1, id2 });
   // no horizontal overflow at 390 on any screen
   const over = {};
   for (const [nm, h] of SCREENS) { await fp.goto(BASE + h); await fp.reload(); await settle(fp, 350); const o = await fp.evaluate(() => document.documentElement.scrollWidth - innerWidth); if (o > 0) over[nm] = o; }
@@ -462,6 +463,50 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await page.goto(BASE + '#revelation?' + FIXED + '&v=2'); await page.reload(); await settle(page, 700);
   const t3 = await textsOf();
   check('v5 WP3 a v=2 link stays on engine 2 (v4 metadata, no ring)', /&v=2;id=/.test(t3.Comment) && /layered engine v2$/.test(t3.Software), t3);
+  await ctx.close();
+}
+
+// ── v5 WP4: Step 3 Device — 3a ask (Show me / Skip), 3b readout (6 grouped rows, ⓘ sheet), Back within, Forget ──
+for (const prof of ['pixel', 'missing', 'brave']) {
+  const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  await ctx.addInitScript(FX.install, FX.PROFILES[prof]);
+  const page = await ctx.newPage(); instrument(page, 'v5-wp4-' + prof);
+  const copyWords = () => page.evaluate(() => { let n = 0; const w = document.createTreeWalker(document.getElementById('app'), NodeFilter.SHOW_TEXT);
+    while (w.nextNode()) { const el = w.currentNode.parentElement; if (el.getClientRects().length && !el.closest('.vh,[hidden],.dev-list,figcaption')) n += (w.currentNode.textContent.match(/[A-Za-z0-9'’]+/g) || []).length; } return n; });
+  await page.goto(BASE + '#device'); await page.reload(); await settle(page, 500);
+  const ask = await page.evaluate(() => ({ stage: state.stage, now: +document.querySelector('.progress').getAttribute('aria-valuenow'), total: +document.querySelector('.progress').getAttribute('aria-valuemax'),
+    show: !!document.getElementById('dev-show'), skip: !!document.getElementById('dev-skip'), read: OracleDevice.snapshot().passive, ring: OracleFingerprint.context().mode }));
+  const askW = await copyWords();
+  if (prof === 'pixel') {
+    check('v5 WP4 3a: step 3 of 6, Show me + Skip, ≤60 words, nothing read yet, ring withheld', ask.stage === 'device' && ask.now === 3 && ask.total === 6 && ask.show && ask.skip && ask.read === null && ask.ring === 'none' && askW <= 60, { ask, askW });
+    const a1 = await axe(page, 'v5-device-ask'); check('v5 WP4 3a axe 0', !a1.length, a1);
+    await page.click('#dev-skip'); await settle(page, 400);
+    check('v5 WP4 Skip goes straight to Loop in one tap; nothing read; ring stays withheld', await page.evaluate(() => state.stage === 'machine' && OracleDevice.snapshot().passive === null && OracleFingerprint.context().mode === 'none'));
+    await page.click('[data-back]'); await settle(page, 400);
+  }
+  await page.click('#dev-show'); await page.waitForSelector('#dev-next', { timeout: 8000 }); await settle(page, 300);
+  const ro = await page.evaluate(() => ({ rows: [...document.querySelectorAll('dl.dev-list .dev-row')].map(r => [r.querySelector('dt').textContent, r.querySelector('dd span').textContent]),
+    infos: document.querySelectorAll('[data-dev-info]').length, count: (document.getElementById('dev-count') || {}).textContent, ring: OracleFingerprint.context(), cap: document.getElementById('pv-cap').textContent,
+    focus: document.activeElement && document.activeElement.tagName }));
+  const roW = await copyWords();
+  if (prof === 'pixel') {
+    check('v5 WP4 3b: six grouped rows in a <dl>, each with ⓘ; ≤60 words of copy; ring drawn from this device in the tab', ro.rows.length === 6 && ro.infos === 6 && roW <= 60 && ro.ring.mode === 'full' && /^[0-9a-f]{8}$/.test(ro.ring.dg) && /ridge loops/.test(ro.cap), { ro, roW });
+    await page.click('[data-dev-info=graphics]'); await settle(page, 300);
+    const sh = await page.evaluate(() => ({ open: document.getElementById('sheet').open, t: document.getElementById('sheet-body').innerText }));
+    check('v5 WP4 ⓘ sheet says what was read, which API, why sites read it and what it draws', sh.open && /WEBGL_debug_renderer_info/.test(sh.t) && /Why sites read it/.test(sh.t) && /In your artwork/.test(sh.t) && /Nothing here is sent/.test(sh.t), sh.t.slice(0, 300));
+    const a2 = await axe(page, 'v5-device-sheet'); check('v5 WP4 sheet axe 0', !a2.length, a2);
+    await page.keyboard.press('Escape'); await settle(page, 200);
+    const a3 = await axe(page, 'v5-device-readout'); check('v5 WP4 3b axe 0', !a3.length, a3);
+    await page.click('.btn-back'); await settle(page, 300);
+    const bk = await page.evaluate(() => ({ stage: state.stage, ask: !!document.getElementById('dev-show') }));
+    check('v5 WP4 Back on 3b returns to 3a (same step)', bk.stage === 'device' && bk.ask, bk);
+    await page.click('#dev-show'); await page.waitForSelector('#dev-forget'); await page.evaluate(() => localStorage.setItem('oracle.v2.history', '[]'));
+    await page.click('#dev-forget'); await settle(page, 300);
+    const fg = await page.evaluate(() => ({ snap: OracleDevice.snapshot(), ring: OracleFingerprint.context().mode, keys: Object.keys(localStorage).filter(k => k.startsWith('oracle.')), ask: !!document.getElementById('dev-show'), status: (document.querySelector('[role=status]') || {}).textContent || '' }));
+    check('v5 WP4 Forget everything on the Device step: readings, ring and oracle.* storage gone; says permissions stay in site settings', fg.snap.passive === null && fg.ring === 'none' && !fg.keys.length && fg.ask && /site settings/.test(fg.status), fg);
+  }
+  if (prof === 'missing') check('v5 WP4 everything missing: rows say "Not shared by this browser", the step still works, ring withheld or partial', ro.rows.length === 6 && ro.rows.filter(r => /Not shared/.test(r[1])).length >= 2 && !!ro.ring, ro.rows);
+  if (prof === 'brave') check('v5 WP4 Brave-like: randomised rows say so and stay out of the digest', ro.rows.some(r => /randomised/.test(r[1])) && /Brave/.test(ro.rows[0][1]), ro.rows);
   await ctx.close();
 }
 

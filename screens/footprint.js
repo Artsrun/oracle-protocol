@@ -24,7 +24,7 @@
       body: UI.checkList({ name: 'fp', legend: '<span class="vh">Kinds of data</span>', legendClass: 'legend-vh',
         items: C.FOOTPRINT.map((c, i) => ({ title: c.name, on: (v.footprint >> i) & 1, info: true })) }) +
         `<p class="small"><button type="button" class="btn-link" id="fp-why" aria-haspopup="dialog">How we guessed</button></p>`,
-      cta: UI.button('Next', { primary: true, attrs: { 'data-goto': 'machine' } })
+      cta: UI.button('Next', { primary: true, attrs: { 'data-goto': 'device' } })
     });
     app.querySelectorAll('[data-fp]').forEach(b => b.addEventListener('change', () => {
       OracleChapters.dispatch({ type: 'footprint/toggle', i: +b.dataset.fp, on: b.checked });

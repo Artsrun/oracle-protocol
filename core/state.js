@@ -42,7 +42,7 @@
   const presetOf = (lab) => Object.keys(PRESETS).find(id => LAB_KEYS.every(k => PRESETS[id][k] === lab[k])) || null;
   function initial() {
     return {
-      schema: SCHEMA, engine: ENGINE_NEW, seed: null,
+      schema: SCHEMA, engine: ENGINE_V3, seed: null,
       offers: 0, footprint: 0, footprintEdited: false,
       ex: { d: 50, c: 50, p: 50, y: 50, x: 50, i: 50 },
       lab: { e: 50, r: 50, t: 30, k: 40, a: 40, n: 0, w: 30 },
