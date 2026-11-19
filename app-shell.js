@@ -248,7 +248,7 @@ window.OracleChapters = (() => {
     renderStage: (stage, app) => {
       // WP2: the seed exists from the first chapter on, so every choice can show up in the preview.
       // Random (crypto), never derived from device data.
-      if ((ROUTES.includes(stage) || stage === 'reveal') && !state.v2.seed && window.OracleArt) state.v2.seed = OracleArt.newSeed();
+      if ((ROUTES.includes(stage) || stage === 'reveal' || stage === 'machine') && !state.v2.seed && window.OracleArt) state.v2.seed = OracleArt.newSeed();
       registry[stage](app);
       drawPreview(); // v6 WP7: fits and sizes the preview first, then draws once
       requestAnimationFrame(refit); if (document.fonts) document.fonts.ready.then(refit);

@@ -37,7 +37,7 @@
       body: UI.radioCards({ name: 'feed', legend: '<span class="vh">Feed</span>', legendClass: 'legend-vh', items: FEEDS, value: cur() }) +
         `<p class="feed-result" aria-live="polite">${E.badge('SIMULATED')} <span id="feed-result">${result(v.lab)}</span></p>
         <div class="feed-tools">${UI.button(v.lab.n ? 'Reset' : 'Run', { icon: v.lab.n ? 'rotate-ccw' : 'play', attrs: { id: 'feed-run' } })}${UI.button('Tune', { icon: 'sliders-horizontal', attrs: { id: 'feed-tune', 'aria-haspopup': 'dialog' } })}${UI.button('Sources', { link: true, icon: 'book-open', attrs: { id: 'feed-ev', 'aria-haspopup': 'dialog' } })}</div>`,
-      cta: UI.button('See your artwork', { primary: true, icon: 'arrow-right', after: true, attrs: { 'data-goto': OracleChapters.handles('reveal') ? 'reveal' : 'revelation' } })
+      cta: UI.button('Next', { primary: true, icon: 'arrow-right', after: true, attrs: { 'data-goto': OracleRouter.next('loop') } })
     });
     const res = () => { document.getElementById('feed-result').innerHTML = result(state.v2.lab); };
     const syncRadios = () => { const id = cur(); app.querySelectorAll('[name=feed]').forEach(r => { r.checked = r.value === id; r.closest('.radio-card').classList.toggle('on', r.checked); }); };
@@ -59,7 +59,10 @@
       };
       tick();
     };
-    document.getElementById('feed-ev').onclick = (e) => OracleSheet.open({ title: 'What the evidence says', html: evidence(), from: e.currentTarget });
+    // v8 WP3: the seven "How the loop works" cards left the main path; they open from here.
+    document.getElementById('feed-ev').onclick = (e) => OracleSheet.open({ title: 'What the evidence says', from: e.currentTarget,
+      html: `<ul class="opt-rows"><li><button type="button" class="opt-rowbtn" id="feed-how">${UI.ic('book-open')}How the loop works \u00b7 7 cards</button></li></ul>${evidence()}`,
+      onOpen: (body) => { body.querySelector('#feed-how').onclick = () => { OracleSheet.close(); OracleChapters.go('machine'); }; } });
     document.getElementById('feed-tune').onclick = (e) => OracleSheet.open({
       title: 'Tune the ranker', html: tuneHtml(state.v2.lab), from: e.currentTarget,
       onOpen: (body) => body.querySelectorAll('[data-tune]').forEach(inp => inp.addEventListener('input', () => {

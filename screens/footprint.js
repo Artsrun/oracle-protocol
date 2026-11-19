@@ -24,7 +24,7 @@
       caption: cap(count()),
       body: UI.checkList({ name: 'fp', legend: '<span class="vh">Kinds of data</span>', legendClass: 'legend-vh',
         items: C.FOOTPRINT.map((c, i) => ({ title: c.name, icon: ICONS[c.id], on: (v.footprint >> i) & 1 })) }),
-      cta: UI.button('Next', { primary: true, icon: 'arrow-right', after: true, attrs: { 'data-goto': 'device' } }) + UI.button('Why these?', { link: true, icon: 'circle-help', iconCls: 'i-sm', attrs: { id: 'why-fp', 'aria-haspopup': 'dialog' } })
+      cta: UI.button('Next', { primary: true, icon: 'arrow-right', after: true, attrs: { 'data-goto': OracleRouter.next('extraction') } }) + UI.button('Why these?', { link: true, icon: 'circle-help', iconCls: 'i-sm', attrs: { id: 'why-fp', 'aria-haspopup': 'dialog' } })
     });
     app.querySelectorAll('[data-fp]').forEach(b => b.addEventListener('change', () => {
       OracleChapters.dispatch({ type: 'footprint/toggle', i: +b.dataset.fp, on: b.checked });

@@ -27,7 +27,7 @@
   OracleChapters.register('machine', (app) => {
     at = 0;
     app.innerHTML = U.frame({
-      id: 'machine', title: 'How the loop works', lead: 'A general model, not one company\u2019s system.',
+      id: 'machine', title: 'The loop', lead: 'A general model, not one company\u2019s system.',
       caption: 'Your artwork so far',
       body: `<div id="cards" class="cards" aria-live="polite"></div>`,
       cta: `${UI.button('Previous', { icon: 'arrow-left', attrs: { id: 'card-prev' } })}${UI.button('Next card', { primary: true, icon: 'arrow-right', after: true, attrs: { id: 'card-next' } })}

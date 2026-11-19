@@ -35,8 +35,10 @@ const measure = (sheet) => {
   const clipped = (el) => { for (let e = el; e && e !== document.body; e = e.parentElement) { const s = getComputedStyle(e); if (s.display === 'none' || s.visibility === 'hidden') return true; const r = e.getBoundingClientRect(); if (s.position === 'absolute' && r.width <= 1 && r.height <= 1) return true; } return false; };
   const vis = (el) => el.getClientRects().length && !el.closest('details:not([open]) > :not(summary), .vh, .legend-vh, [hidden]') && !clipped(el);
   const all = (sel) => [...root.querySelectorAll(sel)].filter(vis);
-  let words = 0, rowWords = 0; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  while (w.nextNode()) { const el = w.currentNode.parentElement; if (!el || el.closest('script,style') || !vis(el)) continue; const n = (w.currentNode.textContent.match(/[A-Za-z0-9À-ɏ'’]+/g) || []).length; words += n; if (el.closest('.dev-list')) rowWords += n; }
+  // v8 WP3: captionWords = words on controls, row labels, figure captions and the top bar; bodyWords = the rest.
+  let words = 0, rowWords = 0, captionWords = 0; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  while (w.nextNode()) { const el = w.currentNode.parentElement; if (!el || el.closest('script,style') || !vis(el)) continue; const n = (w.currentNode.textContent.match(/[A-Za-z0-9À-ɏ'’]+/g) || []).length; words += n; if (el.closest('.dev-list')) rowWords += n;
+    if (el.closest('button,a,label,summary,select,figcaption,.screen-top,.made-chips,.seed-tag,dt,.prov')) captionWords += n; }
   const box = (el) => { const r = el.getBoundingClientRect(); let wd = r.width, ht = r.height;
     if (/^(checkbox|radio)$/.test(el.type || '')) for (const l of el.labels || []) { const q = l.getBoundingClientRect(); wd = Math.max(wd, q.width); ht = Math.max(ht, q.height); }
     return Math.min(wd, ht); };
@@ -56,7 +58,7 @@ const measure = (sheet) => {
   let above = null; for (let e = cta && cta.previousElementSibling; e; e = e.previousElementSibling) if (vis(e)) { above = e; break; }
   const lastOpt = [...root.querySelectorAll('.check-row, .radio-card, .dev-row')].filter(vis).pop();
   const gap = cta && above && lastOpt ? Math.round(cta.getBoundingClientRect().top - above.getBoundingClientRect().bottom) : null;
-  return { words, wordsOutsideRows: words - rowWords, controls: controls.length, under44: controls.filter(el => box(el) < 44).length,
+  return { words, bodyWords: words - captionWords, captionWords, wordsOutsideRows: words - rowWords, controls: controls.length, under44: controls.filter(el => box(el) < 44).length,
     overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     vp: +(screenH / innerHeight).toFixed(2), docVp: +(docH / innerHeight).toFixed(2),
     primary: pr ? { top: Math.round(pr.top / innerHeight * 100), bottom: Math.round(pr.bottom / innerHeight * 100), inView: pr.top >= 0 && pr.bottom <= innerHeight + 0.5 } : null,
@@ -245,6 +247,10 @@ t('WP4', 'Device ask ≤40 words', g('390x844', 'device-ask').words <= 40, g('39
 { const c = ['device-card', 'device-card-loc', 'device-card-mic'].map(n => g('390x844', n).words);
   t('WP4', 'each permission card (tilt, location, sound) ≤30 words', c.every(x => x <= 30), c.join('/')); }
 t('WP4', 'Device readout: ≤60 words outside the six data rows', g('390x844', 'device-readout').wordsOutsideRows <= 60, g('390x844', 'device-readout').wordsOutsideRows);
+// v8 WP3: calm layout — body words ≤20 on every main-path screen (captions counted apart), Options ≤10 controls.
+{ const main = (process.env.V8_MAIN || 'trade,footprint,feed,device-ask,artwork').split(',');
+  t('v8 WP3', `390×844: ≤20 body words on ${main.join(', ')}`, main.every(n => g('390x844', n).bodyWords <= 20), main.map(n => n + ' ' + g('390x844', n).bodyWords + '+' + g('390x844', n).captionWords).join(', ')); }
+for (const o of ['options-legacy', 'options-device']) t('v8 WP3', `${o}: ≤10 controls on open`, g('390x844', o).controls <= 10, g('390x844', o).controls);
 for (const o of ['options-legacy', 'options-device']) {
   t('WP5', `${o}: ≤12 controls on open`, g('390x844', o).controls <= 12, g('390x844', o).controls);
   t('WP5', `${o}: ≤60 words on open`, g('390x844', o).words <= 60, g('390x844', o).words);

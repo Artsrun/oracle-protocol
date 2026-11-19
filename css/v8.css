@@ -41,3 +41,11 @@
 /* Tight screens: secondary links keep their caption and drop the decorative icon, so nothing wraps below the fold. */
 @media (max-width:359px){.dev-row dt .i,.dev-links .i,.screen-cta .btn-link .i,.screen-cta .btn-quiet .i,.screen-cta .btn-primary .i:last-child:not(:first-child){display:none}}
 @media (orientation:landscape) and (max-height:500px){.feed-tools .btn-link .i{display:none}}
+
+/* WP3: calm layout — 8-pt spacing tokens; "What made this" chips on the artwork. */
+:root{--s-1:8px;--s-2:12px;--s-3:16px;--s-4:24px}
+.made-chips{display:flex;flex-wrap:wrap;gap:var(--s-1);margin:0 0 var(--s-1)}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:var(--tap);padding:0 14px 0 10px;border-radius:999px;border:1px solid var(--v-line-2);background:var(--v-surface,transparent);color:var(--v-ink);font:inherit;font-size:var(--t-s);cursor:pointer}
+.chip:hover{background:var(--v-fill)}
+.chip:focus-visible{outline:2px solid var(--v-ink);outline-offset:2px}
+.chip .i{color:var(--v-ink-2)}

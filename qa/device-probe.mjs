@@ -79,11 +79,12 @@ res.push(await run('journey (device step skipped)', { acceptDownloads: true }, a
   await p.goto(BASE); await W(p, 600);
   await phase('trade'); await p.click('#btn-begin'); await W(p); await p.click('label[for=offer-0]'); await p.click('label[for=offer-2]');
   await phase('footprint'); await p.click('[data-goto=extraction]'); await W(p);
-  await phase('device: ask'); await p.click('.s-extraction .btn-primary'); await W(p);
-  if (await has(p, '#dev-skip')) { await phase('device: skip'); await p.click('#dev-skip'); await W(p); }
-  await phase('loop'); for (let i = 0; i < 7; i++) { await p.click('#card-next'); await W(p, 120); }
+  // v8 WP3: Feed is step 3 and Device step 4; the loop cards and Reveal open off the path (feed sources sheet, artwork chip).
+  await phase('loop'); await p.click('.s-extraction .btn-primary'); await W(p); await p.goto(BASE + '#machine'); await W(p); for (let i = 0; i < 7; i++) { await p.click('#card-next'); await W(p, 120); }
   await phase('feed'); await W(p); await p.click('label.radio-card'); await p.click('#feed-run'); await W(p, 1200);
-  await phase('reveal'); await p.click('.v4s .btn-primary[data-goto]'); await W(p); for (let i = 0; i < 6 && await has(p, '#card-next'); i++) { await p.click('#card-next'); await W(p, 120); }
+  await phase('device: ask'); await p.click('.s-loop .btn-primary'); await W(p);
+  if (await has(p, '#dev-skip')) { await phase('device: skip'); await p.click('#dev-skip'); await W(p); }
+  await phase('reveal'); await p.click('.made-chips [data-goto=reveal]'); await W(p); for (let i = 0; i < 6 && await has(p, '#card-next'); i++) { await p.click('#card-next'); await W(p, 120); }
   await phase('artwork'); await W(p, 600);
   await phase('artwork: save image'); await Promise.all([p.waitForEvent('download'), p.click('#rv-download')]); await W(p);
   await phase('artwork: options'); await p.click('#rv-options'); await W(p); await p.keyboard.press('Escape');

@@ -6,16 +6,16 @@
   OracleChapters.register('extras', (app) => {
     app.innerHTML = `<div class="screen v4s s-extras">
       <div class="screen-top"><button type="button" class="btn-back" data-goto="revelation">${ic('arrow-left')}Your artwork</button></div>
-      <header class="screen-head"><h1 tabindex="-1">Extras</h1><p class="lead">Optional. Nothing here changes your artwork.</p></header>
+      <header class="screen-head"><h1 tabindex="-1">Extras</h1><p class="lead">Nothing here changes your artwork.</p></header>
       <div class="extras-list">
         <section class="story-card">
           <h2 class="card-title">Your device</h2>
-          <p>What this browser shares, and the ring it draws, are in step 3. Readings stay in this tab.</p>
+          <p>What this browser shares.</p>
           <p><button type="button" class="btn-quiet" id="ex-device" data-goto="device">${ic('monitor-smartphone')}Device step</button></p>
         </section>
         <section class="story-card">
           <h2 class="card-title">Sources</h2>
-          <p>${E.SOURCES.length} sources behind every claim, each opened on ${E.esc(E.ACCESSED)}, and who is in the loop.</p>
+          <p>${E.SOURCES.length} sources, opened ${E.esc(E.ACCESSED)}.</p>
           <p class="opt-row"><button type="button" class="btn-quiet" id="ex-sources" aria-haspopup="dialog">${ic('book-open')}Sources</button><button type="button" class="btn-quiet" id="ex-who" aria-haspopup="dialog">${ic('users')}Who is in this loop</button></p>
         </section>
       </div>

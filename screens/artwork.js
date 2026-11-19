@@ -27,7 +27,7 @@
   const leadText = () => {
     const c = E().v === 3 ? FP().context() : { mode: 'none' };
     if (c.mode === 'pattern') return 'Made from the link\u2019s answers and device pattern.';
-    if (c.mode !== 'full') return 'Made only from your answers. Nothing left this tab.';
+    if (c.mode !== 'full') return 'Only your answers. Nothing left this tab.';
     return devOut().mode === 'pattern' ? 'Made from your answers and this device. Image and link add your device pattern.' : 'Made from your answers and this device. Image and link: choices only.';
   };
   const capOf = (p, fmt) => { const d = devOut(), c = E().caption(p, E().compositionId(p, d), shareLink(p, fmt), d); return clean(c) ? c : E().caption(p, E().compositionId(p, d), '', FP() ? FP().WITHHELD : d); };
@@ -202,6 +202,9 @@
   // v8 WP2: decorative icons beside visible captions (core/icons.js).
   const ic = (n, c) => window.OracleIcons ? OracleIcons.svg(n, c) : '';
   const FMT_ICON = { portrait: 'rectangle-vertical', story: 'smartphone', square: 'square', hires: 'image' };
+  // v8 WP3: the Reveal cards left the main path; "What made this" chips open them (Answers) and the Device step.
+  const madeChips = () => E().v < 2 ? '' : `<nav class="made-chips" aria-label="What made this">
+      <button type="button" class="chip" data-goto="reveal">${ic('layers', 'i-sm')}Answers</button>${E().v >= 3 ? `<button type="button" class="chip" data-goto="device">${ic('smartphone', 'i-sm')}Device</button>` : ''}</nav>`;
   // What each answer drew (layered engine). Each line links back to the screen that changes it.
   function madeFrom(p) {
     const n = A.normalize(p), F = OracleLayers.factors(n), fd = OracleLayers.feedOf(n);
@@ -221,14 +224,15 @@
   const optionsHtml = (p, id, fmt, hist) => `
     <fieldset class="opt-group"><legend><h3>Format</h3></legend>
     <div class="radio-cards opt-radios">${Object.entries(A.FORMATS).map(([k, f]) => `<label class="radio-card${k === fmt ? ' on' : ''}"><input type="radio" name="rv-fmt" value="${k}"${k === fmt ? ' checked' : ''}><span class="row-ic">${ic(FMT_ICON[k])}</span><span class="rc-text"><span class="row-title">${f.label.replace(/\s*\d+\u00d7\d+$/, '')}</span><span class="row-sub">${f.w}\u00d7${f.h}</span></span></label>`).join('')}</div></fieldset>
-    <label class="opt-check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}>${ic('type')}Title on the image</label>
     <ul class="opt-rows">
       <li><button type="button" class="opt-rowbtn" id="rv-link">${ic('link')}Copy link</button></li>
       <li><button type="button" class="opt-rowbtn" id="rv-gif">${ic('film')}<span class="cap">Save the build (GIF)</span></button></li>
       <li><button type="button" class="opt-rowbtn" id="rv-sound" aria-pressed="false">${ic('volume-2')}<span class="cap">Play sound</span></button></li>
     </ul>
-    ${E().v === 3 ? shareHtml() : ''}
+    ${E().v === 3 ? `<p class="small" id="rv-share-now">${ic('lock', 'i-sm')}${devOut().mode === 'pattern' ? 'Image and link add your device pattern.' : 'Image and link: choices only.'}</p>` : ''}
     <details class="more-opts"${moreOpen ? ' open' : ''}><summary>${ic('chevron-down', 'i-sm')}More</summary><div class="more-body">
+    ${E().v === 3 ? shareHtml() : ''}
+    <label class="opt-check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}>${ic('type')}Title on the image</label>
     <h3>Seed</h3>
     <div class="seed-line" id="seed-line">${esc(p.s)} <span class="small">composition ${esc(id)}</span></div>
     <p class="small" id="rv-look">Look: ${esc(lookLabel(lookNow()))} \u00b7 ${state.v2.look ? 'from the link' : 'follows site theme'}
@@ -278,6 +282,7 @@
         <header class="screen-head"><h1 tabindex="-1">Your artwork</h1><p class="small seed-tag">${esc(p.s)}</p></header>
         <figure class="art-frame art-stage"><canvas id="art-canvas" role="img" aria-label="Generative artwork ${esc(p.s)}: ${esc(E().interpret(p))}"></canvas></figure>
         <div class="screen-main">
+          ${madeChips()}
           <p class="lead" id="rv-mode">${esc(leadText())}</p>
           <div class="screen-cta art-actions">
             <button type="button" class="btn-primary" id="rv-download">${ic('download')}Save image</button>
@@ -285,7 +290,7 @@
             <button type="button" class="btn-quiet" id="rv-options" aria-haspopup="dialog">${ic('sliders-horizontal')}Options</button>
           </div>
           <p class="status-line small" id="rv-status" role="status" aria-live="polite"></p>
-          <p class="opt-row"><button type="button" class="btn-link" id="rv-restart">${ic('rotate-ccw', 'i-sm')}Start over</button><button type="button" class="btn-link" data-goto="extras">${ic('layout-grid', 'i-sm')}Extras</button></p>
+          <p class="opt-row"><button type="button" class="btn-link" id="rv-restart">${ic('rotate-ccw', 'i-sm')}Again</button><button type="button" class="btn-link" data-goto="extras">${ic('layout-grid', 'i-sm')}Extras</button></p>
         </div>
       </div>
     </div>`;

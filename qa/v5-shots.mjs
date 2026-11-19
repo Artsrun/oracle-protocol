@@ -39,6 +39,7 @@ for (const fx of FIXES) for (const scheme of ['dark', 'light']) for (const w of 
     await shot('reveal-ring-card');
     await page.click('#card-next'); await W(1000); await shot('artwork-choices-only');
     await page.click('#rv-options'); await W(400); await shot('options');
+    if (!(await page.evaluate(() => document.querySelector('#sheet .more-opts').open))) await page.click('#sheet .more-opts summary');
     await page.click('label.radio-card:has([value=pattern])'); await W(700); await shot('options-pattern');
     await page.keyboard.press('Escape'); await W(400); await shot('artwork-with-pattern');
   } catch (e) { errs.push('SCRIPT ' + e.message.split('\n')[0]); await shot('error'); }

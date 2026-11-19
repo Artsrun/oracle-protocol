@@ -72,7 +72,8 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
 for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['desktop', { width: 1280, height: 860 }]]) {
   const ctx = await browser.newContext({ colorScheme: SCHEME, viewport, reducedMotion: 'reduce' });
   const page = await ctx.newPage(); instrument(page, 'wp3-' + view);
-  const steps = [['offer', 1, 'approach'], ['extraction', 2, 'offer'], ['device', 3, 'extraction'], ['machine', 4, 'device'], ['loop', 5, 'machine']];
+  // v8 WP3 (deliberate): 5 steps — Feed is 3, Device 4; the loop cards (machine) sit off the path under the Feed.
+  const steps = [['offer', 1, 'approach'], ['extraction', 2, 'offer'], ['loop', 3, 'extraction'], ['machine', 3, 'loop'], ['device', 4, 'loop']];
   const bad = [];
   for (const [id, n, prev] of steps) {
     await page.goto(BASE + '#' + id); await page.reload(); await settle(page, 500);
@@ -84,7 +85,7 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
     });
     if (!f.art || f.now !== n || f.back !== prev || f.primaries !== 1) bad.push([id, f]);
   }
-  check(`${view}: WP3 every step screen has Back, "n of 6" progress (v5), the artwork in view and one primary action`, !bad.length, bad);
+  check(`${view}: WP3 every step screen has Back, "n of 5" progress (v8; 6 in v5–v7), the artwork in view and one primary action`, !bad.length, bad);
   await page.goto(BASE + '#extraction'); await page.reload(); await settle(page, 400);
   await page.click('[data-back]'); await settle(page, 400);
   check(`${view}: WP3 Back returns to the previous screen`, await page.evaluate(() => state.stage) === 'offer');
@@ -194,20 +195,23 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   const ctx = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 390, height: 844 }, reducedMotion: 'reduce', acceptDownloads: true, hasTouch: true });
   const page = await ctx.newPage(); instrument(page, 'wp7');
   await page.goto(BASE); await page.reload(); await settle(page, 300);
-  // shortest path (v5): Begin → Next → Next → Skip device → Skip cards → See your artwork → Skip/Next = 7 taps
+  // shortest path (v8 WP3, deliberate): Begin → Next → Next → Next (Feed) → Skip (Device) = 5 taps. The Reveal cards
+  // moved off the path; they open from the artwork's "What made this · Answers" chip and return to the artwork.
   let taps = 0; const tap = async (sel) => { await page.click(sel); taps++; await settle(page, 250); };
   await tap('#btn-begin'); await page.tap('label[for=offer-0]'); await page.tap('label[for=offer-5]');
-  await tap('[data-goto=extraction]'); await tap('[data-goto=device]'); await tap('#dev-skip'); await tap('#card-skip');
+  await tap('[data-goto=extraction]'); await tap('[data-goto=loop]');
   await page.click('label.radio-card:has([value=foryou])'); await settle(page, 150);
-  await tap('[data-goto=reveal]');
+  await tap('[data-goto=device]'); await tap('#dev-skip'); await settle(page, 650);
+  check('v8 WP3 shortest path from Start to the artwork is 5 taps (Begin, Next, Next, Next, Skip)', taps === 5 && await page.evaluate(() => state.stage) === 'revelation', taps);
+  await page.click('.made-chips [data-goto=reveal]'); await settle(page, 300);
   const cards = [];
   for (let i = 0; i < 6; i++) {
     cards.push(await page.evaluate(() => ({ t: document.getElementById('card-title').textContent, w: (document.getElementById('card-title').textContent.match(/[A-Za-z0-9'’]+/g) || []).length })));
     if (i < 5) { await page.click('#card-next'); await settle(page, 150); }
   }
-  check('WP7 Reveal (v5): six cards, ≤12 words each, naming what the answers drew; the sixth says the ring is plain (Device skipped)', cards.length === 6 && cards.every(c => c.w <= 12) && /2 red shards/.test(cards[0].t) && /For you/.test(cards[3].t) && /plain ring/i.test(cards[5].t), cards);
+  check('WP7 Reveal (v5; v8: from the Answers chip): six cards, ≤12 words each, naming what the answers drew; the sixth says the ring is plain (Device skipped)', cards.length === 6 && cards.every(c => c.w <= 12) && /2 red shards/.test(cards[0].t) && /For you/.test(cards[3].t) && /plain ring/i.test(cards[5].t), cards);
   await page.click('#card-next'); await settle(page, 900);
-  check('WP7 shortest path from Start to the artwork is ≤7 taps (v5: Begin, Next, Next, Skip device, Skip, See your artwork, Skip/Next)', taps + 1 <= 7, taps + 1);
+  check('v8 WP3 the last Reveal card returns to the artwork', await page.evaluate(() => state.stage) === 'revelation');
   const art = await page.evaluate(() => ({ stage: state.stage, hash: location.hash, w: (document.getElementById('app').innerText.match(/[A-Za-z0-9'’]+/g) || []).length, primaries: document.querySelectorAll('#app .btn-primary').length,
     canvas: (() => { const r = document.getElementById('art-canvas').getBoundingClientRect(); return r.width > 250 && r.bottom <= innerHeight; })() }));
   check('WP7 Artwork: link carries v=3 (v5 engine, choices only), ≤25 words, one primary action, the artwork fully in view', art.stage === 'revelation' && /&v=3(&|$)/.test(art.hash) && !/dg=|db=/.test(art.hash) && art.w <= 25 && art.primaries === 1 && art.canvas, art);
@@ -364,8 +368,7 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await ctx.close();
   const rc = await browser.newContext({ colorScheme: SCHEME, viewport: { width: 1280, height: 860 }, reducedMotion: 'reduce', acceptDownloads: true });
   const rp = await rc.newPage(); instrument(rp, 'wp10-reduced');
-  await rp.goto(BASE); await rp.click('#btn-begin'); await rp.click('label[for=offer-0]'); await rp.click('[data-goto=extraction]'); await rp.click('[data-goto=device]'); await rp.click('#dev-skip');
-  await rp.click('#card-skip'); await rp.click('.v4s .btn-primary[data-goto]'); await settle(rp, 200); await rp.click('#card-skip'); await settle(rp, 250);
+  await rp.goto(BASE); await rp.click('#btn-begin'); await rp.click('label[for=offer-0]'); await rp.click('[data-goto=extraction]'); await rp.click('[data-goto=loop]'); await rp.click('[data-goto=device]'); await rp.click('#dev-skip'); await settle(rp, 250); // v8: 5 taps
   const drawn = await rp.$eval('#art-canvas', c => { const L = OracleExport.lookNow(), bg = OracleArt.PALETTES[L.pal + '-' + L.th].bg, v = parseInt(bg.slice(1), 16), B = [(v >> 16) & 255, (v >> 8) & 255, v & 255];
     const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let lit = 0; for (let i = 0; i < d.length; i += 4 * 97) if (Math.abs(d[i] - B[0]) + Math.abs(d[i + 1] - B[1]) + Math.abs(d[i + 2] - B[2]) > 60) lit++; return lit; });
   check('WP10 reduced motion: the artwork is drawn immediately (no draw-in)', drawn > 50, { lit: drawn });
@@ -468,10 +471,10 @@ for (const prof of ['pixel', 'missing', 'brave']) {
     show: !!document.getElementById('dev-show'), skip: !!document.getElementById('dev-skip'), read: OracleDevice.snapshot().passive, ring: OracleFingerprint.context().mode }));
   const askW = await copyWords();
   if (prof === 'pixel') {
-    check('v5 WP4 3a: step 3 of 6, Show me + Skip, ≤40 words (v6 WP4), nothing read yet, ring withheld', ask.stage === 'device' && ask.now === 3 && ask.total === 6 && ask.show && ask.skip && ask.read === null && ask.ring === 'none' && askW <= 40, { ask, askW });
+    check('v5 WP4 3a (v8: step 4 of 5): Show me + Skip, ≤40 words (v6 WP4), nothing read yet, ring withheld', ask.stage === 'device' && ask.now === 4 && ask.total === 5 && ask.show && ask.skip && ask.read === null && ask.ring === 'none' && askW <= 40, { ask, askW });
     const a1 = await axe(page, 'v5-device-ask'); check('v5 WP4 3a axe 0', !a1.length, a1);
     await page.click('#dev-skip'); await settle(page, 400);
-    check('v5 WP4 Skip goes straight to Loop in one tap; nothing read; ring stays withheld', await page.evaluate(() => state.stage === 'machine' && OracleDevice.snapshot().passive === null && OracleFingerprint.context().mode === 'none'));
+    check('v5 WP4 Skip goes straight to the artwork in one tap (v8); nothing read; ring stays withheld', await page.evaluate(() => state.stage === 'revelation' && OracleDevice.snapshot().passive === null && OracleFingerprint.context().mode === 'none'));
     await page.click('[data-back]'); await settle(page, 400);
   }
   await page.click('#dev-show'); await page.waitForSelector('#dev-next', { timeout: 8000 }); await settle(page, 300);
@@ -529,11 +532,11 @@ for (const [prof, rm, mode] of [['pixel', 'no-preference', 'allow'], ['pixel', '
     check('v5 WP5 tilt: Allow asks (orientation + motion permission), the preview follows live (CSS transform); nothing kept', res.tilt.allow && res.tilt.skip && /rotateY/.test(res.tilt.tf) && end.asked[0] >= 1 && end.asked[0] <= 2 && JSON.stringify(end.snap.tilt) === '{"state":"ok"}', { t: res.tilt, s: end.snap.tilt });
     check('v5 WP5 location: shown once rounded to 1 decimal, only band + hemisphere kept', /40\.2° N, 44\.5° E/.test(res.loc.r) && JSON.stringify(end.snap.location) === '{"state":"ok","band":1,"hemi":"N"}', { r: res.loc.r, s: end.snap.location });
     check('v5 WP5 mic: 2 s level (dBFS shown once), only the level kept, stream stopped', /^Level: (quiet|room|loud) \(-?\d+ dBFS over 2 s\)/.test(res.mic.r) && /^\{"state":"ok","level":"(quiet|room|loud)"\}$/.test(JSON.stringify(end.snap.mic)) && end.stopped >= 1, { r: res.mic.r, s: end.snap.mic, stopped: end.stopped });
-    check('v5 WP5 after the cards: on Loop, ring adds horizon arc and vibration, no coordinate or dB value left in the page', end.stage === 'machine' && /horizon arc/.test(end.ring) && /vibration/.test(end.ring) && !leak.length, { ring: end.ring, leak });
+    check('v5 WP5 after the cards: on the artwork (v8), ring adds horizon arc and vibration, no coordinate or dB value left in the page', end.stage === 'revelation' && /horizon arc/.test(end.ring) && /vibration/.test(end.ring) && !leak.length, { ring: end.ring, leak });
   }
-  if (mode === 'notnow') check('v5 WP5 Not now on every card asks for nothing and reaches Loop', end.stage === 'machine' && end.asked.join() === '0,0,0' && end.snap.location === null && end.snap.mic === null, end.asked);
-  if (prof === 'macff') check('v5 WP5 denied / no sensor (macOS Firefox-like): honest messages, no re-prompt, journey continues', /doesn’t offer/.test(res.tilt.r) && /Not allowed/.test(res.loc.r) && /Not allowed/.test(res.mic.r) && end.stage === 'machine' && end.asked[1] === 1 && end.asked[2] === 1, res);
-  if (prof === 'missing') check('v5 WP5 APIs absent: every card says the browser doesn’t offer it, nothing throws', ['tilt', 'loc', 'mic'].every(c => /doesn’t offer/.test(res[c].r)) && end.stage === 'machine', res);
+  if (mode === 'notnow') check('v5 WP5 Not now on every card asks for nothing and reaches the artwork (v8)', end.stage === 'revelation' && end.asked.join() === '0,0,0' && end.snap.location === null && end.snap.mic === null, end.asked);
+  if (prof === 'macff') check('v5 WP5 denied / no sensor (macOS Firefox-like): honest messages, no re-prompt, journey continues', /doesn’t offer/.test(res.tilt.r) && /Not allowed/.test(res.loc.r) && /Not allowed/.test(res.mic.r) && end.stage === 'revelation' && end.asked[1] === 1 && end.asked[2] === 1, res);
+  if (prof === 'missing') check('v5 WP5 APIs absent: every card says the browser doesn’t offer it, nothing throws', ['tilt', 'loc', 'mic'].every(c => /doesn’t offer/.test(res[c].r)) && end.stage === 'revelation', res);
   await ctx.close();
 }
 { // reduced motion: a slider instead of live motion
@@ -578,12 +581,12 @@ for (const prof of ['pixel', 'brave']) {
   const scan = (txt) => SENT.filter(x => String(txt).includes(x));
   const savePng = async (tag) => { const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#rv-download')]); const f = QA + `/v5-wp7-${tag}.png`; await dl.saveAs(f); await settle(page, 300); return readPng(f); };
   await page.goto(BASE); await page.reload(); await settle(page, 300);
-  await page.click('#btn-begin'); await page.click('label[for=offer-0]'); await page.click('[data-goto=extraction]'); await page.click('[data-goto=device]'); await settle(page, 300);
+  await page.click('#btn-begin'); await page.click('label[for=offer-0]'); await page.click('[data-goto=extraction]'); await page.click('[data-goto=loop]'); await page.click('label.radio-card:has([value=foryou])'); await page.click('[data-goto=device]'); await settle(page, 300);
   await page.click('#dev-show'); await page.waitForSelector('#dev-next'); await page.click('#dev-next'); await settle(page, 200);
   await page.click('#perm-skip'); await settle(page, 150);
   await page.click('#perm-allow'); await page.waitForSelector('#perm-next'); await page.click('#perm-next'); await settle(page, 150); // location
-  await page.click('#perm-skip'); await settle(page, 250);
-  await page.click('#card-skip'); await settle(page, 200); await page.click('label.radio-card:has([value=foryou])'); await page.click('[data-goto=reveal]'); await settle(page, 300);
+  await page.click('#perm-skip'); await settle(page, 600);
+  await page.click('.made-chips [data-goto=reveal]'); await settle(page, 300); // v8: Reveal opens from the artwork chip
   for (let i = 0; i < 5; i++) { await page.click('#card-next'); await settle(page, 120); }
   const ring = await page.evaluate(() => document.getElementById('card-title').textContent);
   check('v5 WP7 Reveal sixth card: "The fingerprint ring: N readings from this device."', /^The fingerprint ring: \d+ readings from this device\.$/.test(ring), ring);
@@ -596,6 +599,8 @@ for (const prof of ['pixel', 'brave']) {
   const o = await page.evaluate(() => ({ radios: [...document.querySelectorAll('[name=rv-share-mode]')].map(r => [r.value, r.checked]), rem: document.getElementById('rv-remember').checked, made: [...document.querySelectorAll('.made-from li span')].map(x => x.textContent).pop() }));
   check('v5 WP7 Options: share mode radios default to Choices only; Remember off; made-from lists the ring', JSON.stringify(o.radios) === '[["choices",true],["pattern",false]]' && o.rem === false && /ridge loops/.test(o.made), o);
   const axo = await axe(page, 'v5-options-share'); check('v5 WP7 Options sheet axe 0 with share controls', !axo.length, axo);
+  // v8 WP3 (deliberate): the share mode moved under "More" (Options ≤10 controls); a one-line status stays in view.
+  if (!(await page.evaluate(() => document.querySelector('#sheet .more-opts').open))) { await page.click('#sheet .more-opts summary'); await settle(page, 200); }
   await page.click('label.radio-card:has([value=pattern])'); await settle(page, 600);
   const pm = await page.evaluate(() => ({ hash: location.hash, cap: document.getElementById('rv-caption').value }));
   check('v5 WP7 Choices + device pattern: link adds only &dg=8hex&db=3 chars; caption says "salted device pattern"', /&v=3&dg=[0-9a-f]{8}&db=[XAINDQR][X0-4][X0-9A-HJKMNP-T](&|$)/.test(pm.hash) && /salted device pattern/.test(pm.cap) && !scan(pm.hash + pm.cap).length, pm);

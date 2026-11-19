@@ -93,13 +93,17 @@ test('toParams round-trips through the link encoding', () => {
   assert.deepEqual(A.decode(A.encode(p)), A.normalize(p));
 });
 
-test('router: one ordered list drives the flow and the 6-step progress (v5: Device is step 3)', () => {
-  assert.deepEqual(R.FLOW.slice(0, 6), ['approach', 'offer', 'extraction', 'device', 'machine', 'loop']);
-  assert.equal(R.next('extraction'), 'device'); assert.equal(R.prev('machine'), 'device'); assert.equal(R.progress('device').step, 3);
+test('router: one ordered list drives the flow and the 5-step progress (v8: Start → artwork in 5 taps)', () => {
+  assert.deepEqual(R.FLOW, ['approach', 'offer', 'extraction', 'loop', 'device', 'revelation']);
+  assert.equal(R.next('extraction'), 'loop'); assert.equal(R.next('loop'), 'device'); assert.equal(R.next('device'), 'revelation');
+  assert.equal(R.prev('device'), 'loop'); assert.equal(R.prev('loop'), 'extraction');
   assert.equal(R.next('offer'), 'extraction');
-  assert.equal(R.prev('offer'), 'approach');
-  assert.equal(R.progress('loop').step, 5);
-  assert.equal(R.progress('loop').total, 6);
+  assert.equal(R.prev('offer'), 'approach'); assert.equal(R.prev('approach'), null);
+  assert.equal(R.progress('loop').step, 3); assert.equal(R.progress('device').step, 4); assert.equal(R.progress('revelation').step, 5);
+  assert.equal(R.progress('loop').total, 5); assert.equal(R.TOTAL, 5);
+  // off the main path but still routable: the loop cards return to the Feed, the Reveal cards to the artwork
+  assert.equal(R.byRoute('machine').id, 'machine'); assert.equal(R.prev('machine'), 'loop'); assert.equal(R.next('machine'), 'loop');
+  assert.equal(R.byRoute('reveal').id, 'reveal'); assert.equal(R.prev('reveal'), 'revelation');
   assert.equal(R.byRoute('sensors').id, 'device'); assert.equal(R.byRoute('protocol').id, 'device'); assert.equal(R.byRoute('portrait').id, 'device');
   const ids = R.SCREENS.map(s => s.id); assert.equal(new Set(ids).size, ids.length, 'unique ids');
 });

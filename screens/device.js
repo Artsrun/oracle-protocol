@@ -95,7 +95,7 @@
   }
 
   function askBody() {
-    return `<p class="small">Optional. Skip for a plain ring.</p>`;
+    return '';
   }
   // WP8: say plainly when the browser is protecting the visitor (Brave), or simply not sharing (Safari, Firefox).
   function browserNote(R) {
@@ -138,7 +138,7 @@
     } catch (e) { result = { state: 'unavailable' }; }
     busy = false; if (state.stage === 'device' && sub === c) paint(app, true);
   }
-  function leaveCard(app, c) { if (c === 'tilt') D.stopTilt(); result = null; const n = nextOf(c); if (n) { sub = n; pushSub(); paint(app, true); } else { D.stopAll(); OracleChapters.go('machine'); } }
+  function leaveCard(app, c) { if (c === 'tilt') D.stopTilt(); result = null; const n = nextOf(c); if (n) { sub = n; pushSub(); paint(app, true); } else { D.stopAll(); OracleChapters.go(OracleRouter.next('device')); } }
 
   function paint(app, focus) {
     const R = passive();
@@ -148,7 +148,7 @@
     app.innerHTML = U.frame({
       id: 'device',
       title: ask ? 'What does your device say?' : 'Any website could read this',
-      lead: ask ? 'Websites can read your device without asking. See what yours says? Nothing leaves this tab.' : `<span id="dev-count">${countRead(passive())} readings</span>, no prompt. None left this tab.`,
+      lead: ask ? 'Sites can read this without asking. Optional. Nothing leaves this tab.' : `<span id="dev-count">${countRead(passive())} readings</span>, no prompt. None left this tab.`,
       caption: ask ? 'Your artwork so far' : FP.describe(FP.context()),
       body: ask ? askBody() : readoutBody(R),
       cta: ask ? `${UI.button(busy ? 'Reading\u2026' : 'Show me', { primary: true, icon: 'eye', attrs: { id: 'dev-show', disabled: busy } })}${UI.button('Skip', { link: true, icon: 'skip-forward', attrs: { id: 'dev-skip' } })}`
@@ -158,7 +158,7 @@
     if (back && !ask) { back.removeAttribute('data-back'); back.onclick = (e) => { e.preventDefault(); if (history.state && history.state.dev) { history.back(); return; } sub = 'ask'; paint(app, true); }; }
     if (ask) {
       app.querySelector('#dev-show').onclick = () => show(app);
-      app.querySelector('#dev-skip').onclick = () => { D.stopAll(); OracleChapters.go('machine'); };
+      app.querySelector('#dev-skip').onclick = () => { D.stopAll(); OracleChapters.go(OracleRouter.next('device')); };
     } else {
       app.querySelector('#dev-next').onclick = () => { result = null; sub = 'tilt'; pushSub(); paint(app, true); };
       app.querySelectorAll('[data-dev-info]').forEach(b => b.onclick = () => { const g = GROUPS.find(x => x.id === b.dataset.devInfo); OracleSheet.open({ title: g.title, html: detail(g, passive()), from: b }); });
