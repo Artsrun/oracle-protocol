@@ -114,6 +114,28 @@
     c.width = c.height = 0; // release backing store early (mobile)
     return { blob: await withMetadata(blob, p, id), id, w: F.w, h: F.h };
   }
+  // v7 WP3 (F1): "Save the build" — an animated GIF of the build, from the link data only (choices + the exported
+  // ring that devOut() allows), painted with the same renderer as the PNG. One reused canvas, released afterwards.
+  async function exportGif(p, onProgress) {
+    await fontsReady();
+    const G = await OracleVendor.load('gifenc');
+    const w = OracleGif.W, h = OracleGif.H, dev = devOut(), eng = E();
+    const scene = eng.compose(p, w / h, dev), id = eng.compositionId(p, dev), RO = renderOpts(lookNow());
+    const plan = OracleBuild.frames(eng.v, !!state.v2.title);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    const paint = (f) => {
+      const sc = f.groups ? OracleLayers.stage(scene, f.groups) : scene;
+      A.render(ctx, sc, w, h, { ...RO, progress: f.progress, overlay: f.overlay ? overlay(p, id, dev) : null });
+      return ctx.getImageData(0, 0, w, h).data;
+    };
+    const comment = `oracle:${enc(p)};id=${id};look=${lookNow().pal}-${lookNow().th}-${lookNow().ty}`;
+    if (!clean(eng.software + ' ' + comment)) throw new Error('Oracle: a raw reading reached the GIF metadata');
+    try {
+      const bytes = await OracleGif.encode(G, plan, paint, { w, h, comment, onProgress });
+      return { blob: new Blob([bytes], { type: 'image/gif' }), id, w, h, frames: plan.length, name: OracleGif.fileName(p.s) };
+    } finally { c.width = c.height = 0; }
+  }
   function download(blob, name) {
     const url = URL.createObjectURL(blob), a = document.createElement('a');
     a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
@@ -333,5 +355,5 @@
     canvas.setAttribute('aria-label', 'Your artwork so far: ' + E().interpret(p));
   }
   if (window.OracleTheme) OracleTheme.onChange(() => { const c = document.getElementById('pv-canvas'); if (c) paintPreview(c); });
-  window.OracleExport = { paintPreview, exportBlob, withMetadata, crc32, parseRestore, lookNow, renderOpts }; // exposed for QA
+  window.OracleExport = { paintPreview, exportBlob, exportGif, withMetadata, crc32, parseRestore, lookNow, renderOpts }; // exposed for QA
 })();
