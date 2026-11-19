@@ -5,14 +5,14 @@
  * VERSION = first 12 hex of SHA-256 over the asset files; `node tools/sw-version.cjs` rewrites it,
  * and tests/sw.test.cjs fails if it is stale or if index.html loads a file missing from ASSETS. */
 'use strict';
-const VERSION = 'v7-ccab030d8115';
+const VERSION = 'v7-d665b6333969';
 const ASSETS = [
   './', 'index.html', 'manifest.webmanifest',
   'theme-boot.js', 'theme.css', 'styles.css', 'chapters.css', 'css/v4.css', 'css/v6.css', 'fonts/fonts.css',
   'core/router.js', 'core/state.js', 'core/ranker.js', 'core/sheet.js', 'core/device.js', 'core/privacy.js', 'core/vendor.js', 'core/build-gif.js',
   'vendor/gifenc-1.0.3/gifenc.esm.js', 'vendor/zzfx-1.4.0/ZzFX.js',
   'ui/components.js', 'app-core.js', 'data/evidence.js', 'data/content.js',
-  'art/oracle-art.js', 'art/layers.js', 'art/fingerprint.js', 'art/engine.js', 'art/build.js', 'app-shell.js',
+  'art/oracle-art.js', 'art/layers.js', 'art/fingerprint.js', 'art/engine.js', 'art/build.js', 'core/sound.js', 'app-shell.js',
   'screens/start.js', 'screens/evidence.js', 'screens/trade.js', 'screens/footprint.js', 'screens/device.js',
   'screens/loop-cards.js', 'screens/feed.js', 'screens/reveal.js', 'screens/artwork.js', 'screens/extras.js', 'app-ui.js',
   'fonts/Fraunces-variable.woff2', 'fonts/IBMPlexMono-italic-300.woff2', 'fonts/IBMPlexMono-italic-400.woff2',
