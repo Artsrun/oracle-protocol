@@ -5,11 +5,12 @@
  * VERSION = first 12 hex of SHA-256 over the asset files; `node tools/sw-version.cjs` rewrites it,
  * and tests/sw.test.cjs fails if it is stale or if index.html loads a file missing from ASSETS. */
 'use strict';
-const VERSION = 'v6-f28b399a7234';
+const VERSION = 'v7-d13c3f2302cb';
 const ASSETS = [
   './', 'index.html', 'manifest.webmanifest',
   'theme-boot.js', 'theme.css', 'styles.css', 'chapters.css', 'css/v4.css', 'css/v6.css', 'fonts/fonts.css',
-  'core/router.js', 'core/state.js', 'core/ranker.js', 'core/sheet.js', 'core/device.js', 'core/privacy.js',
+  'core/router.js', 'core/state.js', 'core/ranker.js', 'core/sheet.js', 'core/device.js', 'core/privacy.js', 'core/vendor.js',
+  'vendor/gifenc-1.0.3/gifenc.esm.js', 'vendor/zzfx-1.4.0/ZzFX.js',
   'ui/components.js', 'app-core.js', 'data/evidence.js', 'data/content.js',
   'art/oracle-art.js', 'art/layers.js', 'art/fingerprint.js', 'art/engine.js', 'app-shell.js',
   'screens/start.js', 'screens/evidence.js', 'screens/trade.js', 'screens/footprint.js', 'screens/device.js',
