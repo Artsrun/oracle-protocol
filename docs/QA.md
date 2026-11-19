@@ -763,3 +763,75 @@ e2e `v5.mjs` 130/130 Night and 130/130 Day, contrast 0 failing, device-probe 11/
 `mobile.mjs` 46/46 Night and 46/46 Day. Logs: `/workspace/oracle-qa/v7/wp0/`.
 Spike (outside the repo, PLAN-v7 §4): an 8-frame draw-in GIF of ORACLE-7K3F-Q9ZD was byte-identical across two Chromium
 contexts (613,247 B at 540×675); ZzFX samples with randomness 0 were identical run to run.
+
+### WP1–WP9 results (after WP9 = `oracle-v7` @ 97b08a9; same machine and tools as WP0)
+Chrome 156 headless, local server, 2026-11-19 (Asia/Yerevan). Logs: `/workspace/oracle-qa/v7/wp9/` (final full run),
+earlier per-WP runs in `wp4/`, `wp6/`, `wp7/`, `wp8/`.
+
+| Suite | WP0 (prod 6718795) | After WP9 |
+|---|---|---|
+| Unit (`npm test`) | 69/69 | 102/102 (new: vendor, build, gif, sound, masking) |
+| Determinism, 64 PNG hashes | 64/64 | 64/64 (unchanged; ORACLE-7K3F-Q9ZD untouched) |
+| e2e `v5.mjs` Night / Day (incl. axe on every screen, privacy leak scan, CSP) | 130/130 · 130/130 | 133/133 · 133/133 (new: GIF row, Play sound row) |
+| `mobile.mjs` 9 sizes, Night / Day | 46/46 · 46/46 | 46/46 · 46/46 (Night first run 45/46: the timing-based "no orphan history entries after 20 random sheet sequences" missed once; two reruns 46/46 — a flaky check, noted) |
+| Contrast | 0 failing | 0 failing |
+| device-probe (consent gate) | 11/11 | 11/11 |
+| sw-origin | PASS | PASS |
+| new `qa/gif.mjs` (8 fixed GIF hashes, size, plays once, comment, 0 outbound) | — | 65/65 |
+| new `qa/sound.mjs` (AudioContext spy, Chromium PCM = Node PCM) | — | 28/28 |
+| new `qa/masking.mjs` (clean configs, simulated protections, axe) | — | 61/61 Night · 61/61 Day |
+| new `qa/sheet.mjs` (CDP touch drags, snap, reduced motion, Back) | — | 15/15 Night · 15/15 Day |
+
+Measured (SIMULATED = headless Chromium on the box, desktop CPU):
+- **GIF** (540×675, plays once, one global palette): 395–658 KB for the eight fixtures (v1 legacy 8 frames 599 KB Night;
+  v=2 6 frames 395 KB; v=3 7 frames 510–564 KB). Build time 232–414 ms; 631–722 ms with 4× CPU throttle (SIMULATED).
+  Byte-identical at DPR 1 and 3 and run to run (VERIFIED in Chromium). Pinned hashes, Night: v1 `fbdcfca79b84`,
+  v=2 `425c97031ee6`, v=3 withheld `0eee6658f91a`, v=3 pattern `8f23ad6a304d`; Day: `327bca72cb36`, `b010c7ad3a33`,
+  `ff1179f0d0d9`, `12da15d90ce5`. Comment extension = the PNG comment (`oracle:<link>;id=…;look=…`), 0 raw readings.
+- **Sound**: 21 ZzFX parameters from the link only; randomness 0; volume 0.4 (cap 0.5); 0.65 s for the reference (cap 1.2 s,
+  2000-link fuzz). PCM hashes `913c8577072bf4ef` (choices) and `40a7f299d33b30a9` (with the pattern) are identical in Node
+  and in Chromium (both V8, VERIFIED). Other engines may differ in the last bits of `Math.sin` (INFERRED; Firefox's
+  fingerprinting protection switches to fdlibm).
+- **Masking**: 0 false positives — 0 flags in 5 clean Chromium configs (390×844@3 UTC, 360×640@2 Etc/GMT, 1280×860@1
+  Asia/Yerevan, 1440×900@1.25 Asia/Kathmandu, 820×1180@2 New York) and in the clean / UTC / +05:45 unit fixtures; a single
+  screen mismatch (zoom, second monitor) does not flag. Simulated Firefox XOR noise, Safari painted-pixel noise, a JS
+  spoofing extension and a spoofed time zone are each flagged exactly (SIMULATED; real browsers still to check).
+- **Sheet**: 40 % slow drag closes, 10 % springs back, a ~2 px/ms flick closes, half/full snap on long sheets, tap on the
+  handle toggles, no transition at all under reduced motion, no drag at ≥900 px; Back/Esc/Close unchanged.
+
+Deliberate changes and targets missed (honest list):
+- Options keeps ≤12 controls on open (mobile target): **Copy caption** moved under More beside the caption and **Clean
+  view** under More beside New seed. The plan's sub-lines under the two new rows were dropped for the same budget.
+- The grab handle is a pointer target (tap toggles half/full), not a keyboard **Expand/Collapse button** as planned: a
+  focusable handle would be a 13th control. Keyboard and screen-reader users always get the full-height sheet.
+- GIF saving downloads (with the Photos tip where files can be shared), like Save image; it does not open the share
+  sheet directly (the plan said download or share).
+- `device-probe.mjs` was not extended (still 11 checks); the masking coverage lives in the new `qa/masking.mjs` (no check
+  runs before Show me, verified there). GIF and sound hashes are pinned in `qa/gif.mjs`, `qa/sound.mjs` and the unit
+  tests rather than inside `determinism.mjs`.
+- ZzFX makes its own AudioContext when its module loads (after the tap); we close it at once and play on ours. Whether
+  iOS minds that short-lived second context is unverified (real device).
+- M3 (native integrity) cannot see spoofers that wrap functions in a Proxy; M4's screen check relies on the deprecated
+  `device-width` media feature (skipped where unsupported). Rounding that browsers do silently (Firefox core tiers,
+  Safari fixed screen) cannot be detected; a note says so in "How identifying is this?".
+- `qa/load.mjs` was not re-run. The service worker precaches the two vendor files on install (same origin, for offline);
+  the pages themselves import them only on the tap (VERIFIED with `OracleVendor.loaded`).
+
+### Real-device checklist v7 (owner; Brave first, Shields on; about 10 minutes per device; not run yet)
+| # | Check | Brave Android | Brave iOS | Safari iPhone | Chrome Android | Firefox (optional) |
+|---|---|---|---|---|---|---|
+| 1 | Options → **Save the build (GIF)**: the row counts frames, a GIF under 1 MB lands (Downloads/Files); it plays once in the gallery/Photos | | | | | |
+| 2 | iOS: open the GIF from Files → Share → Save Image; it stays animated in Photos | | | | | |
+| 3 | **Play sound**: about one second, only on the tap; tap again stops; with the silent switch on, the hint appears | | | | | |
+| 4 | Same link on two devices: the sound is the same (by ear) | | | | | |
+| 5 | Device step → Show me: Brave shows RANDOMISED rows and its own note; Firefox/Safari private shows "Your browser changes N of M readings…" or nothing — note which | | | | | |
+| 6 | Chrome without extensions: **no** masking line (false-positive check); with a spoofing extension: the affected rows say so | | | | | |
+| 7 | ⓘ on a randomised row names the check and its label | | | | | |
+| 8 | Drag Options down by the handle or title: it follows the finger; a short drag springs back; a longer one or a flick closes; on Options it can rest at half height; Back still closes | | | | | |
+| 9 | Reduced motion on: the sheet snaps with no glide | | | | | |
+| 10 | Brave: the GIF and PNG look the same as in Chrome (bytes differ because of canvas noise; that is expected) | | | | | |
+| 11 | All v6 checks above still hold (notch, keyboard, Back, offline) | | | | | |
+
+Comparison images and a sample GIF: `/workspace/oracle-qa/v7/compare/` — `1-options-rows.png`, `2a-gif-progress.png`,
+`2b-gif-done.png`, `3a-masking-line.png` (simulated Firefox-style canvas noise), `3b-masking-info.png`, `sheet-mid-drag.png`
+(Day), `oracle-7k3f-q9zd-build-540x675.gif` (v=3, Night, 510 KB, 7 frames) and `sample-build-v3-pattern-night.gif` (537 KB).

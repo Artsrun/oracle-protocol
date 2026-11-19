@@ -1,6 +1,6 @@
 # Oracle Protocol v7 Plan: Save the build, Sound signature, Honest masking, Draggable sheets
 
-Status: PLAN ONLY. Nothing built, nothing changed in the repo. Written 19 Nov 2026 (Asia/Yerevan) against `prod` at `6718795` (PR #6, v6 merged).
+Status: BUILT on `oracle-v7` (WP0–WP10, 19 Nov 2026, Asia/Yerevan); PR into `prod`, not merged. See §11 for what differs from this plan. Plan written 19 Nov 2026 (Asia/Yerevan) against `prod` at `6718795` (PR #6, v6 merged).
 Branch when approved: `oracle-v7` off `prod`, one commit per work package, PR into `prod`, never merged without the owner's approval.
 
 Labels: **VERIFIED** = checked in code, a spike run on the box, or a cited source. **INFERRED** = our reasoning, not yet tested. **SIMULATED** = measured in headless Chromium on the box (desktop CPU, optional 4× CPU throttle), not on a phone.
@@ -245,3 +245,20 @@ Masking false positives (INFERRED, to test)
 - gifenc 1.0.3 tarball: https://registry.npmjs.org/gifenc/-/gifenc-1.0.3.tgz ; ZzFX 1.4.0 tarball: https://registry.npmjs.org/zzfx/-/zzfx-1.4.0.tgz
 
 Spike artefacts (not in the repo): `/workspace/oracle-qa/v7-plan/spike/` (spike.mjs, spike-results.json, zz.mjs, zz-results.json) and `/workspace/oracle-qa/v7-plan/vendor-check/`.
+
+## 11. As built (19 Nov 2026, Asia/Yerevan)
+
+One commit per work package on `oracle-v7` (WP0 `40d974e` … WP9 `97b08a9`, WP10 docs). Results and the real-device checklist: `docs/QA.md` → "v7 build".
+
+| Plan | As built |
+|---|---|
+| `OracleBuild.frames(p, engine)` | `art/build.js` `frames(engineV, title)`: the frame list depends only on the engine and the title switch. Default title on → v1 8 frames, v=2 6, v=3 7. |
+| GIF glue in `core/build-gif.js` | As planned; rendering stays in `screens/artwork.js` (`OracleExport.exportGif`), encoding streams one frame at a time (only one RGBA frame held), palette only on the first frame (global table, no local tables). |
+| Options rows with sub-lines | Rows without sub-lines. To keep ≤12 controls on open, Copy caption and Clean view moved under More. |
+| GIF: download or share | Download (plus the Photos tip where files can be shared), same as Save image. |
+| Sound: 20-number array | 21 numbers (ZzFX 1.4.0 has 21 parameters incl. `filter`). Withheld/no-ring links use the choices-only sound. |
+| Masking in `core/device.js` | As planned (`masking()`, M1–M4); results kept as booleans and reason codes (`OracleDevice.maskingResult()`); `core/privacy.js` logic unchanged. M4 screen check is skipped where `device-width` is unsupported. QA device fixtures now wrap their overrides to look native (they stand in for browser-native protections). |
+| ⓘ text, sources | Three sources added to `data/evidence.js` (Brave fingerprinting defenses 2.0, Mozilla wiki Fingerprinting, WebKit Private Browsing 2.0; accessed 2026-11-19). The sheet body became a focusable region (axe scrollable-region-focusable). |
+| `device-probe.mjs` 11 → ~16 | Not extended; new `qa/masking.mjs` (61 checks) covers the masking consent gate, labels and false positives. |
+| Grab handle → Expand/Collapse button | Pointer-only handle (tap toggles half/full on long sheets). A focusable handle would be the 13th control on Options; keyboard users get the full sheet. New `css/v7.css`. |
+| GIF and sound hashes in determinism | Pinned in `qa/gif.mjs` (8 GIF hashes), `tests/sound.test.cjs` and `qa/sound.mjs` (2 PCM hashes). |
