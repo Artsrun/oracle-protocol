@@ -58,9 +58,19 @@
       supports: 'Of 118,934 fingerprints collected by AmIUnique, 89.4% were unique (desktop 90%, mobile 81%).' },
     { id: 'gomezboix18', short: 'G\u00f3mez-Boix 2018', title: 'Hiding in the Crowd: an Analysis of the Effectiveness of Browser Fingerprinting at Large Scale', publisher: 'G\u00f3mez-Boix, Laperdrix, Baudry — The Web Conference (WWW) 2018', date: '2018-04', type: 'Peer-reviewed paper',
       url: 'https://dl.acm.org/doi/10.1145/3178876.3186097',
-      supports: 'Of 2,067,942 fingerprints from a general-audience French website, 33.6% were unique (computers 35.7%, mobile 18.5%).' }
+      supports: 'Of 2,067,942 fingerprints from a general-audience French website, 33.6% were unique (computers 35.7%, mobile 18.5%).' },
+    // v7 (masking check, accessed 2026-11-19)
+    { id: 'brave-farbling', short: 'Brave 2020', title: 'Fingerprinting defenses 2.0', publisher: 'Brave (Privacy updates #4)', date: '2020-03-06', type: 'Browser documentation', accessed: '2026-11-19',
+      url: 'https://brave.com/privacy-updates/4-fingerprinting-defenses-2.0/',
+      supports: 'Brave applies randomization ("farbling") to canvas and Web Audio fingerprinting, including CanvasRenderingContext2D getImageData and measureText and HTMLCanvasElement toDataURL.' },
+    { id: 'mozilla-fp', short: 'Mozilla wiki 2026', title: 'Fingerprinting (Firefox fingerprinting protections)', publisher: 'Mozilla Wiki', date: '2026-11-09', type: 'Browser documentation', accessed: '2026-11-19',
+      url: 'https://wiki.mozilla.org/Fingerprinting',
+      supports: 'Firefox lists EfficientCanvasRandomization as enabled in Fingerprinting Protection (private browsing) and, from release 151, in the baseline protection.' },
+    { id: 'webkit-pb2', short: 'WebKit 2024', title: 'Private Browsing 2.0', publisher: 'WebKit blog', date: '2024-07-30', type: 'Browser documentation', accessed: '2026-11-19',
+      url: 'https://webkit.org/blog/15697/private-browsing-2-0/',
+      supports: 'Safari injects noise during 2D canvas and WebGL readback and when reading Web Audio samples, to make it harder to extract details of the user\u2019s configuration.' }
   ];
-  SOURCES.forEach(s => { s.accessed = ACCESSED; if (!s.verifiedVia) s.verifiedVia = s.url; });
+  SOURCES.forEach(s => { s.accessed = s.accessed || ACCESSED; if (!s.verifiedVia) s.verifiedVia = s.url; });
   const byId = Object.fromEntries(SOURCES.map(s => [s.id, s]));
 
   const LABELS = {

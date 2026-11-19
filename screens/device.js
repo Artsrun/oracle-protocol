@@ -57,11 +57,23 @@
     return FP.setContext({ mode: 'full', dg: pat.dg, db: { gpu: pat.b.gpu, cores: pat.b.cores, tzh: pat.b.tzh }, b: pat.b });
   }
 
+  // v7 F3 (WP8): the ⓘ names the masking check that flagged a reading, with its evidence label.
+  const CHECK_TEXT = {
+    m1: ['VERIFIED', 'Known-answer check: a fixed image drawn and read back came out changed. Brave, Firefox and Safari can add noise to canvas reads.', ['brave-farbling', 'mozilla-fp', 'webkit-pb2']],
+    m2: ['INFERRED', 'Repeat check: two reads of the same drawing differed, which is what that noise does.'],
+    m3: ['INFERRED', 'Integrity check: the browser function behind this value is not the built-in one, usually an extension.'],
+    m4tz: ['INFERRED', 'Consistency check: the time-zone name and the clock offset disagree.'],
+    m4screen: ['INFERRED', 'Consistency check: screen size and CSS device size disagree.']
+  };
+  const checksHtml = (e) => e.state === 'randomised' && e.checks && e.checks.length ? e.checks.map(c => CHECK_TEXT[c] ? OracleEvidence.claim(CHECK_TEXT[c][0], CHECK_TEXT[c][1], CHECK_TEXT[c][2]) : '').join('') + '<p class="small">Left out of your pattern and the ring.</p>' : '';
+  // How many readings the masking checks (not Brave's own flag) changed to "randomised".
+  const maskedCount = (R) => Object.values(R || {}).filter(e => e.state === 'randomised' && e.checks && e.checks.length).length;
+
   function detail(g, R) {
     return g.items.map(id => { const e = R[id]; if (!e) return '';
       return `<h3>${NAME[id]} ${badge(e.state)}</h3>
         <p><b>${esc(e.state === 'ok' || e.state === 'randomised' ? e.value : STATE_TEXT[e.state])}</b>${e.note ? `<br><span class="small">${esc(e.note)}</span>` : ''}${id === 'gpu' && e.state === 'ok' && e.raw && /^(Apple GPU|Mozilla)$|generic/i.test(e.raw.renderer || '') ? '<br><span class="small">Your browser hides the exact model; only the family shows.</span>' : ''}</p>
-        <p class="small">Read with <code>${esc(e.api)}</code>, no prompt.</p>
+        <p class="small">Read with <code>${esc(e.api)}</code>, no prompt.</p>${checksHtml(e)}
         <p><b>Why sites read it:</b> ${WHY[id]}<br><b>In your artwork:</b> ${ART[id]}</p>`; }).join('') +
       `<p class="small">Shown only in this tab. Nothing here is sent anywhere or saved.</p>`;
   }
@@ -77,6 +89,7 @@
       ${Ev.claim('VERIFIED', 'A general-audience site (2018): 33.6% of 2,067,942 fingerprints were unique (computers 35.7%, mobile 18.5%).', ['gomezboix18'])}
       <h3>Your browser</h3>
       ${Ev.claim('INFERRED', `This page asks ${M} questions without a prompt. Your browser answered ${N}${RA ? `, blurred ${RA} on purpose` : ''}${NA ? ` and kept ${NA} to itself` : ''}. More answers usually make a browser easier to tell apart; the studies above found 33.6% to 89.4% unique, depending on who was measured.`)}
+      <p class="small" id="dev-round-note">Some browsers also round values without saying so (for example core counts or screen size). This page can\u2019t detect that.</p>
       <p>We can\u2019t tell how unique <em>you</em> are: that needs other people\u2019s fingerprints to compare with, and this page sends nothing anywhere.</p>
       <p>To compare yourself, try <a href="https://coveryourtracks.eff.org/" target="_blank" rel="noopener noreferrer">EFF Cover Your Tracks</a> or <a href="https://amiunique.org/" target="_blank" rel="noopener noreferrer">AmIUnique</a> (new tab; we pass them nothing).</p>`;
   }
@@ -89,6 +102,8 @@
     const all = Object.values(R || {}), held = all.filter(e => e.state === 'randomised' || e.state === 'unavailable').length;
     if (D.snapshot().brave) return `<p class="dev-note" role="note"><b>Brave is protecting you.</b> It blurs or blocks ${held} of these on purpose, so sites see a slightly different device each session. Blurred values stay out of your pattern.</p>`;
     const b = R.browser && R.browser.raw && R.browser.raw.browser;
+    const mk = maskedCount(R), total = all.length;
+    if (mk) return `<p class="dev-note" role="note" id="dev-masked"><b>Your browser changes ${mk} of ${total} readings to protect you.</b> They stay out of your pattern.</p>`;
     if ((b === 'Safari' || b === 'Firefox') && held >= 2) return `<p class="dev-note" role="note">${b} doesn\u2019t share ${held} of these. That protects you; the ring uses plain values for them.</p>`;
     return '';
   }

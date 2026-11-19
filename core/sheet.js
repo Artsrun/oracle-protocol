@@ -14,7 +14,7 @@
         <div class="sheet-grab" aria-hidden="true"></div>
         <div class="sheet-top"><button type="button" class="sheet-back btn-quiet" data-sheet-back hidden>Back</button><h2 id="sheet-title" class="sheet-title"></h2>
           <button type="button" class="sheet-close btn-quiet" data-sheet-close>Close</button></div>
-        <div class="sheet-body" id="sheet-body"></div>
+        <div class="sheet-body" id="sheet-body" tabindex="0" role="region" aria-labelledby="sheet-title"></div>
       </div>`;
     document.body.appendChild(dlg);
     // v6 WP6: keep a focused field visible above the on-screen keyboard. --kb lifts the panel by the part of the
