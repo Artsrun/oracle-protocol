@@ -751,3 +751,15 @@ Open https://artsrun.github.io/oracle-protocol/ after the merge (or a local copy
 
 Brave note: Shields' fingerprinting protection randomises canvas/audio readings, so the Device readout should say
 RANDOMISED for those rows; the artwork from choices only must still match the same link on another browser.
+
+## v7 build (branch `oracle-v7`, 2026-11-19, Asia/Yerevan) — PR into prod, not merged
+
+Plan: `docs/PLAN-v7.md` (approved with defaults D1–D14). Features: Save the build (GIF), sound signature, honest
+masking labels, draggable sheet. Not chosen: QR code, engine 4.
+
+### WP0. Baseline (`prod` @ 6718795, before any v7 change)
+All suites green on the box (Chrome 156, headless, local server): unit 69/69, determinism 64/64 byte-identical,
+e2e `v5.mjs` 130/130 Night and 130/130 Day, contrast 0 failing, device-probe 11/11, sw-origin PASS,
+`mobile.mjs` 46/46 Night and 46/46 Day. Logs: `/workspace/oracle-qa/v7/wp0/`.
+Spike (outside the repo, PLAN-v7 §4): an 8-frame draw-in GIF of ORACLE-7K3F-Q9ZD was byte-identical across two Chromium
+contexts (613,247 B at 540×675); ZzFX samples with randomness 0 were identical run to run.
