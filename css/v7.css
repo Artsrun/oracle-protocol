@@ -1,0 +1,7 @@
+/* ORACLE PROTOCOL v7 — draggable bottom sheet (core/sheet.js WP9). Phones only; the side panel (≥900 px) is unchanged. */
+.sheet-grab{width:64px;height:20px;margin:0 auto;background:none;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:grab}
+.sheet-grab span{display:block;width:40px;height:4px;border-radius:2px;background:var(--v-line-2)}
+.sheet-top{touch-action:none}
+.sheet-panel.sheet-half{max-height:50svh}
+.sheet[data-dragging] .sheet-panel{user-select:none}
+@media (min-width:900px){ .sheet-grab{display:none} .sheet-top{touch-action:auto} .sheet-panel.sheet-half{max-height:none} }

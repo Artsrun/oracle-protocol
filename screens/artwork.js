@@ -114,6 +114,55 @@
     c.width = c.height = 0; // release backing store early (mobile)
     return { blob: await withMetadata(blob, p, id), id, w: F.w, h: F.h };
   }
+  // v7 WP3 (F1): "Save the build" — an animated GIF of the build, from the link data only (choices + the exported
+  // ring that devOut() allows), painted with the same renderer as the PNG. One reused canvas, released afterwards.
+  async function exportGif(p, onProgress) {
+    await fontsReady();
+    const G = await OracleVendor.load('gifenc');
+    const w = OracleGif.W, h = OracleGif.H, dev = devOut(), eng = E();
+    const scene = eng.compose(p, w / h, dev), id = eng.compositionId(p, dev), RO = renderOpts(lookNow());
+    const plan = OracleBuild.frames(eng.v, !!state.v2.title);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    const paint = (f) => {
+      const sc = f.groups ? OracleLayers.stage(scene, f.groups) : scene;
+      A.render(ctx, sc, w, h, { ...RO, progress: f.progress, overlay: f.overlay ? overlay(p, id, dev) : null });
+      return ctx.getImageData(0, 0, w, h).data;
+    };
+    const comment = `oracle:${enc(p)};id=${id};look=${lookNow().pal}-${lookNow().th}-${lookNow().ty}`;
+    if (!clean(eng.software + ' ' + comment)) throw new Error('Oracle: a raw reading reached the GIF metadata');
+    try {
+      const bytes = await OracleGif.encode(G, plan, paint, { w, h, comment, onProgress });
+      return { blob: new Blob([bytes], { type: 'image/gif' }), id, w, h, frames: plan.length, name: OracleGif.fileName(p.s) };
+    } finally { c.width = c.height = 0; }
+  }
+  // v7 WP6 (F2): "Play sound" — tap only, never autoplays, about one second. Our AudioContext is created or resumed
+  // synchronously inside the tap (iOS needs that), then ZzFX builds the samples from OracleSound.params(): the link's
+  // seed and choices, plus the device pattern only if the link carries one (devOut()). ZzFX makes its own context
+  // when it loads; that one is closed and ours is used. The samples are written with copyToChannel, never read back.
+  let audio = null, voice = null;
+  function stopSound() { if (voice) { const v = voice; voice = null; try { v.src.onended = null; v.src.stop(); } catch (e) { /* already ended */ } v.done(); } }
+  function playSound(p, btn, st) {
+    if (voice) { stopSound(); st('Sound stopped.'); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) { st('Sound is not available in this browser.'); return; }
+    if (!audio || audio.state === 'closed') audio = new AC();
+    const resumed = audio.state === 'suspended' ? audio.resume() : Promise.resolve();
+    const done = () => { btn.setAttribute('aria-pressed', 'false'); };
+    btn.setAttribute('aria-pressed', 'true');
+    const L = OracleSound.params(p, devOut());
+    OracleVendor.load('zzfx').then(({ ZZFX }) => {
+      if (ZZFX.audioContext !== audio) { try { if (ZZFX.audioContext && ZZFX.audioContext.close) ZZFX.audioContext.close(); } catch (e) { /* ignore */ } ZZFX.audioContext = audio; }
+      const samples = ZZFX.buildSamples(...L);
+      const buf = audio.createBuffer(1, samples.length, ZZFX.sampleRate);
+      buf.copyToChannel(Float32Array.from(samples), 0);
+      const src = audio.createBufferSource(); src.buffer = buf; src.connect(audio.destination);
+      voice = { src, done }; src.onended = () => { if (voice && voice.src === src) { voice = null; done(); } };
+      src.start();
+      st('Playing your artwork as a sound (about ' + (samples.length / ZZFX.sampleRate).toFixed(1) + ' s).');
+      return resumed.then(() => { if (audio.state !== 'running') st('No sound? Check your phone\u2019s silent switch.'); });
+    }).catch(() => { voice = null; done(); st('Sound could not start here.'); });
+  }
   function download(blob, name) {
     const url = URL.createObjectURL(blob), a = document.createElement('a');
     a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
@@ -162,7 +211,9 @@
       [`${pl(1 + Math.round(F.feedback * 5 + n.n / 4), 'echo', 'echoes')} around the core: ${pl(n.n, 'round', 'rounds')}`, 'loop']
     ].concat(E().v === 3 ? [[FP().describe(FP().context()).replace(/\.$/, ''), 'device']] : []);
   }
-  // v6 WP5: one vertical, settings-style list. On open: Format, Title, three action rows and (engine 3) the share mode;
+  // v6 WP5: one vertical, settings-style list. On open: Format, Title, the action rows and (engine 3) the share mode;
+  // v7 WP4/WP6: "Save the build (GIF)" and "Play sound" join the open rows; Copy caption (beside the caption) and
+  // Clean view (beside New seed) moved under More, so Options still opens with ≤12 controls.
   // everything else sits under one "More" row. `moreOpen` keeps "More" open across a re-render caused inside it.
   const optionsHtml = (p, id, fmt, hist) => `
     <fieldset class="opt-group"><legend><h3>Format</h3></legend>
@@ -170,8 +221,8 @@
     <label class="opt-check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}> Title on the image</label>
     <ul class="opt-rows">
       <li><button type="button" class="opt-rowbtn" id="rv-link">Copy link</button></li>
-      <li><button type="button" class="opt-rowbtn" id="rv-copy">Copy caption</button></li>
-      <li><button type="button" class="opt-rowbtn" id="rv-clean">Clean view</button></li>
+      <li><button type="button" class="opt-rowbtn" id="rv-gif">Save the build (GIF)</button></li>
+      <li><button type="button" class="opt-rowbtn" id="rv-sound" aria-pressed="false">Play sound</button></li>
     </ul>
     ${E().v === 3 ? shareHtml() : ''}
     <details class="more-opts"${moreOpen ? ' open' : ''}><summary>More</summary><div class="more-body">
@@ -180,10 +231,12 @@
     <p class="small" id="rv-look">Look: ${esc(lookLabel(lookNow()))} \u00b7 ${state.v2.look ? 'from the link' : 'follows site theme'}
       ${state.v2.look ? '<button type="button" class="btn-link" id="rv-unpin">Use site theme</button>' : ''}</p>
     <div><button type="button" class="opt-rowbtn" id="rv-new">New seed</button></div>
+    <div><button type="button" class="opt-rowbtn" id="rv-clean">Clean view</button></div>
     ${E().v === 3 ? deviceMoreHtml() : ''}
     ${E().v >= 2 ? `<h3>What you made it from</h3><ul class="made-from">${madeFrom(p).map(([t, ch]) => `<li><span>${esc(t)}</span> <button type="button" class="btn-link" data-goto="${ch}">Edit</button></li>`).join('')}</ul>` : `<h3>About this artwork</h3><p>${esc(E().interpret(p))}</p><p class="small">Made with the earlier engine; it renders exactly as when it was shared.</p>`}
     <label for="rv-caption"><h3>Caption</h3></label>
     <textarea id="rv-caption" class="caption" rows="5" readonly>${esc(capOf(p, fmt))}</textarea>
+    <div><button type="button" class="opt-rowbtn" id="rv-copy">Copy caption</button></div>
     <label for="rv-restore"><h3>Open a seed or link</h3></label>
     <div class="opt-row"><input id="rv-restore" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="ORACLE-XXXX-XXXX or a link"><button type="button" class="btn-quiet" id="rv-restore-btn">Open</button></div>
     <h3 id="rv-hist-label">Recent (this browser only)</h3>
@@ -280,6 +333,26 @@
         body.querySelector('#rv-copy').onclick = async () => st((await copy(capOf(p, fmt))) ? 'Caption copied.' : 'Copy blocked \u2014 select the caption text.');
         body.querySelector('#rv-link').onclick = async () => st((await copy(shareLink(p, fmt))) ? 'Link copied.' : 'Copy blocked.');
         body.querySelector('#rv-clean').onclick = () => { OracleSheet.close(); OracleChapters.go('art', { hash: '#art?' + enc(p) + '&fmt=' + fmt + lookQuery(lookNow()) }); };
+        // v7 WP4 (F1): the build as a GIF. Built only on this tap, from the link data; the button shows progress
+        // (the live region announces start and end only), and a second tap while busy does nothing.
+        const gifBtn = body.querySelector('#rv-gif');
+        gifBtn.onclick = async () => {
+          if (gifBtn.getAttribute('aria-disabled') === 'true') return;
+          const label = gifBtn.textContent;
+          gifBtn.setAttribute('aria-disabled', 'true');
+          st('Building the GIF\u2026');
+          try {
+            const g = await exportGif(p, (d, n) => { gifBtn.textContent = `Building\u2026 frame ${d} of ${n}`; });
+            download(g.blob, g.name);
+            let tip = '';
+            try { tip = navigator.canShare && navigator.canShare({ files: [new File([g.blob], g.name, { type: 'image/gif' })] }) ? ' To put it in Photos, open it from Files and use Share \u2192 Save Image.' : ''; } catch (e) { tip = ''; }
+            st(`Saved ${g.name} (${g.frames} frames, ${(g.blob.size / 1024).toFixed(0)} KB, plays once).${tip}`);
+          } catch (e) {
+            st('Could not build the GIF here. Save image still works.');
+          } finally { gifBtn.textContent = label; gifBtn.removeAttribute('aria-disabled'); }
+        };
+        const snd = body.querySelector('#rv-sound');
+        snd.onclick = () => playSound(p, snd, st);
         const unpin = body.querySelector('#rv-unpin');
         if (unpin) unpin.onclick = () => { state.v2.look = null; rerender(true); };
         const doRestore = (q) => { if (!q) { st('Not a seed or Oracle link.'); return; } apply(q); status('Opened ' + q.s + '.'); (window.OracleDeviceStep ? OracleDeviceStep.refresh() : Promise.resolve()).then(() => rerender(false)); };
@@ -333,5 +406,5 @@
     canvas.setAttribute('aria-label', 'Your artwork so far: ' + E().interpret(p));
   }
   if (window.OracleTheme) OracleTheme.onChange(() => { const c = document.getElementById('pv-canvas'); if (c) paintPreview(c); });
-  window.OracleExport = { paintPreview, exportBlob, withMetadata, crc32, parseRestore, lookNow, renderOpts }; // exposed for QA
+  window.OracleExport = { paintPreview, exportBlob, exportGif, withMetadata, crc32, parseRestore, lookNow, renderOpts }; // exposed for QA
 })();

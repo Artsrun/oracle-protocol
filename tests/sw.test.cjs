@@ -18,6 +18,12 @@ test('sw: every font in fonts/fonts.css and every manifest icon is in ASSETS', (
   const missing = fonts.concat(icons).filter((r) => !list.includes(r));
   assert.deepStrictEqual(missing, []);
 });
+test('sw: every vendored file core/vendor.js can import is in ASSETS (offline)', () => {
+  const v = fs.readFileSync(path.join(ROOT, 'core/vendor.js'), 'utf8');
+  const files = [...v.matchAll(/'(vendor\/[^']+\.js)'/g)].map((m) => m[1]);
+  assert.ok(files.length >= 2, 'vendor paths found');
+  assert.deepStrictEqual(files.filter((f) => !list.includes(f)), []);
+});
 test('sw: every ASSETS entry exists and is same-origin (relative)', () => {
   for (const a of list) { assert.ok(!/^[a-z]+:|^\/\//i.test(a), a + ' must be relative'); if (a !== './') assert.ok(fs.existsSync(path.join(ROOT, a)), a + ' missing'); }
 });

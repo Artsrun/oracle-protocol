@@ -164,6 +164,12 @@
     gs = [].concat(gs);
     return { ...scene, layers: scene.layers.map(L => ({ ...L, items: L.items.map(it => gs.includes(it.g) ? it : { ...it, a: q((it.a || 0.5) * 0.22) }) })) };
   }
+  /** v7: a copy of the scene with only the given groups (a filter after compose: no random draws, the scene is
+   *  not changed). Used for the frames of "Save the build"; compose() and compositionId() are untouched. */
+  function stage(scene, gs) {
+    gs = [].concat(gs);
+    return { ...scene, layers: scene.layers.map(L => ({ ...L, items: L.items.filter(it => gs.includes(it.g)) })) };
+  }
   function interpret(p) {
     const n = A.normalize(p), F = factors(n), fd = feedOf(n);
     const pl = (k, one, many) => `${k} ${k === 1 ? one : many}`;
@@ -176,7 +182,7 @@
       `Made in my browser from my answers only \u2014 no personal data, no server.` + (link ? `\n${link}` : '') + `\n#OracleProtocol`;
   }
 
-  const api = { VERSION, GROUPS, FEEDS, FEED_NAME, factors, feedOf, compose, compositionId, group, focus, interpret, caption };
+  const api = { VERSION, GROUPS, FEEDS, FEED_NAME, factors, feedOf, compose, compositionId, group, focus, stage, interpret, caption };
   root.OracleLayers = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
