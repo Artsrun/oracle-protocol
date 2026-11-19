@@ -18,7 +18,7 @@
     'Trebuchet MS', 'Impact', 'Lucida Console', 'Tahoma', 'Geneva', 'Optima', 'Futura', 'Gill Sans', 'Baskerville', 'Didot'];
   const GPU_CLASSES = ['generic', 'apple', 'intel', 'nvidia', 'amd', 'qualcomm', 'arm'];
   const OK = 'ok', NA = 'unavailable', DENIED = 'denied', RAND = 'randomised';
-  const mem = { consent: { passive: false }, passive: null, brave: null, tilt: null, location: null, mic: null };
+  const mem = { consent: { passive: false }, passive: null, masking: null, brave: null, tilt: null, location: null, mic: null };
   const live = { tiltHandler: null, tiltWin: null, streams: [], ctx: [], timers: [] };
 
   function envOf(env) {
@@ -104,6 +104,105 @@
     return !!(await timeout(b.isBrave(), 500, false));
   }
 
+  // ── v7 F3: masking checks (docs/PLAN-v7.md F3, D10–D11). Run only inside readPassive(), i.e. after Show me.
+  // They keep booleans and reason codes only — no new raw value. A flagged reading becomes "randomised", so
+  // core/privacy.js already leaves it out of the art buckets and the digest.
+  //   M1 known answer: a fixed 16×16 opaque image put and read back, and a solid integer fillRect read back. Any change
+  //      means the browser adds readback noise (Brave farbling, Firefox canvas randomisation; Safari ATFP noises painted
+  //      pixels only — INFERRED until tested on a device).
+  //   M2 repeat read: two canvas signatures differ (the v5 check).
+  //   M3 native integrity: each getter or method we read must stringify as native code, have no `prototype`, and not
+  //      be shadowed on the instance (an extension that rewrites a value usually fails one of these).
+  //   M4 consistency: the time-zone name's offset must equal Date's offset (a real UTC user passes); the screen size must
+  //      match CSS device-width AND device-height (±1 px, either orientation) — two mismatches needed, so zoom or a
+  //      second monitor alone does not flag.
+  const MASK_NOTE = {
+    m1: 'Your browser changes canvas reads (known-answer check).',
+    m2: 'Your browser adds noise to canvas reads.',
+    m3: 'An extension or setting changes this value.',
+    m4tz: 'Time-zone name and clock offset disagree.',
+    m4screen: 'Screen size and CSS device size disagree.'
+  };
+  const M3_LIST = [
+    ['Navigator', 'hardwareConcurrency', 'get', 'cores'], ['Navigator', 'deviceMemory', 'get', 'memory'],
+    ['Navigator', 'userAgent', 'get', 'browser'], ['Navigator', 'languages', 'get', 'langs'],
+    ['Screen', 'width', 'get', 'screen'], ['Screen', 'height', 'get', 'screen'],
+    ['HTMLCanvasElement', 'toDataURL', 'value', 'canvas'], ['CanvasRenderingContext2D', 'getImageData', 'value', 'canvas'],
+    ['CanvasRenderingContext2D', 'measureText', 'value', 'fonts'], ['WebGLRenderingContext', 'getParameter', 'value', 'gpu'],
+    ['Date', 'getTimezoneOffset', 'value', 'tz'], ['Intl.DateTimeFormat', 'resolvedOptions', 'value', 'tz']
+  ];
+  const fnToString = Function.prototype.toString;
+  function isNative(fn) {
+    if (typeof fn !== 'function') return true; // absent: nothing to judge
+    let s = ''; try { s = fnToString.call(fn); } catch (e) { return false; }
+    return /\{\s*\[native code\]\s*\}\s*$/.test(s) && !Object.prototype.hasOwnProperty.call(fn, 'prototype');
+  }
+  function m1(E) {
+    try {
+      const c = E.canvas(); c.width = 16; c.height = 16;
+      const x = c.getContext('2d', { willReadFrequently: true });
+      if (!x || typeof x.putImageData !== 'function' || typeof x.getImageData !== 'function' || typeof x.createImageData !== 'function') return null;
+      const img = x.createImageData(16, 16), d = img.data; let r = 0x9e3779b9;
+      for (let i = 0; i < d.length; i += 4) { r = (Math.imul(r, 1664525) + 1013904223) >>> 0; d[i] = r >>> 24; d[i + 1] = (r >>> 16) & 255; d[i + 2] = (r >>> 8) & 255; d[i + 3] = 255; }
+      x.putImageData(img, 0, 0);
+      const a = x.getImageData(0, 0, 16, 16).data; let put = false;
+      for (let i = 0; i < d.length; i++) if (a[i] !== d[i]) { put = true; break; }
+      x.fillStyle = '#3c6e91'; x.fillRect(0, 0, 16, 16);
+      const b = x.getImageData(0, 0, 16, 16).data; let paint = false;
+      for (let i = 0; i < b.length; i += 4) if (b[i] !== 0x3c || b[i + 1] !== 0x6e || b[i + 2] !== 0x91 || b[i + 3] !== 255) { paint = true; break; }
+      c.width = c.height = 0;
+      return { put, paint };
+    } catch (e) { return null; }
+  }
+  function m3(E) {
+    const W = E.window || {}, out = [];
+    const protoOf = (name) => { const parts = name.split('.'); let o = W; for (const k of parts) o = o && o[k]; return o && o.prototype; };
+    const inst = { Navigator: E.navigator, Screen: E.screen };
+    let ran = false;
+    for (const [owner, prop, kind, id] of M3_LIST) {
+      const proto = protoOf(owner); if (!proto) continue;
+      const d = Object.getOwnPropertyDescriptor(proto, prop); if (!d) continue;
+      ran = true;
+      const shadow = inst[owner] && Object.prototype.hasOwnProperty.call(inst[owner], prop);
+      if (shadow || !isNative(kind === 'get' ? d.get : d.value)) out.push(id);
+    }
+    return ran ? [...new Set(out)] : null;
+  }
+  function tzOffsetMin(E, name, date) {
+    try {
+      const p = E.Intl.DateTimeFormat('en-US', { timeZone: name, timeZoneName: 'longOffset' }).formatToParts(date).find(x => x.type === 'timeZoneName');
+      const m = /^GMT(?:([+-\u2212])(\d{1,2})(?::?(\d{2}))?)?$/.exec(p && p.value || ''); if (!m) return null;
+      return m[1] ? (m[1] === '+' ? 1 : -1) * (+m[2] * 60 + +(m[3] || 0)) : 0;
+    } catch (e) { return null; }
+  }
+  function m4(E, tzName) {
+    const res = { tz: null, screen: null };
+    try {
+      const now = new E.Date(); const off = typeof now.getTimezoneOffset === 'function' ? -now.getTimezoneOffset() : null;
+      const want = tzName && off != null ? tzOffsetMin(E, tzName, now) : null;
+      if (want != null) res.tz = want !== off;
+    } catch (e) { res.tz = null; }
+    const sc = E.screen || {}, mm = E.matchMedia, w = +sc.width || 0, h = +sc.height || 0;
+    let known = false; try { known = !!(mm && mm('(min-device-width: 0px)').matches && mm('(min-device-height: 0px)').matches); } catch (e) { known = false; }
+    if (known && w && h) { // the browser must understand device-width/height (deprecated in CSS, still supported)
+      const fits = (k, v) => { try { return mm(`(min-device-${k}: ${v - 1}px) and (max-device-${k}: ${v + 1}px)`).matches; } catch (e) { return null; } };
+      const a = [fits('width', w), fits('height', h)], b = [fits('width', h), fits('height', w)];
+      if (!a.includes(null) && !b.includes(null)) res.screen = !(a[0] || b[0]) && !(a[1] || b[1]);
+    }
+    return res;
+  }
+  /** masking(E, cs) → { ran: {m1,m2,m3,m4}, flags: { readingId: [reason codes] } }. cs = the v5 canvas signature result. */
+  function masking(env, cs, tzName) {
+    const E = envOf(env), flags = {}, add = (id, code) => { (flags[id] = flags[id] || []).includes(code) || flags[id].push(code); };
+    const k1 = m1(E), k3 = m3(E), k4 = m4(E, tzName);
+    if (k1 && (k1.put || k1.paint)) { add('canvas', 'm1'); add('fonts', 'm1'); }
+    if (cs && !cs.stable) add('canvas', 'm2');
+    if (k3) k3.forEach(id => add(id, 'm3'));
+    if (k4.tz) add('tz', 'm4tz');
+    if (k4.screen) add('screen', 'm4screen');
+    return { ran: { m1: !!k1, m2: !!cs, m3: !!k3, m4: k4.tz != null || k4.screen != null }, flags };
+  }
+
   async function readPassive(env) {
     if (!mem.consent.passive) throw new Error('OracleDevice: passive readings need the visitor\u2019s Show me tap first');
     const E = envOf(env), n = E.navigator || {}, sc = E.screen || {}, W = E.window || {};
@@ -151,6 +250,12 @@
     const PKC = W.PublicKeyCredential;
     const pk = PKC && typeof PKC.isUserVerifyingPlatformAuthenticatorAvailable === 'function' ? await timeout(PKC.isUserVerifyingPlatformAuthenticatorAvailable(), 1500, null) : null;
     R.passkey = pk == null ? entry('passkey', NA, 'Not shared', null, 'PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable') : entry('passkey', OK, pk ? 'Can use passkeys' : 'No built-in passkeys', { available: !!pk }, 'PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable', 'A yes/no check. No passkey is created and no prompt is shown.');
+    // v7 F3: masking checks; a flagged reading that was "ok" becomes "randomised" with the reason as its note.
+    const mk = masking(E, cs, tz); mem.masking = mk;
+    for (const [id, codes] of Object.entries(mk.flags)) {
+      const e = R[id]; if (!e || e.state !== OK) continue;
+      e.state = RAND; e.note = MASK_NOTE[codes[0]]; e.checks = codes.slice();
+    }
     mem.passive = R;
     return R;
   }
@@ -226,12 +331,13 @@
     live.ctx.forEach(c => { try { c.close(); } catch (e) { /* closed */ } }); live.ctx = [];
   }
   function stopAll() { stopTilt(); stopStreams(); }
-  function forget() { stopAll(); mem.consent.passive = false; mem.passive = null; mem.brave = null; mem.tilt = null; mem.location = null; mem.mic = null; }
+  function forget() { stopAll(); mem.consent.passive = false; mem.passive = null; mem.masking = null; mem.brave = null; mem.tilt = null; mem.location = null; mem.mic = null; }
   const snapshot = () => JSON.parse(JSON.stringify({ passive: mem.passive, brave: mem.brave, tilt: mem.tilt, location: mem.location, mic: mem.mic }));
   const hasAny = () => !!(mem.passive || (mem.location && mem.location.state === OK) || (mem.mic && mem.mic.state === OK));
 
   const api = { FONTS, GPU_CLASSES, BAND_LABEL, STATES: { OK, NA, DENIED, RAND }, parseUA, gpuClass, latBand, levelOf,
     allowPassive: () => { mem.consent.passive = true; }, passiveAllowed: () => mem.consent.passive,
+    masking, isNative, MASK_NOTE, maskingResult: () => mem.masking && JSON.parse(JSON.stringify(mem.masking)),
     readPassive, requestTilt, stopTilt, readLocation, readMic, isBrave, stopAll, forget, snapshot, hasAny,
     get: () => mem };
   root.OracleDevice = api;

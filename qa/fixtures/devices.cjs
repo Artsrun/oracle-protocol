@@ -40,8 +40,12 @@ const PROFILES = {
 const SENTINELS = (p) => [S.ua, S.gpu, S.wgpu, S.lang, 'Kathmandu', '40.18', '44.51', '33.86', '151.2', '52.37', '4.890'].filter(Boolean);
 
 // Runs inside the page (serialised by Playwright). Must be self-contained.
+// v7: these profiles stand in for what a BROWSER does natively (its own C++ getters), so the overrides are wrapped to
+// look native (a Proxy stringifies as native code and has no own prototype); otherwise the v7 masking check M3 would
+// rightly treat them as a spoofing extension. qa/device-probe.mjs has a separate, deliberately non-native "extension".
 function install(P) {
-  const def = (o, k, get) => { try { Object.defineProperty(o, k, { configurable: true, get }); } catch (e) { /* ignore */ } };
+  const nat = (f) => new Proxy(f, {});
+  const def = (o, k, get) => { try { Object.defineProperty(o, k, { configurable: true, get: nat(get) }); } catch (e) { /* ignore */ } };
   const val = (o, k, v) => { try { Object.defineProperty(o, k, { configurable: true, writable: true, value: v }); } catch (e) { /* ignore */ } };
   const N = Navigator.prototype, rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   const sess = { cores: rnd(2, 8), memory: [2, 4, 8][rnd(0, 2)], canvas: rnd(1, 250), font: Math.random() * 0.02 };
@@ -56,6 +60,15 @@ function install(P) {
   def(N, 'maxTouchPoints', () => P.touch);
   def(Screen.prototype, 'width', () => P.screen.w); def(Screen.prototype, 'height', () => P.screen.h);
   def(Screen.prototype, 'colorDepth', () => P.screen.depth);
+  // a real browser's CSS device-width/height agree with its screen size; answer those media queries from the profile
+  const mm = window.matchMedia.bind(window);
+  window.matchMedia = nat({ matchMedia(q) {
+    const parts = String(q).split(/\s+and\s+/), dev = { width: P.screen.w, height: P.screen.h };
+    const conds = parts.map(t => /^\(\s*(min-|max-)?device-(width|height)\s*:\s*(-?[\d.]+)px\s*\)$/.exec(t.trim()));
+    if (!conds.every(Boolean)) return mm(q);
+    const matches = conds.every(([, mx, k, v]) => mx === 'min-' ? dev[k] >= +v : mx === 'max-' ? dev[k] <= +v : dev[k] === +v);
+    return { matches, media: q, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false };
+  } }.matchMedia);
   if (P.brave) val(N, 'brave', { isBrave: async () => true });
   // battery
   if (P.battery === 'fixed') val(N, 'getBattery', async () => ({ level: 1, charging: true, chargingTime: 0, dischargingTime: Infinity }));
@@ -66,7 +79,7 @@ function install(P) {
   // GPU: WebGL debug strings, WebGPU adapter
   for (const C of [window.WebGLRenderingContext, window.WebGL2RenderingContext].filter(Boolean)) {
     const gp = C.prototype.getParameter;
-    C.prototype.getParameter = function (k) { if (P.gpu && k === 0x9246) return P.gpu.renderer; if (P.gpu && k === 0x9245) return P.gpu.vendor; return gp.call(this, k); };
+    C.prototype.getParameter = nat({ getParameter(k) { if (P.gpu && k === 0x9246) return P.gpu.renderer; if (P.gpu && k === 0x9245) return P.gpu.vendor; return gp.call(this, k); } }.getParameter);
   }
   if (!P.gpu) { const gc = HTMLCanvasElement.prototype.getContext; HTMLCanvasElement.prototype.getContext = function (t, ...a) { return /webgl/.test(t) ? null : gc.call(this, t, ...a); }; }
   if (P.webgpu === null) def(N, 'gpu', () => undefined);
@@ -74,14 +87,14 @@ function install(P) {
   // canvas + font readback noise (Firefox resistFingerprinting / Brave farbling, simulated)
   if (P.canvasNoise) {
     const td = HTMLCanvasElement.prototype.toDataURL;
-    HTMLCanvasElement.prototype.toDataURL = function (...a) {
+    HTMLCanvasElement.prototype.toDataURL = nat({ toDataURL(...a) {
       if (!this.isConnected) { const x = HTMLCanvasElement.prototype.getContext.call(this, '2d'); if (x) { x.fillStyle = `rgb(${P.canvasNoise === 'per-read' ? rnd(1, 250) : sess.canvas},7,7)`; x.fillRect(1, 1, 1, 1); } }
       return td.apply(this, a);
-    };
+    } }.toDataURL);
   }
   if (P.fontNoise) {
     const mt = CanvasRenderingContext2D.prototype.measureText;
-    CanvasRenderingContext2D.prototype.measureText = function (s) { const m = mt.call(this, s); if (!/^72px/.test(this.font)) return m; const w = m.width * (1 + sess.font * (this.font.length % 7)); return { width: w }; };
+    CanvasRenderingContext2D.prototype.measureText = nat({ measureText(s) { const m = mt.call(this, s); if (!/^72px/.test(this.font)) return m; const w = m.width * (1 + sess.font * (this.font.length % 7)); return { width: w }; } }.measureText);
   }
   if (P.voices == null) def(window, 'speechSynthesis', () => undefined);
   else if (window.speechSynthesis) val(window.speechSynthesis, 'getVoices', () => Array.from({ length: P.voices }, (_, i) => ({ name: 'v' + i })));
