@@ -243,6 +243,7 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   const gf = QA + '/wp4-' + gdl.suggestedFilename(); await gdl.saveAs(gf); const gb = fs.readFileSync(gf);
   const gif1 = await page.evaluate(() => ({ prog: window.__gifProg, label: document.getElementById('rv-gif').textContent, busy: document.getElementById('rv-gif').getAttribute('aria-disabled'), st: document.getElementById('rv-opt-status').textContent, open: document.getElementById('sheet').open }));
   check('v7 WP4 Options: "Save the build (GIF)" row; gifenc not loaded before the tap', !gif0.loaded && gif0.rows.includes('Save the build (GIF)'), gif0);
+  check('v7 WP6 Options: "Play sound" row (aria-pressed false); ZzFX not loaded and no AudioContext before a tap', gif0.rows.includes('Play sound') && await page.evaluate(() => !OracleVendor.loaded('zzfx') && document.getElementById('rv-sound').getAttribute('aria-pressed') === 'false'), gif0);
   check('v7 WP4 Save the build: progress shown per frame, ≤1 MB GIF89a that plays once and carries the link; sheet stays open',
     /^oracle-[a-z0-9]{4}-[a-z0-9]{4}-build-540x675\.gif$/.test(gdl.suggestedFilename()) && gb.length <= 1048576 && gb.subarray(0, 6).toString() === 'GIF89a' && !gb.includes('NETSCAPE2.0') && gb.includes('oracle:s=' + p1.s)
     && gif1.prog.some(t => /frame 1 of 7/.test(t)) && gif1.prog.some(t => /frame 7 of 7/.test(t)) && gif1.label === 'Save the build (GIF)' && gif1.busy === null && /^Saved .*plays once/.test(gif1.st) && gif1.open,
@@ -256,7 +257,7 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   check('WP7 new seed differs; opening the old seed restores the same composition', seed2 !== p1.s && back.s === p1.s && back.id === id1, { seed2, back });
   const hist = await page.evaluate(() => JSON.parse(localStorage.getItem('oracle.v2.history') || '[]'));
   check('WP7 history stays in this browser and holds parameters only', hist.length >= 2 && hist.every(h => Object.keys(h).join() === 'enc,s,id'), hist.slice(0, 2));
-  await page.click('#rv-options'); await settle(page, 300); await page.click('#rv-clean'); await settle(page, 600);
+  await page.click('#rv-options'); await settle(page, 300); if (!(await page.evaluate(() => document.querySelector('#sheet .more-opts').open))) await page.click('#sheet .more-opts summary'); await settle(page, 200); await page.click('#rv-clean'); await settle(page, 600);
   check('WP7 clean view shows only the artwork', await page.evaluate(() => !!document.getElementById('art-clean') && state.stage === 'art'));
   await page.click('#ac-back'); await settle(page, 600);
   // an old link (no v=2) skips Reveal and renders on the legacy engine
