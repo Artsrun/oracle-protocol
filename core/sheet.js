@@ -11,19 +11,20 @@
     dlg.id = 'sheet'; dlg.className = 'sheet';
     dlg.setAttribute('aria-labelledby', 'sheet-title');
     dlg.innerHTML = `<div class="sheet-panel">
-        <div class="sheet-grab" aria-hidden="true"></div>
+        <div class="sheet-grab" aria-hidden="true"><span></span></div>
         <div class="sheet-top"><button type="button" class="sheet-back btn-quiet" data-sheet-back hidden>Back</button><h2 id="sheet-title" class="sheet-title"></h2>
           <button type="button" class="sheet-close btn-quiet" data-sheet-close>Close</button></div>
         <div class="sheet-body" id="sheet-body" tabindex="0" role="region" aria-labelledby="sheet-title"></div>
       </div>`;
     document.body.appendChild(dlg);
+    initDrag(dlg);
     // v6 WP6: keep a focused field visible above the on-screen keyboard. --kb lifts the panel by the part of the
     // layout viewport the keyboard covers (iOS keeps the layout viewport; Android may resize it — both end at 0 or more).
     dlg.addEventListener('focusin', () => setTimeout(keepVisible, 60));
     if (window.visualViewport) visualViewport.addEventListener('resize', keepVisible);
     window.addEventListener('resize', keepVisible);
     dlg.addEventListener('click', (e) => {
-      if (e.target === dlg) return close();                 // backdrop
+      if (e.target === dlg) { if (Date.now() < quietUntil) return; return close(); } // backdrop (not the click that ends a drag or handle tap)
       if (e.target.closest('[data-sheet-close]')) close();
       if (e.target.closest('[data-sheet-back]')) back();
     });
@@ -33,7 +34,7 @@
       if (!closedByPop && isSentinel()) { ignorePop++; history.back(); }
       closedByPop = false;
       const f = opener; opener = null; stack = []; cur = null;
-      dlg.querySelector('.sheet-panel').style.removeProperty('--kb');
+      dlg.querySelector('.sheet-panel').style.removeProperty('--kb'); resetDrag();
       document.documentElement.classList.remove('sheet-open');
       if (onClose) { const fn = onClose; onClose = null; fn(); }
       if (f && document.contains(f)) f.focus();
@@ -52,6 +53,59 @@
     }
     if (isSentinel()) { history.replaceState(null, '', location.href); } // forward onto a stale sheet entry
     return false;
+  }
+  // ── v7 WP9 (F4, D12–D14): drag the bottom sheet by its grab handle or header (phones only, < 900 px).
+  // The panel follows the finger downward. On release it closes past 25 % of its height or faster than 0.4 px/ms
+  // (Vaul's thresholds); long sheets (taller than 60 % of the screen) also snap to half height and back to full.
+  // A tap on the handle toggles half/full on long sheets. One 160 ms settle, none under reduced motion; no loop.
+  // Closing goes through close(), so the history sentinel, onClose and focus return work as before. Keyboard and
+  // screen-reader users are unaffected: the sheet opens full height and Close, Esc and Back still close it.
+  const CLOSE_FRACTION = 0.25, CLOSE_VELOCITY = 0.4, SETTLE_MS = 160, HALF = 0.5, LONG = 0.6;
+  let drag = null, settleTimer = 0, quietUntil = 0;
+  const wide = () => window.matchMedia && matchMedia('(min-width: 900px)').matches;
+  const reduce = () => (window.OracleChapters && OracleChapters.reduceMotion) ? OracleChapters.reduceMotion() : !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const panelOf = () => dlg && dlg.querySelector('.sheet-panel');
+  const isLong = () => { const p = panelOf(), b = dlg.querySelector('#sheet-body'), t = dlg.querySelector('.sheet-top');
+    return !!p && (b.scrollHeight + t.offsetHeight + 16) > window.innerHeight * LONG; };
+  function settle(p, transform, then) {
+    clearTimeout(settleTimer);
+    if (reduce()) { p.style.transform = transform; p.style.removeProperty('transition'); if (then) then(); return; }
+    p.style.setProperty('transition', `transform ${SETTLE_MS}ms ease-out`, 'important');
+    p.style.transform = transform;
+    settleTimer = setTimeout(() => { p.style.removeProperty('transition'); if (then) then(); }, SETTLE_MS + 20);
+  }
+  function setHalf(on) { const p = panelOf(); if (!p) return; p.classList.toggle('sheet-half', !!on); dlg.dataset.snap = on ? 'half' : 'full'; }
+  function resetDrag() { const p = panelOf(); drag = null; clearTimeout(settleTimer); if (p) { p.style.removeProperty('transform'); p.style.removeProperty('transition'); } setHalf(false); }
+  function initDrag(d) {
+    const handles = [d.querySelector('.sheet-grab'), d.querySelector('.sheet-top')];
+    const down = (e) => {
+      if (wide() || (e.pointerType === 'mouse' && e.button !== 0) || e.target.closest('button, a, input, select, textarea')) return;
+      const p = panelOf(); clearTimeout(settleTimer); p.style.removeProperty('transition');
+      drag = { id: e.pointerId, el: e.currentTarget, y0: e.clientY, h: p.getBoundingClientRect().height, dy: 0, moved: false, s: [[e.clientY, e.timeStamp]] };
+      try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) { /* synthetic pointer */ }
+    };
+    const move = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag.dy = e.clientY - drag.y0; if (Math.abs(drag.dy) > 6) drag.moved = true;
+      drag.s.push([e.clientY, e.timeStamp]); if (drag.s.length > 6) drag.s.shift();
+      if (drag.moved) { panelOf().style.transform = `translateY(${Math.max(0, drag.dy)}px)`; dlg.dataset.dragging = '1'; }
+      e.preventDefault();
+    };
+    const up = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const g = drag; drag = null; delete dlg.dataset.dragging; quietUntil = Date.now() + 400; // the panel may have moved from under the finger
+      const p = panelOf(), long = isLong(), half = p.classList.contains('sheet-half');
+      if (!g.moved) { if (g.el.classList.contains('sheet-grab') && long) setHalf(!half); p.style.removeProperty('transform'); return; }
+      // velocity over the last ~100 ms of samples, px/ms, positive = downward
+      const last = g.s[g.s.length - 1]; let first = g.s[0];
+      for (const x of g.s) if (last[1] - x[1] <= 100) { first = x; break; }
+      const v = last[1] > first[1] ? (last[0] - first[0]) / (last[1] - first[1]) : 0;
+      if (g.dy > 0 && (g.dy > g.h * CLOSE_FRACTION || v > CLOSE_VELOCITY)) { settle(p, `translateY(${Math.round(g.h)}px)`, () => { close(); }); return; }
+      if (long && !half && g.dy > (g.h - window.innerHeight * HALF) / 2) { const keep = Math.max(0, g.dy - (g.h - window.innerHeight * HALF)); setHalf(true); p.style.transform = `translateY(${keep}px)`; void p.offsetHeight; settle(p, ''); return; }
+      if (long && half && (g.dy < -30 || v < -CLOSE_VELOCITY)) { setHalf(false); settle(p, ''); return; }
+      settle(p, '');
+    };
+    handles.forEach(h => { h.addEventListener('pointerdown', down); h.addEventListener('pointermove', move); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up); });
   }
   function keepVisible() {
     if (!dlg || !dlg.open) return;
@@ -85,6 +139,7 @@
     onClose = o.onClose || null;
     stack = [];
     document.documentElement.classList.add('sheet-open');
+    resetDrag();
     d.showModal();
     if (!isSentinel()) history.pushState({ oracleSheet: 1 }, '', location.href);
     sheetHref = location.href;
