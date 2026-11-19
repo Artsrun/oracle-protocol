@@ -29,7 +29,7 @@
         <h2 id="card-title" class="card-title" tabindex="-1">${c.t}</h2>
       </section>${UI.dots(C.length, at)}`;
     app.querySelector('#card-prev').hidden = at === 0;
-    app.querySelector('#card-next').textContent = at === C.length - 1 ? 'See your artwork' : 'Next';
+    UI.setLabel(app.querySelector('#card-next'), at === C.length - 1 ? 'See your artwork' : 'Next');
     const cv = document.getElementById('pv-canvas');
     if (cv) { U.sizeCanvas(cv); cv.__paint = () => OracleExport.paintPreview(cv, c.g === 'network' ? ['network'] : [c.g]); cv.__paint(); }
     document.getElementById('pv-cap').textContent = c.t;
@@ -41,8 +41,8 @@
     app.innerHTML = U.frame({
       id: 'reveal', title: 'What made your artwork', grid: 'art-grid reveal-grid',
       body: `<div id="cards" class="cards" aria-live="polite"></div>`,
-      cta: `${UI.button('Previous', { attrs: { id: 'card-prev' } })}${UI.button('Next', { primary: true, attrs: { id: 'card-next' } })}
-        ${UI.button('Skip', { link: true, attrs: { id: 'card-skip', 'data-goto': 'revelation' } })}`
+      cta: `${UI.button('Previous', { icon: 'arrow-left', attrs: { id: 'card-prev' } })}${UI.button('Next', { primary: true, icon: 'arrow-right', after: true, attrs: { id: 'card-next' } })}
+        ${UI.button('Skip', { link: true, icon: 'skip-forward', attrs: { id: 'card-skip', 'data-goto': 'revelation' } })}`
     });
     app.classList.add('reveal-on');
     app.querySelector('#card-next').onclick = () => { if (at < cards().length - 1) { at++; paint(app, true); } else OracleChapters.go('revelation'); };

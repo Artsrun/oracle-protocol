@@ -8,20 +8,20 @@
   let sub = 'ask', busy = false, result = null; // result: the last card's answer, shown once, never stored
   const CARDS = ['tilt', 'loc', 'mic'];
   const CARD = {
-    tilt: { title: 'Let the artwork follow your phone?', lead: 'The art follows your phone, only on this screen. Not saved.' },
-    loc: { title: 'Use your rough location?', lead: 'We keep only your hemisphere and a 30\u00b0 band, never the exact spot.' },
-    mic: { title: 'Listen to the room for 2 seconds?', lead: 'Only how loud it is. Sound is never recorded or saved.' }
+    tilt: { icon: 'rotate-3d', title: 'Let the artwork follow your phone?', lead: 'The art follows your phone, only on this screen. Not saved.' },
+    loc: { icon: 'map-pin', title: 'Use your rough location?', lead: 'We keep only your hemisphere and a 30\u00b0 band, never the exact spot.' },
+    mic: { icon: 'mic', title: 'Listen to the room for 2 seconds?', lead: 'Only how loud it is. Sound is never recorded or saved.' }
   };
   const NO = { denied: 'Not allowed. To change that later, use your browser\u2019s site settings.', unavailable: 'This device or browser doesn\u2019t offer it.' };
   const nextOf = (c) => CARDS[CARDS.indexOf(c) + 1] || null;
   const prevOf = (c) => CARDS[CARDS.indexOf(c) - 1] || 'readout';
   const GROUPS = [
-    { id: 'browser', title: 'Browser', items: ['browser', 'langs', 'passkey'] },
-    { id: 'screen', title: 'Screen', items: ['screen', 'touch', 'scheme'] },
-    { id: 'hardware', title: 'Hardware', items: ['cores', 'memory', 'battery'] },
-    { id: 'graphics', title: 'Graphics', items: ['gpu', 'webgpu'] },
-    { id: 'time', title: 'Time and network', items: ['tz', 'network'] },
-    { id: 'render', title: 'Fonts and rendering', items: ['fonts', 'canvas', 'voices'] }
+    { id: 'browser', icon: 'globe', title: 'Browser', items: ['browser', 'langs', 'passkey'] },
+    { id: 'screen', icon: 'monitor', title: 'Screen', items: ['screen', 'touch', 'scheme'] },
+    { id: 'hardware', icon: 'cpu', title: 'Hardware', items: ['cores', 'memory', 'battery'] },
+    { id: 'graphics', icon: 'microchip', title: 'Graphics', items: ['gpu', 'webgpu'] },
+    { id: 'time', icon: 'clock', title: 'Time and network', items: ['tz', 'network'] },
+    { id: 'render', icon: 'type', title: 'Fonts and rendering', items: ['fonts', 'canvas', 'voices'] }
   ];
   const NAME = { browser: 'Browser and system', langs: 'Languages', passkey: 'Passkeys', screen: 'Screen', touch: 'Touch', scheme: 'Display preference',
     cores: 'Processor cores', memory: 'Memory', battery: 'Battery', gpu: 'Graphics chip (WebGL)', webgpu: 'Graphics adapter (WebGPU)', tz: 'Time zone',
@@ -108,10 +108,10 @@
     return '';
   }
   function readoutBody(R) {
-    const rows = GROUPS.map(g => `<div class="dev-row"><dt>${g.title}</dt><dd><span>${esc(summary(g, R))}</span>
-      <button type="button" class="info" data-dev-info="${g.id}" aria-haspopup="dialog" aria-label="Details: ${g.title}">i</button></dd></div>`).join('');
+    const rows = GROUPS.map(g => `<div class="dev-row"><dt>${UI.ic(g.icon, 'i-sm')}${g.title}</dt><dd><span>${esc(summary(g, R))}</span>
+      <button type="button" class="info" data-dev-info="${g.id}" aria-haspopup="dialog" aria-label="Details: ${g.title}">${UI.ic('info', 'i-sm') || 'i'}</button></dd></div>`).join('');
     return `${browserNote(R)}<dl class="dev-list" aria-label="What this browser shares">${rows}</dl>
-      <p class="small dev-links"><button type="button" class="btn-link" id="dev-ident" aria-haspopup="dialog">How identifying is this?</button> <button type="button" class="btn-link" id="dev-forget">Forget everything</button></p>`;
+      <p class="small dev-links"><button type="button" class="btn-link" id="dev-ident" aria-haspopup="dialog">${UI.ic('fingerprint', 'i-sm')}How unique?</button> <button type="button" class="btn-link" id="dev-forget">${UI.ic('trash-2', 'i-sm')}Forget</button></p>`;
   }
 
   function cardBody(c) {
@@ -151,8 +151,8 @@
       lead: ask ? 'Websites can read your device without asking. See what yours says? Nothing leaves this tab.' : `<span id="dev-count">${countRead(passive())} readings</span>, no prompt. None left this tab.`,
       caption: ask ? 'Your artwork so far' : FP.describe(FP.context()),
       body: ask ? askBody() : readoutBody(R),
-      cta: ask ? `${UI.button(busy ? 'Reading\u2026' : 'Show me', { primary: true, attrs: { id: 'dev-show', disabled: busy } })}${UI.button('Skip', { link: true, attrs: { id: 'dev-skip' } })}`
-        : UI.button('Next', { primary: true, attrs: { id: 'dev-next' } })
+      cta: ask ? `${UI.button(busy ? 'Reading\u2026' : 'Show me', { primary: true, icon: 'eye', attrs: { id: 'dev-show', disabled: busy } })}${UI.button('Skip', { link: true, icon: 'skip-forward', attrs: { id: 'dev-skip' } })}`
+        : UI.button('Next', { primary: true, icon: 'arrow-right', after: true, attrs: { id: 'dev-next' } })
     });
     const back = app.querySelector('[data-back]');
     if (back && !ask) { back.removeAttribute('data-back'); back.onclick = (e) => { e.preventDefault(); if (history.state && history.state.dev) { history.back(); return; } sub = 'ask'; paint(app, true); }; }
@@ -173,8 +173,8 @@
     const c = sub, C = CARD[c], done = !!result;
     app.innerHTML = U.frame({
       id: 'device', title: C.title, lead: C.lead, caption: FP.describe(FP.context()), body: cardBody(c),
-      cta: done ? UI.button('Next', { primary: true, attrs: { id: 'perm-next' } })
-        : `${UI.button(busy ? (c === 'mic' ? 'Listening\u2026' : 'Asking\u2026') : 'Allow', { primary: true, attrs: { id: 'perm-allow', disabled: busy } })}${UI.button('Not now', { link: true, attrs: { id: 'perm-skip' } })}`
+      cta: done ? UI.button('Next', { primary: true, icon: 'arrow-right', after: true, attrs: { id: 'perm-next' } })
+        : `${UI.button(busy ? (c === 'mic' ? 'Listening\u2026' : 'Asking\u2026') : 'Allow', { primary: true, icon: CARD[c].icon, attrs: { id: 'perm-allow', disabled: busy } })}${UI.button('Not now', { link: true, icon: 'skip-forward', attrs: { id: 'perm-skip' } })}`
     });
     const back = app.querySelector('[data-back]');
     if (back) { back.removeAttribute('data-back'); back.onclick = (e) => { e.preventDefault(); if (c === 'tilt') D.stopTilt(); result = null; if (history.state && history.state.dev) { history.back(); return; } sub = prevOf(c); paint(app, true); }; }

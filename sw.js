@@ -5,7 +5,7 @@
  * VERSION = first 12 hex of SHA-256 over the asset files; `node tools/sw-version.cjs` rewrites it,
  * and tests/sw.test.cjs fails if it is stale or if index.html loads a file missing from ASSETS. */
 'use strict';
-const VERSION = 'v8-29e131b79735';
+const VERSION = 'v8-a7c59a07a815';
 const ASSETS = [
   './', 'index.html', 'manifest.webmanifest',
   'theme-boot.js', 'theme.css', 'styles.css', 'chapters.css', 'css/v4.css', 'css/v6.css', 'css/v7.css', 'css/v8.css', 'fonts/fonts.css',

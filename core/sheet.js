@@ -12,8 +12,8 @@
     dlg.setAttribute('aria-labelledby', 'sheet-title');
     dlg.innerHTML = `<div class="sheet-panel">
         <div class="sheet-grab" aria-hidden="true"><span></span></div>
-        <div class="sheet-top"><button type="button" class="sheet-back btn-quiet" data-sheet-back hidden>Back</button><h2 id="sheet-title" class="sheet-title"></h2>
-          <button type="button" class="sheet-close btn-quiet" data-sheet-close>Close</button></div>
+        <div class="sheet-top"><button type="button" class="sheet-back btn-quiet" data-sheet-back hidden>${window.OracleIcons ? OracleIcons.svg('arrow-left') : ''}Back</button><h2 id="sheet-title" class="sheet-title"></h2>
+          <button type="button" class="sheet-close btn-quiet" data-sheet-close>${window.OracleIcons ? OracleIcons.svg('x') : ''}Close</button></div>
         <div class="sheet-body" id="sheet-body" tabindex="0" role="region" aria-labelledby="sheet-title"></div>
       </div>`;
     document.body.appendChild(dlg);

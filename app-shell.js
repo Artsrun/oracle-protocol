@@ -59,7 +59,7 @@ window.OracleChapters = (() => {
     const T = window.OracleTheme; if (!T) return;
     const wrap = document.createElement('span');
     wrap.className = 'theme-switch';
-    wrap.innerHTML = `<label for="theme-select" class="foot-label">Colour theme</label>
+    wrap.innerHTML = `<label for="theme-select" class="foot-label">${icon('sun-moon')}Colour theme</label>
       <select id="theme-select" title="Colour theme">
         <option value="auto">Auto</option><option value="dark">Night</option><option value="light">Day</option>
       </select><span class="vh" id="theme-now" aria-live="polite"></span>`;
@@ -137,7 +137,8 @@ window.OracleChapters = (() => {
   // ── shared templates ────────────────────────────────────────────────────
   const esc = E.esc;
   // ── v4 frame (WP3): top bar (Back · progress · n of 5), art stage, question, body, one in-flow primary action ──
-  const backIcon = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4 6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const icon = (n, c) => window.OracleIcons ? OracleIcons.svg(n, c) : '';
+  const backIcon = icon('arrow-left'); // v8 WP2: Lucide arrow + the visible caption "Back"
   function topBar(id) {
     const R = OracleRouter, pr = R.progress(id), prev = R.prev(id);
     return `<div class="screen-top">
@@ -216,10 +217,10 @@ window.OracleChapters = (() => {
     const foot = document.getElementById('sitefoot');
     const btn = document.createElement('button');
     btn.type = 'button'; btn.id = 'btn-sources'; btn.className = 'foot-btn';
-    btn.textContent = 'Sources'; btn.setAttribute('aria-haspopup', 'dialog');
+    btn.innerHTML = icon('book-open') + 'Sources'; btn.setAttribute('aria-haspopup', 'dialog');
     btn.onclick = () => OracleEvidenceSheet.openSources(null, btn);
     foot.prepend(btn); // v6 WP5: vertical list — Sources, Forget everything, theme; the duplicate Extras is gone
-    const fg = document.createElement('button'); fg.type = 'button'; fg.id = 'foot-forget'; fg.className = 'foot-btn'; fg.textContent = 'Forget everything';
+    const fg = document.createElement('button'); fg.type = 'button'; fg.id = 'foot-forget'; fg.className = 'foot-btn'; fg.innerHTML = icon('trash-2') + 'Forget everything';
     fg.onclick = () => { forgetEverything(); render(); const n = document.querySelector('#sitefoot .foot-note'); if (n) n.textContent = 'Forgotten. Permissions you granted stay until you reset them in site settings.'; };
     btn.after(fg);
   }

@@ -3,9 +3,9 @@
 (() => {
   const U = OracleChapters.ui, UI = OracleUI, E = OracleEvidence, K = OracleRanker, S = OracleState;
   const FEEDS = [
-    { id: 'newest', title: 'Newest first', sub: 'Posts in time order.', art: 'Newest first: few, loose flow lines.' },
-    { id: 'foryou', title: 'For you', sub: 'Picked from what you like.', art: 'For you: flow lines pulled to one point.' },
-    { id: 'engaging', title: 'Most engaging', sub: 'Picked to keep you watching.', art: 'Most engaging: dense lines, strong swirl.' }
+    { id: 'newest', icon: 'arrow-down-wide-narrow', title: 'Newest first', sub: 'Posts in time order.', art: 'Newest first: few, loose flow lines.' },
+    { id: 'foryou', icon: 'sparkles', title: 'For you', sub: 'Picked from what you like.', art: 'For you: flow lines pulled to one point.' },
+    { id: 'engaging', icon: 'flame', title: 'Most engaging', sub: 'Picked to keep you watching.', art: 'Most engaging: dense lines, strong swirl.' }
   ];
   const RUN = 4;
   const SLIDERS = [['e', 'Emotion'], ['r', 'Relevance'], ['w', 'Recency'], ['t', 'Repetition'], ['k', 'Social proof'], ['a', 'Amplification']];
@@ -36,8 +36,8 @@
       caption: (FEEDS.find(f => f.id === cur()) || { art: 'Pick a feed to shape the flow lines.' }).art,
       body: UI.radioCards({ name: 'feed', legend: '<span class="vh">Feed</span>', legendClass: 'legend-vh', items: FEEDS, value: cur() }) +
         `<p class="feed-result" aria-live="polite">${E.badge('SIMULATED')} <span id="feed-result">${result(v.lab)}</span></p>
-        <div class="feed-tools">${UI.button(v.lab.n ? 'Reset' : 'Let it run', { attrs: { id: 'feed-run' } })}${UI.button('Tune', { attrs: { id: 'feed-tune', 'aria-haspopup': 'dialog' } })}${UI.button('Evidence', { link: true, attrs: { id: 'feed-ev', 'aria-haspopup': 'dialog' } })}</div>`,
-      cta: UI.button('See your artwork', { primary: true, attrs: { 'data-goto': OracleChapters.handles('reveal') ? 'reveal' : 'revelation' } })
+        <div class="feed-tools">${UI.button(v.lab.n ? 'Reset' : 'Run', { icon: v.lab.n ? 'rotate-ccw' : 'play', attrs: { id: 'feed-run' } })}${UI.button('Tune', { icon: 'sliders-horizontal', attrs: { id: 'feed-tune', 'aria-haspopup': 'dialog' } })}${UI.button('Sources', { link: true, icon: 'book-open', attrs: { id: 'feed-ev', 'aria-haspopup': 'dialog' } })}</div>`,
+      cta: UI.button('See your artwork', { primary: true, icon: 'arrow-right', after: true, attrs: { 'data-goto': OracleChapters.handles('reveal') ? 'reveal' : 'revelation' } })
     });
     const res = () => { document.getElementById('feed-result').innerHTML = result(state.v2.lab); };
     const syncRadios = () => { const id = cur(); app.querySelectorAll('[name=feed]').forEach(r => { r.checked = r.value === id; r.closest('.radio-card').classList.toggle('on', r.checked); }); };
@@ -50,8 +50,8 @@
     const runBtn = document.getElementById('feed-run');
     runBtn.onclick = () => {
       clearTimeout(timer);
-      if (state.v2.lab.n) { OracleChapters.dispatch({ type: 'rounds/reset' }); runBtn.textContent = 'Let it run'; res(); U.drawPreview('Rounds reset: echoes cleared.'); return; }
-      runBtn.textContent = 'Reset';
+      if (state.v2.lab.n) { OracleChapters.dispatch({ type: 'rounds/reset' }); runBtn.innerHTML = UI.ic('play') + 'Run'; res(); U.drawPreview('Rounds reset: echoes cleared.'); return; }
+      runBtn.innerHTML = UI.ic('rotate-ccw') + 'Reset';
       const tick = () => {
         OracleChapters.dispatch({ type: 'rounds/run', k: 1 }); res();
         U.drawPreview(`Round ${state.v2.lab.n}: one more echo around the core.`);

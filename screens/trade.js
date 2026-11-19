@@ -3,6 +3,7 @@
 (() => {
   const C = OracleContent, U = OracleChapters.ui, UI = OracleUI, E = OracleEvidence;
   // Plain names for the six trades (the evidence text is unchanged; see data/content.js).
+  const ICONS = { social: 'message-circle', free: 'search', ai: 'bot', devices: 'speaker', identity: 'id-card', entertainment: 'tv' }; // v8 WP2
   const NAMES = { social: 'Social apps', free: 'Search, maps & mail', ai: 'AI assistants', devices: 'Smart speakers & devices', identity: 'ID or age checks', entertainment: 'Streaming & feeds' };
   const shards = (n) => n === 0 ? 'No trades yet: no red shards.' : `${n} ${n === 1 ? 'trade' : 'trades'}: ${n} red ${n === 1 ? 'shard' : 'shards'}.`;
   const count = () => C.OFFERS.filter((_, k) => (state.v2.offers >> k) & 1).length;
@@ -17,8 +18,8 @@
       id: 'offer', title: 'Which do you use?', lead: 'Each trades your data for something you want.',
       caption: shards(count()),
       body: UI.checkList({ name: 'offer', legend: '<span class="vh">Apps and services you use</span>', legendClass: 'legend-vh',
-        items: C.OFFERS.map((o, i) => ({ title: NAMES[o.id], on: (v.offers >> i) & 1 })) }),
-      cta: UI.button('Next', { primary: true, attrs: { 'data-goto': 'extraction' } }) + UI.button('Why these?', { link: true, attrs: { id: 'why-offer', 'aria-haspopup': 'dialog' } })
+        items: C.OFFERS.map((o, i) => ({ title: NAMES[o.id], icon: ICONS[o.id], on: (v.offers >> i) & 1 })) }),
+      cta: UI.button('Next', { primary: true, icon: 'arrow-right', after: true, attrs: { 'data-goto': 'extraction' } }) + UI.button('Why these?', { link: true, icon: 'circle-help', iconCls: 'i-sm', attrs: { id: 'why-offer', 'aria-haspopup': 'dialog' } })
     });
     app.querySelectorAll('[data-offer]').forEach(b => b.addEventListener('change', () => {
       OracleChapters.dispatch({ type: 'trade/toggle', i: +b.dataset.offer, on: b.checked });
@@ -27,8 +28,8 @@
     }));
     document.getElementById('why-offer').onclick = (e) => OracleSheet.open({ title: 'Why these?', from: e.currentTarget,
       html: `<p>Each of these gives you something and takes data in return. Tap one for what is documented.</p>` +
-        UI.whyRows('offer', C.OFFERS.map(o => NAMES[o.id])),
+        UI.whyRows('offer', C.OFFERS.map(o => NAMES[o.id]), C.OFFERS.map(o => ICONS[o.id])),
       onOpen: (body) => UI.bindWhyRows(body, (i) => ({ title: NAMES[C.OFFERS[i].id], html: detail(C.OFFERS[i]) })) });
   });
-  window.OracleTrade = { NAMES };
+  window.OracleTrade = { NAMES, ICONS };
 })();

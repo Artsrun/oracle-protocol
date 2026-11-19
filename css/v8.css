@@ -3,3 +3,41 @@
 .i.i-sm{width:18px;height:18px}
 .i.i-lg{width:28px;height:28px}
 @media (forced-colors:active){.i{stroke:CanvasText}}
+
+/* WP2: icon + caption pairs. The caption is always visible; the icon is decorative (aria-hidden) and never the only cue. */
+.has-ic,.btn-back,.foot-btn,.sheet-close,.sheet-back,.opt-rowbtn,.btn-link{gap:8px}
+.v4s .btn-primary.has-ic,.v4s .btn-quiet.has-ic,.sheet .btn-quiet,.art-actions button,.extras-list .btn-quiet{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.v4s .btn-link.has-ic,.dev-links .btn-link,.art-actions .btn-link,.opt-row .btn-link{display:inline-flex;align-items:center;gap:6px}
+.btn-back .i{width:20px;height:20px}
+.foot-btn .i,.foot-label .i{width:18px;height:18px;margin-right:6px}
+.foot-label{display:inline-flex;align-items:center}
+.row-ic{flex:none;display:inline-flex;align-items:center;justify-content:center;width:22px;color:var(--v-ink-2)}
+.row-ic .i{width:22px;height:22px}
+.check-row label{flex-direction:row;align-items:center;justify-content:flex-start;gap:10px}
+.check-row .row-txt{display:flex;flex-direction:column;min-width:0}
+.check-row.on .row-ic,.radio-card.on .row-ic{color:var(--v-ink)}
+.radio-card{gap:10px}
+.radio-cards.compact .radio-card .row-ic{width:22px}
+.radio-cards.compact .radio-card .row-ic .i{width:20px;height:20px}
+.why-row{justify-content:flex-start}
+.why-row>span:not(.why-go){flex:1}
+.why-row>.i{color:var(--v-ink-2)}
+.why-go{display:inline-flex;color:var(--v-ink-2)}
+.opt-rowbtn{gap:12px}
+.opt-rowbtn>.i,.opt-check>.i{color:var(--v-ink-2)}
+.opt-check{gap:10px}
+.more-opts summary{display:flex;align-items:center;gap:8px}
+.dev-row dt{display:inline-flex;align-items:center;gap:6px}
+.dev-row dt .i{color:var(--v-ink-2)}
+.info .i{width:16px;height:16px}
+.v4s .btn-quiet .i,.v4s .btn-link .i,.sheet .btn-quiet .i{width:20px;height:20px}
+.v4s .btn-quiet.has-ic,.v4s .btn-link.has-ic{gap:6px}
+.v4s .btn-quiet.has-ic{padding:0 14px 0 12px}
+@media (max-width:359px){.v4s .btn-quiet .i,.v4s .btn-link .i,.v4s .btn-primary .i{width:18px;height:18px}.v4s .btn-quiet.has-ic,.v4s .btn-primary.has-ic{padding:0 8px;gap:4px}.v4s .btn-link.has-ic{gap:4px}.art-actions .btn-quiet{padding:0 8px;gap:4px}.art-actions .i{width:18px;height:18px}}
+@media (max-height:700px) and (max-width:899px), (orientation:landscape) and (max-height:500px){
+  .dev-row dt{display:inline}
+  .dev-row dt .i{width:14px;height:14px;margin-right:4px;vertical-align:-2px}
+}
+/* Tight screens: secondary links keep their caption and drop the decorative icon, so nothing wraps below the fold. */
+@media (max-width:359px){.dev-row dt .i,.dev-links .i,.screen-cta .btn-link .i,.screen-cta .btn-quiet .i,.screen-cta .btn-primary .i:last-child:not(:first-child){display:none}}
+@media (orientation:landscape) and (max-height:500px){.feed-tools .btn-link .i{display:none}}

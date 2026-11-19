@@ -17,7 +17,7 @@
     body.innerHTML = card(at) + UI.dots(N, at);
     app.querySelector('#card-prev').hidden = at === 0;
     const next = app.querySelector('#card-next');
-    next.textContent = at === N - 1 ? 'Next' : 'Next card';
+    UI.setLabel(next, at === N - 1 ? 'Next' : 'Next card');
     app.querySelector('#card-skip').hidden = at === N - 1;
     document.getElementById('card-ev').onclick = (e) => { const m = C.MACHINE[at]; OracleSheet.open({ title: m.name, html: E.claim(m.claim.label, m.claim.text, m.claim.src), from: e.currentTarget }); };
     const who = document.getElementById('card-who');
@@ -30,8 +30,8 @@
       id: 'machine', title: 'How the loop works', lead: 'A general model, not one company\u2019s system.',
       caption: 'Your artwork so far',
       body: `<div id="cards" class="cards" aria-live="polite"></div>`,
-      cta: `${UI.button('Previous', { attrs: { id: 'card-prev' } })}${UI.button('Next card', { primary: true, attrs: { id: 'card-next' } })}
-        ${UI.button('Skip', { link: true, attrs: { id: 'card-skip', 'data-goto': 'loop' } })}`
+      cta: `${UI.button('Previous', { icon: 'arrow-left', attrs: { id: 'card-prev' } })}${UI.button('Next card', { primary: true, icon: 'arrow-right', after: true, attrs: { id: 'card-next' } })}
+        ${UI.button('Skip', { link: true, icon: 'skip-forward', attrs: { id: 'card-skip', 'data-goto': 'loop' } })}`
     });
     app.querySelector('#card-next').onclick = () => { if (at < N - 1) { at++; paint(app, true); } else OracleChapters.go('loop'); };
     app.querySelector('#card-prev').onclick = () => { if (at > 0) { at--; paint(app, true); } };

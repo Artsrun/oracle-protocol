@@ -199,6 +199,9 @@
     return null;
   }
 
+  // v8 WP2: decorative icons beside visible captions (core/icons.js).
+  const ic = (n, c) => window.OracleIcons ? OracleIcons.svg(n, c) : '';
+  const FMT_ICON = { portrait: 'rectangle-vertical', story: 'smartphone', square: 'square', hires: 'image' };
   // What each answer drew (layered engine). Each line links back to the screen that changes it.
   function madeFrom(p) {
     const n = A.normalize(p), F = OracleLayers.factors(n), fd = OracleLayers.feedOf(n);
@@ -217,15 +220,15 @@
   // everything else sits under one "More" row. `moreOpen` keeps "More" open across a re-render caused inside it.
   const optionsHtml = (p, id, fmt, hist) => `
     <fieldset class="opt-group"><legend><h3>Format</h3></legend>
-    <div class="radio-cards opt-radios">${Object.entries(A.FORMATS).map(([k, f]) => `<label class="radio-card${k === fmt ? ' on' : ''}"><input type="radio" name="rv-fmt" value="${k}"${k === fmt ? ' checked' : ''}><span class="rc-text"><span class="row-title">${f.label.replace(/\s*\d+\u00d7\d+$/, '')}</span><span class="row-sub">${f.w}\u00d7${f.h}</span></span></label>`).join('')}</div></fieldset>
-    <label class="opt-check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}> Title on the image</label>
+    <div class="radio-cards opt-radios">${Object.entries(A.FORMATS).map(([k, f]) => `<label class="radio-card${k === fmt ? ' on' : ''}"><input type="radio" name="rv-fmt" value="${k}"${k === fmt ? ' checked' : ''}><span class="row-ic">${ic(FMT_ICON[k])}</span><span class="rc-text"><span class="row-title">${f.label.replace(/\s*\d+\u00d7\d+$/, '')}</span><span class="row-sub">${f.w}\u00d7${f.h}</span></span></label>`).join('')}</div></fieldset>
+    <label class="opt-check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}>${ic('type')}Title on the image</label>
     <ul class="opt-rows">
-      <li><button type="button" class="opt-rowbtn" id="rv-link">Copy link</button></li>
-      <li><button type="button" class="opt-rowbtn" id="rv-gif">Save the build (GIF)</button></li>
-      <li><button type="button" class="opt-rowbtn" id="rv-sound" aria-pressed="false">Play sound</button></li>
+      <li><button type="button" class="opt-rowbtn" id="rv-link">${ic('link')}Copy link</button></li>
+      <li><button type="button" class="opt-rowbtn" id="rv-gif">${ic('film')}<span class="cap">Save the build (GIF)</span></button></li>
+      <li><button type="button" class="opt-rowbtn" id="rv-sound" aria-pressed="false">${ic('volume-2')}<span class="cap">Play sound</span></button></li>
     </ul>
     ${E().v === 3 ? shareHtml() : ''}
-    <details class="more-opts"${moreOpen ? ' open' : ''}><summary>More</summary><div class="more-body">
+    <details class="more-opts"${moreOpen ? ' open' : ''}><summary>${ic('chevron-down', 'i-sm')}More</summary><div class="more-body">
     <h3>Seed</h3>
     <div class="seed-line" id="seed-line">${esc(p.s)} <span class="small">composition ${esc(id)}</span></div>
     <p class="small" id="rv-look">Look: ${esc(lookLabel(lookNow()))} \u00b7 ${state.v2.look ? 'from the link' : 'follows site theme'}
@@ -277,12 +280,12 @@
         <div class="screen-main">
           <p class="lead" id="rv-mode">${esc(leadText())}</p>
           <div class="screen-cta art-actions">
-            <button type="button" class="btn-primary" id="rv-download">Save image</button>
-            <button type="button" class="btn-quiet" id="rv-share">${canNative ? 'Share\u2026' : 'Share'}</button>
-            <button type="button" class="btn-quiet" id="rv-options" aria-haspopup="dialog">Options</button>
+            <button type="button" class="btn-primary" id="rv-download">${ic('download')}Save image</button>
+            <button type="button" class="btn-quiet" id="rv-share">${ic('share-2')}${canNative ? 'Share\u2026' : 'Share'}</button>
+            <button type="button" class="btn-quiet" id="rv-options" aria-haspopup="dialog">${ic('sliders-horizontal')}Options</button>
           </div>
           <p class="status-line small" id="rv-status" role="status" aria-live="polite"></p>
-          <p class="opt-row"><button type="button" class="btn-link" id="rv-restart">Start over</button><button type="button" class="btn-link" data-goto="extras">Extras</button></p>
+          <p class="opt-row"><button type="button" class="btn-link" id="rv-restart">${ic('rotate-ccw', 'i-sm')}Start over</button><button type="button" class="btn-link" data-goto="extras">${ic('layout-grid', 'i-sm')}Extras</button></p>
         </div>
       </div>
     </div>`;
@@ -338,18 +341,18 @@
         const gifBtn = body.querySelector('#rv-gif');
         gifBtn.onclick = async () => {
           if (gifBtn.getAttribute('aria-disabled') === 'true') return;
-          const label = gifBtn.textContent;
+          const cap = gifBtn.querySelector('.cap') || gifBtn, label = cap.textContent;
           gifBtn.setAttribute('aria-disabled', 'true');
           st('Building the GIF\u2026');
           try {
-            const g = await exportGif(p, (d, n) => { gifBtn.textContent = `Building\u2026 frame ${d} of ${n}`; });
+            const g = await exportGif(p, (d, n) => { cap.textContent = `Building\u2026 frame ${d} of ${n}`; });
             download(g.blob, g.name);
             let tip = '';
             try { tip = navigator.canShare && navigator.canShare({ files: [new File([g.blob], g.name, { type: 'image/gif' })] }) ? ' To put it in Photos, open it from Files and use Share \u2192 Save Image.' : ''; } catch (e) { tip = ''; }
             st(`Saved ${g.name} (${g.frames} frames, ${(g.blob.size / 1024).toFixed(0)} KB, plays once).${tip}`);
           } catch (e) {
             st('Could not build the GIF here. Save image still works.');
-          } finally { gifBtn.textContent = label; gifBtn.removeAttribute('aria-disabled'); }
+          } finally { cap.textContent = label; gifBtn.removeAttribute('aria-disabled'); }
         };
         const snd = body.querySelector('#rv-sound');
         snd.onclick = () => playSound(p, snd, st);
@@ -379,9 +382,9 @@
     app.innerHTML = `<div class="art-only v4s">
       <canvas id="art-clean" role="img" aria-label="ORACLE // DIGITAL REMAINS ${esc(p.s)}"></canvas>
       <div class="art-bar">
-        <button type="button" class="btn-quiet" id="ac-back">Back</button>
+        <button type="button" class="btn-quiet" id="ac-back">${ic('arrow-left')}Back</button>
         ${Object.entries(A.FORMATS).filter(([k]) => k !== 'hires').map(([k, f]) => `<button type="button" class="btn-quiet" data-afmt="${k}" aria-pressed="${k === fmt}">${f.w}\u00d7${f.h}</button>`).join('')}
-        <button type="button" class="btn-primary" id="ac-dl">Save image</button>
+        <button type="button" class="btn-primary" id="ac-dl">${ic('download')}Save image</button>
       </div></div>`;
     fontsReady().then(() => draw(document.getElementById('art-clean'), p, fmt === 'hires' ? 'portrait' : fmt, false));
     document.getElementById('ac-back').onclick = () => OracleChapters.go('revelation');

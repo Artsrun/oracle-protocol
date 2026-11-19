@@ -1,6 +1,7 @@
 /* v4 Step 2 · Footprint — pre-filled from the Trade answers (our assumption, said on screen); the visitor corrects it. */
 (() => {
   const C = OracleContent, U = OracleChapters.ui, UI = OracleUI, E = OracleEvidence;
+  const ICONS = { identity: 'user', location: 'map-pin', relationships: 'users', interests: 'heart', purchases: 'shopping-bag', conversations: 'messages-square', surroundings: 'eye', attention: 'mouse-pointer-click' }; // v8 WP2
   const count = () => C.FOOTPRINT.filter((_, k) => (state.v2.footprint >> k) & 1).length;
   const cap = (n) => `${n} of 8 kinds of data in the lattice.`;
   function detail(c) {
@@ -22,8 +23,8 @@
       lead: pre ? 'Pre-ticked from your apps \u2014 our assumption. Change anything.' : 'Tick what apps may know about you.',
       caption: cap(count()),
       body: UI.checkList({ name: 'fp', legend: '<span class="vh">Kinds of data</span>', legendClass: 'legend-vh',
-        items: C.FOOTPRINT.map((c, i) => ({ title: c.name, on: (v.footprint >> i) & 1 })) }),
-      cta: UI.button('Next', { primary: true, attrs: { 'data-goto': 'device' } }) + UI.button('Why these?', { link: true, attrs: { id: 'why-fp', 'aria-haspopup': 'dialog' } })
+        items: C.FOOTPRINT.map((c, i) => ({ title: c.name, icon: ICONS[c.id], on: (v.footprint >> i) & 1 })) }),
+      cta: UI.button('Next', { primary: true, icon: 'arrow-right', after: true, attrs: { 'data-goto': 'device' } }) + UI.button('Why these?', { link: true, icon: 'circle-help', iconCls: 'i-sm', attrs: { id: 'why-fp', 'aria-haspopup': 'dialog' } })
     });
     app.querySelectorAll('[data-fp]').forEach(b => b.addEventListener('change', () => {
       OracleChapters.dispatch({ type: 'footprint/toggle', i: +b.dataset.fp, on: b.checked });
@@ -32,7 +33,7 @@
     }));
     // v6 WP3: one sheet — how we guessed, then a row per kind (each opens its evidence; Back returns here)
     document.getElementById('why-fp').onclick = (e) => OracleSheet.open({ title: 'Why these?', from: e.currentTarget,
-      html: `<h3>How we guessed</h3>${why()}<h3>Each kind</h3>` + UI.whyRows('fp', C.FOOTPRINT.map(c => c.name)),
+      html: `<h3>How we guessed</h3>${why()}<h3>Each kind</h3>` + UI.whyRows('fp', C.FOOTPRINT.map(c => c.name), C.FOOTPRINT.map(c => ICONS[c.id])),
       onOpen: (body) => UI.bindWhyRows(body, (i) => ({ title: C.FOOTPRINT[i].name, html: detail(C.FOOTPRINT[i]) })) });
   });
 })();
