@@ -1,0 +1,3933 @@
+{
+ "scheme": "dark",
+ "when": "Fri Nov 20 2026 00:53:30 GMT+0400 (Armenia Standard Time)",
+ "screens": {
+  "320x568 start": {
+   "words": 28,
+   "wordsOutsideRows": 28,
+   "controls": 1,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.3,
+   "primary": {
+    "top": 70,
+    "bottom": 78,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "start-art",
+     "w": 120,
+     "h": 150,
+     "ratio": 1,
+     "backing": "240x300"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "320x568 trade": {
+   "words": 35,
+   "wordsOutsideRows": 35,
+   "controls": 9,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 89,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 124,
+     "h": 155,
+     "ratio": 1,
+     "backing": "248x310"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "320x568 footprint": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 11,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1.06,
+   "docVp": 1.06,
+   "primary": {
+    "top": 95,
+    "bottom": 104,
+    "inView": false
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 80,
+     "h": 100,
+     "ratio": 1,
+     "backing": "160x200"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 8
+  },
+  "320x568 device-ask": {
+   "words": 33,
+   "wordsOutsideRows": 33,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 89,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 144,
+     "h": 180,
+     "ratio": 1,
+     "backing": "288x360"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "320x568 device-readout": {
+   "words": 100,
+   "wordsOutsideRows": 24,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1.08,
+   "docVp": 1.08,
+   "primary": {
+    "top": 98,
+    "bottom": 106,
+    "inView": false
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 80,
+     "h": 100,
+     "ratio": 1,
+     "backing": "160x200"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 8
+  },
+  "320x568 device-card": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 89,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 144,
+     "h": 180,
+     "ratio": 1,
+     "backing": "288x360"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "320x568 device-card-loc": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 89,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 144,
+     "h": 180,
+     "ratio": 1,
+     "backing": "288x360"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "320x568 device-card-mic": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 89,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 144,
+     "h": 180,
+     "ratio": 1,
+     "backing": "288x360"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "320x568 loop": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 89,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 144,
+     "h": 180,
+     "ratio": 1,
+     "backing": "288x360"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/22",
+   "gapToPrimary": null
+  },
+  "320x568 feed": {
+   "words": 47,
+   "wordsOutsideRows": 47,
+   "controls": 8,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 89,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 116,
+     "h": 145,
+     "ratio": 1,
+     "backing": "232x290"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 13
+  },
+  "320x568 reveal": {
+   "words": 20,
+   "wordsOutsideRows": 20,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 89,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 160,
+     "h": 200,
+     "ratio": 1,
+     "backing": "320x400"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/22",
+   "gapToPrimary": null
+  },
+  "320x568 artwork": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 6,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.3,
+   "primary": {
+    "top": 69,
+    "bottom": 78,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 138,
+     "h": 172,
+     "ratio": 3.91,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "320x568 options-legacy": {
+   "words": 26,
+   "wordsOutsideRows": 26,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.3,
+   "primary": {
+    "top": 69,
+    "bottom": 78,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 138,
+     "h": 172,
+     "ratio": 3.91,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 8
+  },
+  "320x568 options-device": {
+   "words": 54,
+   "wordsOutsideRows": 54,
+   "controls": 12,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.3,
+   "primary": {
+    "top": 69,
+    "bottom": 78,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 138,
+     "h": 172,
+     "ratio": 3.91,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 8
+  },
+  "320x568 extras": {
+   "words": 55,
+   "wordsOutsideRows": 55,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1.05,
+   "docVp": 1.34,
+   "primary": null,
+   "arts": [],
+   "inputMin": 16,
+   "fontSizes": "16/19/22",
+   "gapToPrimary": null
+  },
+  "360x640 start": {
+   "words": 28,
+   "wordsOutsideRows": 28,
+   "controls": 1,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.26,
+   "primary": {
+    "top": 69,
+    "bottom": 77,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "start-art",
+     "w": 136,
+     "h": 170,
+     "ratio": 1,
+     "backing": "408x510"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/24",
+   "gapToPrimary": null
+  },
+  "360x640 trade": {
+   "words": 35,
+   "wordsOutsideRows": 35,
+   "controls": 9,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 162,
+     "h": 203,
+     "ratio": 1,
+     "backing": "486x608"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/24",
+   "gapToPrimary": 37
+  },
+  "360x640 footprint": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 11,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 109,
+     "h": 136,
+     "ratio": 1,
+     "backing": "327x409"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/24",
+   "gapToPrimary": 13
+  },
+  "360x640 device-ask": {
+   "words": 33,
+   "wordsOutsideRows": 33,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 162,
+     "h": 203,
+     "ratio": 1,
+     "backing": "486x608"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/24",
+   "gapToPrimary": null
+  },
+  "360x640 device-readout": {
+   "words": 100,
+   "wordsOutsideRows": 24,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 96,
+     "h": 120,
+     "ratio": 1,
+     "backing": "288x360"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/24",
+   "gapToPrimary": 14
+  },
+  "360x640 device-card": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 162,
+     "h": 203,
+     "ratio": 1,
+     "backing": "486x608"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/24",
+   "gapToPrimary": null
+  },
+  "360x640 device-card-loc": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 162,
+     "h": 203,
+     "ratio": 1,
+     "backing": "486x608"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/24",
+   "gapToPrimary": null
+  },
+  "360x640 device-card-mic": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 162,
+     "h": 203,
+     "ratio": 1,
+     "backing": "486x608"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/24",
+   "gapToPrimary": null
+  },
+  "360x640 loop": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 162,
+     "h": 203,
+     "ratio": 1,
+     "backing": "486x608"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/24",
+   "gapToPrimary": null
+  },
+  "360x640 feed": {
+   "words": 47,
+   "wordsOutsideRows": 47,
+   "controls": 8,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 162,
+     "h": 203,
+     "ratio": 1,
+     "backing": "486x608"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/24",
+   "gapToPrimary": 28
+  },
+  "360x640 reveal": {
+   "words": 20,
+   "wordsOutsideRows": 20,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 176,
+     "h": 220,
+     "ratio": 1,
+     "backing": "528x660"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/24",
+   "gapToPrimary": null
+  },
+  "360x640 artwork": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 6,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.26,
+   "primary": {
+    "top": 58,
+    "bottom": 66,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 138,
+     "h": 172,
+     "ratio": 2.61,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/24",
+   "gapToPrimary": null
+  },
+  "360x640 options-legacy": {
+   "words": 26,
+   "wordsOutsideRows": 26,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.26,
+   "primary": {
+    "top": 58,
+    "bottom": 66,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 138,
+     "h": 172,
+     "ratio": 2.61,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 8
+  },
+  "360x640 options-device": {
+   "words": 54,
+   "wordsOutsideRows": 54,
+   "controls": 12,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.26,
+   "primary": {
+    "top": 62,
+    "bottom": 69,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 138,
+     "h": 172,
+     "ratio": 2.61,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 8
+  },
+  "360x640 extras": {
+   "words": 55,
+   "wordsOutsideRows": 55,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.26,
+   "primary": null,
+   "arts": [],
+   "inputMin": 16,
+   "fontSizes": "16/19/24",
+   "gapToPrimary": null
+  },
+  "390x844 start": {
+   "words": 28,
+   "wordsOutsideRows": 28,
+   "controls": 1,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.2,
+   "primary": {
+    "top": 72,
+    "bottom": 78,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "start-art",
+     "w": 242,
+     "h": 302,
+     "ratio": 1,
+     "backing": "725x906"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": null
+  },
+  "390x844 trade": {
+   "words": 35,
+   "wordsOutsideRows": 35,
+   "controls": 9,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 92,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 176,
+     "h": 220,
+     "ratio": 1,
+     "backing": "528x660"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": 183
+  },
+  "390x844 footprint": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 11,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 92,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 176,
+     "h": 220,
+     "ratio": 1,
+     "backing": "528x660"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": 85
+  },
+  "390x844 device-ask": {
+   "words": 33,
+   "wordsOutsideRows": 33,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 92,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 176,
+     "h": 220,
+     "ratio": 1,
+     "backing": "528x660"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": null
+  },
+  "390x844 device-readout": {
+   "words": 100,
+   "wordsOutsideRows": 24,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 92,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 126,
+     "h": 158,
+     "ratio": 1,
+     "backing": "378x473"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": 12
+  },
+  "390x844 device-card": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 92,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 176,
+     "h": 220,
+     "ratio": 1,
+     "backing": "528x660"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": null
+  },
+  "390x844 device-card-loc": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 92,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 176,
+     "h": 220,
+     "ratio": 1,
+     "backing": "528x660"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": null
+  },
+  "390x844 device-card-mic": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 92,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 176,
+     "h": 220,
+     "ratio": 1,
+     "backing": "528x660"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": null
+  },
+  "390x844 loop": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 92,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 176,
+     "h": 220,
+     "ratio": 1,
+     "backing": "528x660"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/26",
+   "gapToPrimary": null
+  },
+  "390x844 feed": {
+   "words": 47,
+   "wordsOutsideRows": 47,
+   "controls": 8,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 92,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 176,
+     "h": 220,
+     "ratio": 1,
+     "backing": "528x660"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": 174
+  },
+  "390x844 reveal": {
+   "words": 20,
+   "wordsOutsideRows": 20,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 92,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 339,
+     "h": 424,
+     "ratio": 1,
+     "backing": "1018x1273"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/26",
+   "gapToPrimary": null
+  },
+  "390x844 artwork": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 6,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.2,
+   "primary": {
+    "top": 70,
+    "bottom": 75,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 301,
+     "h": 376,
+     "ratio": 1.2,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": null
+  },
+  "390x844 options-legacy": {
+   "words": 26,
+   "wordsOutsideRows": 26,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.2,
+   "primary": {
+    "top": 70,
+    "bottom": 75,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 301,
+     "h": 376,
+     "ratio": 1.2,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 8
+  },
+  "390x844 options-device": {
+   "words": 54,
+   "wordsOutsideRows": 54,
+   "controls": 12,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.2,
+   "primary": {
+    "top": 70,
+    "bottom": 75,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 301,
+     "h": 376,
+     "ratio": 1.2,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 8
+  },
+  "390x844 extras": {
+   "words": 55,
+   "wordsOutsideRows": 55,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.2,
+   "primary": null,
+   "arts": [],
+   "inputMin": 16,
+   "fontSizes": "16/19/26",
+   "gapToPrimary": null
+  },
+  "430x932 start": {
+   "words": 28,
+   "wordsOutsideRows": 28,
+   "controls": 1,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.18,
+   "primary": {
+    "top": 73,
+    "bottom": 78,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "start-art",
+     "w": 267,
+     "h": 333,
+     "ratio": 1,
+     "backing": "800x1000"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": null
+  },
+  "430x932 trade": {
+   "words": 35,
+   "wordsOutsideRows": 35,
+   "controls": 9,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 93,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 194,
+     "h": 243,
+     "ratio": 1,
+     "backing": "582x728"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": 249
+  },
+  "430x932 footprint": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 11,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 93,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 194,
+     "h": 243,
+     "ratio": 1,
+     "backing": "582x728"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": 151
+  },
+  "430x932 device-ask": {
+   "words": 33,
+   "wordsOutsideRows": 33,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 93,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 194,
+     "h": 243,
+     "ratio": 1,
+     "backing": "582x728"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": null
+  },
+  "430x932 device-readout": {
+   "words": 100,
+   "wordsOutsideRows": 24,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 93,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 194,
+     "h": 243,
+     "ratio": 1,
+     "backing": "582x728"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": 108
+  },
+  "430x932 device-card": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 93,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 194,
+     "h": 243,
+     "ratio": 1,
+     "backing": "582x728"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": null
+  },
+  "430x932 device-card-loc": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 93,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 194,
+     "h": 243,
+     "ratio": 1,
+     "backing": "582x728"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": null
+  },
+  "430x932 device-card-mic": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 93,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 194,
+     "h": 243,
+     "ratio": 1,
+     "backing": "582x728"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": null
+  },
+  "430x932 loop": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 93,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 194,
+     "h": 243,
+     "ratio": 1,
+     "backing": "582x728"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/26",
+   "gapToPrimary": null
+  },
+  "430x932 feed": {
+   "words": 47,
+   "wordsOutsideRows": 47,
+   "controls": 8,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 93,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 194,
+     "h": 243,
+     "ratio": 1,
+     "backing": "582x728"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": 263
+  },
+  "430x932 reveal": {
+   "words": 20,
+   "wordsOutsideRows": 20,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 93,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 398,
+     "h": 497,
+     "ratio": 1,
+     "backing": "1194x1493"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/26",
+   "gapToPrimary": null
+  },
+  "430x932 artwork": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 6,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.18,
+   "primary": {
+    "top": 70,
+    "bottom": 75,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 372,
+     "h": 464,
+     "ratio": 0.97,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/26",
+   "gapToPrimary": null
+  },
+  "430x932 options-legacy": {
+   "words": 26,
+   "wordsOutsideRows": 26,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.18,
+   "primary": {
+    "top": 70,
+    "bottom": 75,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 372,
+     "h": 464,
+     "ratio": 0.97,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 8
+  },
+  "430x932 options-device": {
+   "words": 54,
+   "wordsOutsideRows": 54,
+   "controls": 12,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.18,
+   "primary": {
+    "top": 72,
+    "bottom": 78,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 372,
+     "h": 464,
+     "ratio": 0.97,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 8
+  },
+  "430x932 extras": {
+   "words": 55,
+   "wordsOutsideRows": 55,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.18,
+   "primary": null,
+   "arts": [],
+   "inputMin": 16,
+   "fontSizes": "16/19/26",
+   "gapToPrimary": null
+  },
+  "667x375 start": {
+   "words": 28,
+   "wordsOutsideRows": 28,
+   "controls": 1,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.53,
+   "primary": {
+    "top": 57,
+    "bottom": 70,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "start-art",
+     "w": 220,
+     "h": 275,
+     "ratio": 1,
+     "backing": "439x549"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "667x375 trade": {
+   "words": 35,
+   "wordsOutsideRows": 35,
+   "controls": 9,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 78,
+    "bottom": 90,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 160,
+     "h": 200,
+     "ratio": 1,
+     "backing": "320x400"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "667x375 footprint": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 11,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 59,
+    "bottom": 72,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 160,
+     "h": 200,
+     "ratio": 1,
+     "backing": "320x400"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "667x375 device-ask": {
+   "words": 33,
+   "wordsOutsideRows": 33,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 10,
+    "bottom": 23,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 160,
+     "h": 200,
+     "ratio": 1,
+     "backing": "320x400"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "667x375 device-readout": {
+   "words": 100,
+   "wordsOutsideRows": 24,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1.33,
+   "docVp": 1.33,
+   "primary": {
+    "top": 117,
+    "bottom": 130,
+    "inView": false
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 160,
+     "h": 200,
+     "ratio": 1,
+     "backing": "320x400"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "667x375 device-card": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 3,
+    "bottom": 16,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 160,
+     "h": 200,
+     "ratio": 1,
+     "backing": "320x400"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "667x375 device-card-loc": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 3,
+    "bottom": 16,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 160,
+     "h": 200,
+     "ratio": 1,
+     "backing": "320x400"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "667x375 device-card-mic": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 3,
+    "bottom": 16,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 160,
+     "h": 200,
+     "ratio": 1,
+     "backing": "320x400"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "667x375 loop": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 60,
+    "bottom": 73,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 160,
+     "h": 200,
+     "ratio": 1,
+     "backing": "320x400"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/22",
+   "gapToPrimary": null
+  },
+  "667x375 feed": {
+   "words": 47,
+   "wordsOutsideRows": 47,
+   "controls": 8,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 80,
+    "bottom": 93,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 160,
+     "h": 200,
+     "ratio": 1,
+     "backing": "320x400"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "667x375 reveal": {
+   "words": 20,
+   "wordsOutsideRows": 20,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 39,
+    "bottom": 52,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 240,
+     "h": 300,
+     "ratio": 1,
+     "backing": "480x600"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/22",
+   "gapToPrimary": null
+  },
+  "667x375 artwork": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 6,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.53,
+   "primary": {
+    "top": 19,
+    "bottom": 32,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 218,
+     "h": 272,
+     "ratio": 2.48,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "667x375 options-legacy": {
+   "words": 26,
+   "wordsOutsideRows": 26,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.53,
+   "primary": {
+    "top": 19,
+    "bottom": 32,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 218,
+     "h": 272,
+     "ratio": 2.48,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 12
+  },
+  "667x375 options-device": {
+   "words": 54,
+   "wordsOutsideRows": 54,
+   "controls": 12,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.53,
+   "primary": {
+    "top": 25,
+    "bottom": 38,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 218,
+     "h": 272,
+     "ratio": 2.48,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 12
+  },
+  "667x375 extras": {
+   "words": 55,
+   "wordsOutsideRows": 55,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1.26,
+   "docVp": 1.79,
+   "primary": null,
+   "arts": [],
+   "inputMin": 16,
+   "fontSizes": "16/19/22",
+   "gapToPrimary": null
+  },
+  "844x390 start": {
+   "words": 28,
+   "wordsOutsideRows": 28,
+   "controls": 1,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.51,
+   "primary": {
+    "top": 57,
+    "bottom": 69,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "start-art",
+     "w": 248,
+     "h": 310,
+     "ratio": 1,
+     "backing": "744x930"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "844x390 trade": {
+   "words": 35,
+   "wordsOutsideRows": 35,
+   "controls": 9,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 75,
+    "bottom": 87,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 236,
+     "h": 295,
+     "ratio": 1,
+     "backing": "709x886"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "844x390 footprint": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 11,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 56,
+    "bottom": 69,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 236,
+     "h": 295,
+     "ratio": 1,
+     "backing": "709x886"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "844x390 device-ask": {
+   "words": 33,
+   "wordsOutsideRows": 33,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 10,
+    "bottom": 22,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 236,
+     "h": 295,
+     "ratio": 1,
+     "backing": "709x886"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "844x390 device-readout": {
+   "words": 100,
+   "wordsOutsideRows": 24,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1.17,
+   "docVp": 1.17,
+   "primary": {
+    "top": 101,
+    "bottom": 114,
+    "inView": false
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 236,
+     "h": 295,
+     "ratio": 1,
+     "backing": "709x886"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "844x390 device-card": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 3,
+    "bottom": 15,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 236,
+     "h": 295,
+     "ratio": 1,
+     "backing": "709x886"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "844x390 device-card-loc": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 3,
+    "bottom": 15,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 236,
+     "h": 295,
+     "ratio": 1,
+     "backing": "709x886"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "844x390 device-card-mic": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 3,
+    "bottom": 15,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 236,
+     "h": 295,
+     "ratio": 1,
+     "backing": "709x886"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "844x390 loop": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 58,
+    "bottom": 70,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 236,
+     "h": 295,
+     "ratio": 1,
+     "backing": "709x886"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/22",
+   "gapToPrimary": null
+  },
+  "844x390 feed": {
+   "words": 47,
+   "wordsOutsideRows": 47,
+   "controls": 8,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 77,
+    "bottom": 89,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 236,
+     "h": 295,
+     "ratio": 1,
+     "backing": "709x886"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "844x390 reveal": {
+   "words": 20,
+   "wordsOutsideRows": 20,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 38,
+    "bottom": 50,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 296,
+     "h": 370,
+     "ratio": 1,
+     "backing": "888x1110"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/22",
+   "gapToPrimary": null
+  },
+  "844x390 artwork": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 6,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.51,
+   "primary": {
+    "top": 18,
+    "bottom": 30,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 274,
+     "h": 342,
+     "ratio": 1.31,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "844x390 options-legacy": {
+   "words": 26,
+   "wordsOutsideRows": 26,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.51,
+   "primary": {
+    "top": 18,
+    "bottom": 30,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 274,
+     "h": 342,
+     "ratio": 1.31,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 12
+  },
+  "844x390 options-device": {
+   "words": 54,
+   "wordsOutsideRows": 54,
+   "controls": 12,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.51,
+   "primary": {
+    "top": 18,
+    "bottom": 30,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 274,
+     "h": 342,
+     "ratio": 1.31,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 12
+  },
+  "844x390 extras": {
+   "words": 55,
+   "wordsOutsideRows": 55,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1.15,
+   "docVp": 1.66,
+   "primary": null,
+   "arts": [],
+   "inputMin": 16,
+   "fontSizes": "16/19/22",
+   "gapToPrimary": null
+  },
+  "932x430 start": {
+   "words": 28,
+   "wordsOutsideRows": 28,
+   "controls": 1,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.46,
+   "primary": {
+    "top": 56,
+    "bottom": 67,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "start-art",
+     "w": 280,
+     "h": 350,
+     "ratio": 1,
+     "backing": "840x1050"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "932x430 trade": {
+   "words": 41,
+   "wordsOutsideRows": 41,
+   "controls": 9,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 68,
+    "bottom": 79,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 261,
+     "h": 326,
+     "ratio": 1,
+     "backing": "783x979"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "932x430 footprint": {
+   "words": 38,
+   "wordsOutsideRows": 38,
+   "controls": 11,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 51,
+    "bottom": 62,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 261,
+     "h": 326,
+     "ratio": 1,
+     "backing": "783x979"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "932x430 device-ask": {
+   "words": 37,
+   "wordsOutsideRows": 37,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 9,
+    "bottom": 20,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 261,
+     "h": 326,
+     "ratio": 1,
+     "backing": "783x979"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "932x430 device-readout": {
+   "words": 115,
+   "wordsOutsideRows": 39,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 86,
+    "bottom": 97,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 261,
+     "h": 326,
+     "ratio": 1,
+     "backing": "783x979"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "932x430 device-card": {
+   "words": 39,
+   "wordsOutsideRows": 39,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 3,
+    "bottom": 14,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 261,
+     "h": 326,
+     "ratio": 1,
+     "backing": "783x979"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "932x430 device-card-loc": {
+   "words": 39,
+   "wordsOutsideRows": 39,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 3,
+    "bottom": 14,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 261,
+     "h": 326,
+     "ratio": 1,
+     "backing": "783x979"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "932x430 device-card-mic": {
+   "words": 40,
+   "wordsOutsideRows": 40,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 3,
+    "bottom": 14,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 261,
+     "h": 326,
+     "ratio": 1,
+     "backing": "783x979"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "932x430 loop": {
+   "words": 33,
+   "wordsOutsideRows": 33,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 53,
+    "bottom": 64,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 261,
+     "h": 326,
+     "ratio": 1,
+     "backing": "783x979"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/22",
+   "gapToPrimary": null
+  },
+  "932x430 feed": {
+   "words": 55,
+   "wordsOutsideRows": 55,
+   "controls": 8,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 70,
+    "bottom": 81,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 261,
+     "h": 326,
+     "ratio": 1,
+     "backing": "783x979"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": 12
+  },
+  "932x430 reveal": {
+   "words": 20,
+   "wordsOutsideRows": 20,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 34,
+    "bottom": 46,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 328,
+     "h": 410,
+     "ratio": 1,
+     "backing": "984x1230"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/22",
+   "gapToPrimary": null
+  },
+  "932x430 artwork": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 6,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.46,
+   "primary": {
+    "top": 16,
+    "bottom": 28,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 306,
+     "h": 382,
+     "ratio": 1.18,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/22",
+   "gapToPrimary": null
+  },
+  "932x430 options-legacy": {
+   "words": 26,
+   "wordsOutsideRows": 26,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.46,
+   "primary": {
+    "top": 16,
+    "bottom": 28,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 306,
+     "h": 382,
+     "ratio": 1.18,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 12
+  },
+  "932x430 options-device": {
+   "words": 54,
+   "wordsOutsideRows": 54,
+   "controls": 12,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.46,
+   "primary": {
+    "top": 16,
+    "bottom": 28,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 306,
+     "h": 382,
+     "ratio": 1.18,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 12
+  },
+  "932x430 extras": {
+   "words": 55,
+   "wordsOutsideRows": 55,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1.07,
+   "docVp": 1.53,
+   "primary": null,
+   "arts": [],
+   "inputMin": 16,
+   "fontSizes": "16/19/22",
+   "gapToPrimary": null
+  },
+  "768x1024 start": {
+   "words": 28,
+   "wordsOutsideRows": 28,
+   "controls": 1,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.19,
+   "primary": {
+    "top": 73,
+    "bottom": 78,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "start-art",
+     "w": 300,
+     "h": 375,
+     "ratio": 1,
+     "backing": "600x750"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/30",
+   "gapToPrimary": null
+  },
+  "768x1024 trade": {
+   "words": 35,
+   "wordsOutsideRows": 35,
+   "controls": 9,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 94,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 279,
+     "h": 349,
+     "ratio": 1,
+     "backing": "558x698"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/30",
+   "gapToPrimary": 234
+  },
+  "768x1024 footprint": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 11,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 94,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 279,
+     "h": 349,
+     "ratio": 1,
+     "backing": "558x698"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/30",
+   "gapToPrimary": 136
+  },
+  "768x1024 device-ask": {
+   "words": 33,
+   "wordsOutsideRows": 33,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 94,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 279,
+     "h": 349,
+     "ratio": 1,
+     "backing": "558x698"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/30",
+   "gapToPrimary": null
+  },
+  "768x1024 device-readout": {
+   "words": 100,
+   "wordsOutsideRows": 24,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 94,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 279,
+     "h": 349,
+     "ratio": 1,
+     "backing": "558x698"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/30",
+   "gapToPrimary": 152
+  },
+  "768x1024 device-card": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 94,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 279,
+     "h": 349,
+     "ratio": 1,
+     "backing": "558x698"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/30",
+   "gapToPrimary": null
+  },
+  "768x1024 device-card-loc": {
+   "words": 24,
+   "wordsOutsideRows": 24,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 94,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 279,
+     "h": 349,
+     "ratio": 1,
+     "backing": "558x698"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/30",
+   "gapToPrimary": null
+  },
+  "768x1024 device-card-mic": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 94,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 279,
+     "h": 349,
+     "ratio": 1,
+     "backing": "558x698"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/30",
+   "gapToPrimary": null
+  },
+  "768x1024 loop": {
+   "words": 29,
+   "wordsOutsideRows": 29,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 94,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 279,
+     "h": 349,
+     "ratio": 1,
+     "backing": "558x698"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/30",
+   "gapToPrimary": null
+  },
+  "768x1024 feed": {
+   "words": 47,
+   "wordsOutsideRows": 47,
+   "controls": 8,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 94,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 279,
+     "h": 349,
+     "ratio": 1,
+     "backing": "558x698"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/30",
+   "gapToPrimary": 248
+  },
+  "768x1024 reveal": {
+   "words": 20,
+   "wordsOutsideRows": 20,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 94,
+    "bottom": 98,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 483,
+     "h": 604,
+     "ratio": 1,
+     "backing": "966x1208"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/30",
+   "gapToPrimary": null
+  },
+  "768x1024 artwork": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 6,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.19,
+   "primary": {
+    "top": 73,
+    "bottom": 78,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 445,
+     "h": 556,
+     "ratio": 1.21,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/30",
+   "gapToPrimary": null
+  },
+  "768x1024 options-legacy": {
+   "words": 26,
+   "wordsOutsideRows": 26,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.19,
+   "primary": {
+    "top": 73,
+    "bottom": 78,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 445,
+     "h": 556,
+     "ratio": 1.21,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 8
+  },
+  "768x1024 options-device": {
+   "words": 54,
+   "wordsOutsideRows": 54,
+   "controls": 12,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.19,
+   "primary": {
+    "top": 75,
+    "bottom": 80,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 445,
+     "h": 556,
+     "ratio": 1.21,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 8
+  },
+  "768x1024 extras": {
+   "words": 55,
+   "wordsOutsideRows": 55,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.19,
+   "primary": null,
+   "arts": [],
+   "inputMin": 16,
+   "fontSizes": "16/19/30",
+   "gapToPrimary": null
+  },
+  "1280x800 start": {
+   "words": 28,
+   "wordsOutsideRows": 28,
+   "controls": 1,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.25,
+   "primary": {
+    "top": 56,
+    "bottom": 62,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "start-art",
+     "w": 440,
+     "h": 550,
+     "ratio": 1,
+     "backing": "440x550"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/38",
+   "gapToPrimary": null
+  },
+  "1280x800 trade": {
+   "words": 41,
+   "wordsOutsideRows": 41,
+   "controls": 9,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 97,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 444,
+     "h": 555,
+     "ratio": 1,
+     "backing": "442x553"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/38",
+   "gapToPrimary": 253
+  },
+  "1280x800 footprint": {
+   "words": 38,
+   "wordsOutsideRows": 38,
+   "controls": 11,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 97,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 444,
+     "h": 555,
+     "ratio": 1,
+     "backing": "442x553"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/38",
+   "gapToPrimary": 155
+  },
+  "1280x800 device-ask": {
+   "words": 37,
+   "wordsOutsideRows": 37,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 97,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 446,
+     "h": 558,
+     "ratio": 1,
+     "backing": "444x555"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/38",
+   "gapToPrimary": null
+  },
+  "1280x800 device-readout": {
+   "words": 113,
+   "wordsOutsideRows": 37,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 97,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 436,
+     "h": 545,
+     "ratio": 1,
+     "backing": "434x543"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/38",
+   "gapToPrimary": 161
+  },
+  "1280x800 device-card": {
+   "words": 37,
+   "wordsOutsideRows": 37,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 97,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 436,
+     "h": 545,
+     "ratio": 1,
+     "backing": "434x543"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/38",
+   "gapToPrimary": null
+  },
+  "1280x800 device-card-loc": {
+   "words": 37,
+   "wordsOutsideRows": 37,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 97,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 436,
+     "h": 545,
+     "ratio": 1,
+     "backing": "434x543"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/38",
+   "gapToPrimary": null
+  },
+  "1280x800 device-card-mic": {
+   "words": 38,
+   "wordsOutsideRows": 38,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 97,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 436,
+     "h": 545,
+     "ratio": 1,
+     "backing": "434x543"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/38",
+   "gapToPrimary": null
+  },
+  "1280x800 loop": {
+   "words": 33,
+   "wordsOutsideRows": 33,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 97,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 444,
+     "h": 555,
+     "ratio": 1,
+     "backing": "442x553"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/38",
+   "gapToPrimary": null
+  },
+  "1280x800 feed": {
+   "words": 55,
+   "wordsOutsideRows": 55,
+   "controls": 8,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 91,
+    "bottom": 97,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 444,
+     "h": 555,
+     "ratio": 1,
+     "backing": "442x553"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/38",
+   "gapToPrimary": 255
+  },
+  "1280x800 reveal": {
+   "words": 20,
+   "wordsOutsideRows": 20,
+   "controls": 3,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1,
+   "primary": {
+    "top": 33,
+    "bottom": 39,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "pv-canvas",
+     "w": 472,
+     "h": 590,
+     "ratio": 1,
+     "backing": "472x590"
+    }
+   ],
+   "inputMin": null,
+   "fontSizes": "13/16/19/38",
+   "gapToPrimary": null
+  },
+  "1280x800 artwork": {
+   "words": 25,
+   "wordsOutsideRows": 25,
+   "controls": 6,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.25,
+   "primary": {
+    "top": 24,
+    "bottom": 30,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 450,
+     "h": 562,
+     "ratio": 2.4,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/38",
+   "gapToPrimary": null
+  },
+  "1280x800 options-legacy": {
+   "words": 26,
+   "wordsOutsideRows": 26,
+   "controls": 10,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.25,
+   "primary": {
+    "top": 24,
+    "bottom": 30,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 450,
+     "h": 562,
+     "ratio": 2.4,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 8
+  },
+  "1280x800 options-device": {
+   "words": 54,
+   "wordsOutsideRows": 54,
+   "controls": 12,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.25,
+   "primary": {
+    "top": 27,
+    "bottom": 33,
+    "inView": true
+   },
+   "arts": [
+    {
+     "id": "art-canvas",
+     "w": 450,
+     "h": 562,
+     "ratio": 2.4,
+     "backing": "1080x1350"
+    }
+   ],
+   "inputMin": 16,
+   "fontSizes": "13/16/19",
+   "gapToPrimary": 8
+  },
+  "1280x800 extras": {
+   "words": 55,
+   "wordsOutsideRows": 55,
+   "controls": 4,
+   "under44": 0,
+   "overflowX": 0,
+   "vp": 1,
+   "docVp": 1.25,
+   "primary": null,
+   "arts": [],
+   "inputMin": 16,
+   "fontSizes": "16/19/38",
+   "gapToPrimary": null
+  }
+ },
+ "behaviour": {
+  "safeArea": {
+   "portrait trade": {
+    "topGap": 55,
+    "primaryBottomGap": 50,
+    "leftGap": 12,
+    "rightGap": 16,
+    "sheetPadBottom": null,
+    "ins": {
+     "top": 47,
+     "bottom": 34,
+     "left": 0,
+     "right": 0
+    }
+   },
+   "portrait footprint": {
+    "topGap": 55,
+    "primaryBottomGap": 50,
+    "leftGap": 12,
+    "rightGap": 16,
+    "sheetPadBottom": null,
+    "ins": {
+     "top": 47,
+     "bottom": 34,
+     "left": 0,
+     "right": 0
+    }
+   },
+   "portrait device-ask": {
+    "topGap": 55,
+    "primaryBottomGap": 50,
+    "leftGap": 12,
+    "rightGap": 16,
+    "sheetPadBottom": null,
+    "ins": {
+     "top": 47,
+     "bottom": 34,
+     "left": 0,
+     "right": 0
+    }
+   },
+   "portrait feed": {
+    "topGap": 55,
+    "primaryBottomGap": 50,
+    "leftGap": 12,
+    "rightGap": 16,
+    "sheetPadBottom": null,
+    "ins": {
+     "top": 47,
+     "bottom": 34,
+     "left": 0,
+     "right": 0
+    }
+   },
+   "portrait reveal": {
+    "topGap": 55,
+    "primaryBottomGap": 50,
+    "leftGap": 12,
+    "rightGap": 16,
+    "sheetPadBottom": null,
+    "ins": {
+     "top": 47,
+     "bottom": 34,
+     "left": 0,
+     "right": 0
+    }
+   },
+   "portrait artwork": {
+    "topGap": 55,
+    "primaryBottomGap": 162,
+    "leftGap": 12,
+    "rightGap": 16,
+    "sheetPadBottom": null,
+    "ins": {
+     "top": 47,
+     "bottom": 34,
+     "left": 0,
+     "right": 0
+    }
+   },
+   "portrait start": {
+    "topGap": 616,
+    "primaryBottomGap": 180,
+    "leftGap": 35,
+    "rightGap": 35,
+    "sheetPadBottom": null,
+    "ins": {
+     "top": 47,
+     "bottom": 34,
+     "left": 0,
+     "right": 0
+    }
+   },
+   "portrait options": {
+    "topGap": null,
+    "primaryBottomGap": null,
+    "leftGap": 20,
+    "rightGap": 12,
+    "sheetPadBottom": 58,
+    "ins": {
+     "top": 47,
+     "bottom": 34,
+     "left": 0,
+     "right": 0
+    }
+   },
+   "landscape trade": {
+    "topGap": 8,
+    "primaryBottomGap": 51,
+    "leftGap": 307,
+    "rightGap": 55,
+    "sheetPadBottom": null,
+    "ins": {
+     "top": 0,
+     "bottom": 21,
+     "left": 47,
+     "right": 47
+    }
+   },
+   "landscape artwork": {
+    "topGap": 8,
+    "primaryBottomGap": 272,
+    "leftGap": 367,
+    "rightGap": 55,
+    "sheetPadBottom": null,
+    "ins": {
+     "top": 0,
+     "bottom": 21,
+     "left": 47,
+     "right": 47
+    }
+   },
+   "landscape start": {
+    "topGap": 211,
+    "primaryBottomGap": 131,
+    "leftGap": 360,
+    "rightGap": 164,
+    "sheetPadBottom": null,
+    "ins": {
+     "top": 0,
+     "bottom": 21,
+     "left": 47,
+     "right": 47
+    }
+   }
+  },
+  "keyboard": {
+   "focused": true,
+   "top": 295,
+   "bottom": 339,
+   "vh": 508,
+   "visible": true,
+   "font": 16,
+   "moreDisclosure": true
+  },
+  "back": {
+   "backToTrade": {
+    "stage": "offer",
+    "hash": "#offer",
+    "sheet": false,
+    "focus": "H1",
+    "h1": true
+   },
+   "sheetOpen": {
+    "stage": "offer",
+    "hash": "#offer",
+    "sheet": true,
+    "focus": "BUTTON",
+    "h1": false
+   },
+   "backWithSheet": {
+    "stage": "offer",
+    "hash": "#offer",
+    "sheet": false,
+    "focus": "BUTTON",
+    "h1": false
+   },
+   "orphans": 0,
+   "deviceBack": {
+    "stage": "device",
+    "ask": true,
+    "h1": true
+   },
+   "links": {
+    "#sensors": "device",
+    "#protocol": "device",
+    "#portrait": "device",
+    "#offer": "offer",
+    "#revelation?s=ORACLE-7K3F-Q9ZD&o=21&f=77&d=80&c=40&p=70&y=60&x=65&i=55&e=75&r=60&t=50&k=60&a=70&n=4": "revelation"
+   }
+  },
+  "swipe": {
+   "loop": {
+    "next": true,
+    "prev": true,
+    "verticalIgnored": true,
+    "edgeIgnored": true,
+    "edgeLeftPage": true
+   },
+   "reveal": {
+    "next": true,
+    "prev": true,
+    "verticalIgnored": true,
+    "edgeIgnored": true,
+    "edgeLeftPage": true
+   }
+  },
+  "textZoom": {
+   "trade": {
+    "h1": "26→52",
+    "scales": true,
+    "overflowX": 0
+   },
+   "footprint": {
+    "h1": "26→52",
+    "scales": true,
+    "overflowX": 0
+   },
+   "device": {
+    "h1": "26→52",
+    "scales": true,
+    "overflowX": 0
+   },
+   "feed": {
+    "h1": "26→52",
+    "scales": true,
+    "overflowX": 0
+   },
+   "artwork": {
+    "h1": "26→52",
+    "scales": true,
+    "overflowX": 0
+   }
+  },
+  "offline": {
+   "sw": "ready",
+   "offline": true,
+   "manifest": true,
+   "touchIcon": true,
+   "icon": "icons/favicon-32.png"
+  },
+  "load": {
+   "beginVisibleMs": 1558,
+   "loadMs": 2854,
+   "requests": 42
+  }
+ },
+ "targets": [
+  {
+   "wp": "WP1",
+   "name": "667x375: every art canvas ≥160 px tall",
+   "ok": true,
+   "measured": "200 px"
+  },
+  {
+   "wp": "WP1",
+   "name": "667x375: Start, Device ask/card, Reveal, Artwork, Trade, Feed ≤1.0 vp with the primary in view",
+   "ok": true,
+   "measured": "all 1.0"
+  },
+  {
+   "wp": "WP1",
+   "name": "667x375: Footprint ≤1.25 vp",
+   "ok": true,
+   "measured": "1"
+  },
+  {
+   "wp": "WP1",
+   "name": "667x375: Next directly under the last option (gap ≤ 24 px)",
+   "ok": true,
+   "measured": "12/12/12"
+  },
+  {
+   "wp": "WP1",
+   "name": "844x390: every art canvas ≥160 px tall",
+   "ok": true,
+   "measured": "295 px"
+  },
+  {
+   "wp": "WP1",
+   "name": "844x390: Start, Device ask/card, Reveal, Artwork, Trade, Feed ≤1.0 vp with the primary in view",
+   "ok": true,
+   "measured": "all 1.0"
+  },
+  {
+   "wp": "WP1",
+   "name": "844x390: Footprint ≤1.25 vp",
+   "ok": true,
+   "measured": "1"
+  },
+  {
+   "wp": "WP1",
+   "name": "844x390: Next directly under the last option (gap ≤ 24 px)",
+   "ok": true,
+   "measured": "12/12/12"
+  },
+  {
+   "wp": "WP1",
+   "name": "932x430: every art canvas ≥160 px tall",
+   "ok": true,
+   "measured": "326 px"
+  },
+  {
+   "wp": "WP1",
+   "name": "932x430: Start, Device ask/card, Reveal, Artwork, Trade, Feed ≤1.0 vp with the primary in view",
+   "ok": true,
+   "measured": "all 1.0"
+  },
+  {
+   "wp": "WP1",
+   "name": "932x430: Footprint ≤1.25 vp",
+   "ok": true,
+   "measured": "1"
+  },
+  {
+   "wp": "WP1",
+   "name": "932x430: Next directly under the last option (gap ≤ 24 px)",
+   "ok": true,
+   "measured": "12/12/12"
+  },
+  {
+   "wp": "WP2",
+   "name": "360x640: every journey screen ≤1.0 vp, Next in view",
+   "ok": true,
+   "measured": "all ≤1.0"
+  },
+  {
+   "wp": "WP2",
+   "name": "320x568: every journey screen ≤1.1 vp",
+   "ok": true,
+   "measured": "max 1.08 (trade 1, footprint 1.06, device-ask 1, device-readout 1.08, device-card 1, loop 1, feed 1, reveal 1, artwork 1)"
+  },
+  {
+   "wp": "WP2",
+   "name": "targets ≥44 px on journey screens (all sizes)",
+   "ok": true,
+   "measured": "0 under 44"
+  },
+  {
+   "wp": "WP3",
+   "name": "Trade ≤9 controls",
+   "ok": true,
+   "measured": "9"
+  },
+  {
+   "wp": "WP3",
+   "name": "Footprint ≤11 controls",
+   "ok": true,
+   "measured": "11"
+  },
+  {
+   "wp": "WP4",
+   "name": "Device ask ≤40 words",
+   "ok": true,
+   "measured": "33"
+  },
+  {
+   "wp": "WP4",
+   "name": "each permission card (tilt, location, sound) ≤30 words",
+   "ok": true,
+   "measured": "24/24/25"
+  },
+  {
+   "wp": "WP4",
+   "name": "Device readout: ≤60 words outside the six data rows",
+   "ok": true,
+   "measured": "24"
+  },
+  {
+   "wp": "WP5",
+   "name": "options-legacy: ≤12 controls on open",
+   "ok": true,
+   "measured": "10"
+  },
+  {
+   "wp": "WP5",
+   "name": "options-legacy: ≤60 words on open",
+   "ok": true,
+   "measured": "26"
+  },
+  {
+   "wp": "WP5",
+   "name": "options-device: ≤12 controls on open",
+   "ok": true,
+   "measured": "12"
+  },
+  {
+   "wp": "WP5",
+   "name": "options-device: ≤60 words on open",
+   "ok": true,
+   "measured": "54"
+  },
+  {
+   "wp": "WP6",
+   "name": "portrait insets 47/34: first control ≥55 px from top",
+   "ok": true,
+   "measured": "trade 55, footprint 55, device-ask 55, feed 55, reveal 55, artwork 55, start 616"
+  },
+  {
+   "wp": "WP6",
+   "name": "portrait insets 47/34: primary ≥42 px from bottom",
+   "ok": true,
+   "measured": "trade 50, footprint 50, device-ask 50, feed 50, reveal 50, artwork 162, start 180"
+  },
+  {
+   "wp": "WP6",
+   "name": "sheet bottom padding ≥ inset (34) + 8",
+   "ok": true,
+   "measured": "58"
+  },
+  {
+   "wp": "WP6",
+   "name": "landscape side insets 47: controls ≥47 px from both edges",
+   "ok": true,
+   "measured": "trade 307/55, artwork 367/55, start 360/164"
+  },
+  {
+   "wp": "WP6",
+   "name": "text inputs and selects ≥16 px",
+   "ok": true,
+   "measured": "min 16"
+  },
+  {
+   "wp": "WP6",
+   "name": "keyboard (SIMULATED, 508 px): focused seed field fully visible",
+   "ok": true,
+   "measured": "{\"focused\":true,\"top\":295,\"bottom\":339,\"vh\":508,\"visible\":true,\"font\":16,\"moreDisclosure\":true}"
+  },
+  {
+   "wp": "WP6",
+   "name": "text zoom 200%: type scales, no horizontal overflow",
+   "ok": true,
+   "measured": "{\"trade\":{\"h1\":\"26→52\",\"scales\":true,\"overflowX\":0},\"footprint\":{\"h1\":\"26→52\",\"scales\":true,\"overflowX\":0},\"device\":{\"h1\":\"26→52\",\"scales\":true,\"overflowX\":0},\"feed\":{\"h1\":\"26→52\",\"scales\":true,\"overflowX\":0},\"artwork\":{\"h1\":\"26→52\",\"scales\":true,\"overflowX\":0}}"
+  },
+  {
+   "wp": "WP7",
+   "name": "every visible art canvas ≥0.95× the device pixels it needs (cap 3×)",
+   "ok": true,
+   "measured": "lowest 430x932 artwork art-canvas 0.97"
+  },
+  {
+   "wp": "WP7",
+   "name": "question-screen preview ≥25% of viewport height at 390×844",
+   "ok": true,
+   "measured": "220 px"
+  },
+  {
+   "wp": "WP7",
+   "name": "390×844: every journey screen still ≤1.0 vp",
+   "ok": true,
+   "measured": "all ≤1.0"
+  },
+  {
+   "wp": "WP8",
+   "name": "Back with a sheet open closes the sheet and stays on the screen",
+   "ok": true,
+   "measured": "{\"stage\":\"offer\",\"hash\":\"#offer\",\"sheet\":false,\"focus\":\"BUTTON\",\"h1\":false}"
+  },
+  {
+   "wp": "WP8",
+   "name": "Back from the Device readout returns to the ask",
+   "ok": true,
+   "measured": "{\"stage\":\"device\",\"ask\":true,\"h1\":true}"
+  },
+  {
+   "wp": "WP8",
+   "name": "focus on the H1 after Back",
+   "ok": true,
+   "measured": "{\"trade\":\"H1\",\"device\":true}"
+  },
+  {
+   "wp": "WP8",
+   "name": "no orphan history entries after 20 random sheet sequences",
+   "ok": true,
+   "measured": "0"
+  },
+  {
+   "wp": "WP8",
+   "name": "old links and aliases still open their screens",
+   "ok": true,
+   "measured": "{\"#sensors\":\"device\",\"#protocol\":\"device\",\"#portrait\":\"device\",\"#offer\":\"offer\",\"#revelation?s=ORACLE-7K3F-Q9ZD&o=21&f=77&d=80&c=40&p=70&y=60&x=65&i=55&e=75&r=60&t=50&k=60&a=70&n=4\":\"revelation\"}"
+  },
+  {
+   "wp": "WP9",
+   "name": "swipe changes Loop and Reveal cards; vertical and edge swipes ignored",
+   "ok": true,
+   "measured": "{\"loop\":{\"next\":true,\"prev\":true,\"verticalIgnored\":true,\"edgeIgnored\":true,\"edgeLeftPage\":true},\"reveal\":{\"next\":true,\"prev\":true,\"verticalIgnored\":true,\"edgeIgnored\":true,\"edgeLeftPage\":true}}"
+  },
+  {
+   "wp": "WP11",
+   "name": "Begin visible ≤2.5 s with Slow 4G + 4× CPU",
+   "ok": true,
+   "measured": "1558 ms"
+  },
+  {
+   "wp": "WP11",
+   "name": "offline reload works after one visit (service worker)",
+   "ok": true,
+   "measured": "{\"sw\":\"ready\",\"offline\":true,\"manifest\":true,\"touchIcon\":true,\"icon\":\"icons/favicon-32.png\"}"
+  },
+  {
+   "wp": "WP11",
+   "name": "manifest, touch icon and a real favicon",
+   "ok": true,
+   "measured": "{\"sw\":\"ready\",\"offline\":true,\"manifest\":true,\"touchIcon\":true,\"icon\":\"icons/favicon-32.png\"}"
+  },
+  {
+   "wp": "ALL",
+   "name": "zero requests leave localhost",
+   "ok": true,
+   "measured": "[]"
+  },
+  {
+   "wp": "ALL",
+   "name": "no horizontal overflow, 13 screens × 9 sizes",
+   "ok": true,
+   "measured": "[]"
+  },
+  {
+   "wp": "ALL",
+   "name": "every screen state opens",
+   "ok": true,
+   "measured": "[]"
+  }
+ ]
+}

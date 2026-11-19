@@ -1,0 +1,12 @@
+v8 WP0 baseline — prod bd350a8 (v7 merged), run 2026-11-20 00:46–01:00 Asia/Yerevan, Chrome 156 headless, /workspace/oracle-qa/v8/run-suites.sh (MOBILE=1)
+unit (npm test)            102/102 pass
+determinism                64/64 byte-identical (incl. ORACLE-7K3F-Q9ZD, v1/v4/v5 fixtures)
+e2e Night (v5.mjs)         133/133
+e2e Day (v5.mjs)           133/133
+contrast                   0 failures (all palettes × modes)
+mobile Night / Day         46/46 / 46/46 targets
+device-probe               11/11
+sw-origin                  PASS
+gif / sound / masking / sheet   65/65 · 28/28 · 61/61 · 15/15
+taps Start → Artwork       7 (qa/taps.mjs; see v7-taps.txt)
+bundle (qa/bundle.mjs)     see v7-bundle.json

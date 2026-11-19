@@ -1,0 +1,16 @@
+screen (390x844, Night)  words  controls
+start                       28  1
+trade                       35  9
+footprint                   29  11
+device-ask                  33  3
+device-readout             100  10
+device-card                 24  3
+device-card-loc             24  3
+device-card-mic             25  3
+loop                        29  4
+feed                        47  8
+reveal                      20  3
+artwork                     25  6
+options-legacy              26  10
+options-device              54  12
+extras                      55  4
