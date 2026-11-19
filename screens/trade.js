@@ -1,4 +1,5 @@
-/* v4 Step 1 · Trade — one question, six plain choices; details and evidence open in the sheet on tap. */
+/* v4 Step 1 · Trade — one question, six plain choices. v6 WP3: one "Why these?" link opens the sheet with a row per
+ * choice; each row opens that choice's evidence (2 taps), with Back to the list. */
 (() => {
   const C = OracleContent, U = OracleChapters.ui, UI = OracleUI, E = OracleEvidence;
   // Plain names for the six trades (the evidence text is unchanged; see data/content.js).
@@ -16,18 +17,18 @@
       id: 'offer', title: 'Which do you use?', lead: 'Each trades your data for something you want.',
       caption: shards(count()),
       body: UI.checkList({ name: 'offer', legend: '<span class="vh">Apps and services you use</span>', legendClass: 'legend-vh',
-        items: C.OFFERS.map((o, i) => ({ title: NAMES[o.id], on: (v.offers >> i) & 1, info: true })) }),
-      cta: UI.button('Next', { primary: true, attrs: { 'data-goto': 'extraction' } })
+        items: C.OFFERS.map((o, i) => ({ title: NAMES[o.id], on: (v.offers >> i) & 1 })) }),
+      cta: UI.button('Next', { primary: true, attrs: { 'data-goto': 'extraction' } }) + UI.button('Why these?', { link: true, attrs: { id: 'why-offer', 'aria-haspopup': 'dialog' } })
     });
     app.querySelectorAll('[data-offer]').forEach(b => b.addEventListener('change', () => {
       OracleChapters.dispatch({ type: 'trade/toggle', i: +b.dataset.offer, on: b.checked });
       b.closest('.check-row').classList.toggle('on', b.checked);
       U.drawPreview(shards(count()));
     }));
-    app.querySelectorAll('[data-info^="offer:"]').forEach(b => b.addEventListener('click', () => {
-      const o = C.OFFERS[+b.dataset.info.split(':')[1]];
-      OracleSheet.open({ title: NAMES[o.id], html: detail(o), from: b });
-    }));
+    document.getElementById('why-offer').onclick = (e) => OracleSheet.open({ title: 'Why these?', from: e.currentTarget,
+      html: `<p>Each of these gives you something and takes data in return. Tap one for what is documented.</p>` +
+        UI.whyRows('offer', C.OFFERS.map(o => NAMES[o.id])),
+      onOpen: (body) => UI.bindWhyRows(body, (i) => ({ title: NAMES[C.OFFERS[i].id], html: detail(C.OFFERS[i]) })) });
   });
   window.OracleTrade = { NAMES };
 })();

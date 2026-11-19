@@ -22,19 +22,17 @@
       lead: pre ? 'Pre-ticked from your apps \u2014 our assumption. Change anything.' : 'Tick what apps may know about you.',
       caption: cap(count()),
       body: UI.checkList({ name: 'fp', legend: '<span class="vh">Kinds of data</span>', legendClass: 'legend-vh',
-        items: C.FOOTPRINT.map((c, i) => ({ title: c.name, on: (v.footprint >> i) & 1, info: true })) }) +
-        `<p class="small"><button type="button" class="btn-link" id="fp-why" aria-haspopup="dialog">How we guessed</button></p>`,
-      cta: UI.button('Next', { primary: true, attrs: { 'data-goto': 'device' } })
+        items: C.FOOTPRINT.map((c, i) => ({ title: c.name, on: (v.footprint >> i) & 1 })) }),
+      cta: UI.button('Next', { primary: true, attrs: { 'data-goto': 'device' } }) + UI.button('Why these?', { link: true, attrs: { id: 'why-fp', 'aria-haspopup': 'dialog' } })
     });
     app.querySelectorAll('[data-fp]').forEach(b => b.addEventListener('change', () => {
       OracleChapters.dispatch({ type: 'footprint/toggle', i: +b.dataset.fp, on: b.checked });
       b.closest('.check-row').classList.toggle('on', b.checked);
       U.drawPreview(cap(count()));
     }));
-    app.querySelectorAll('[data-info^="fp:"]').forEach(b => b.addEventListener('click', () => {
-      const c = C.FOOTPRINT[+b.dataset.info.split(':')[1]];
-      OracleSheet.open({ title: c.name, html: detail(c), from: b });
-    }));
-    document.getElementById('fp-why').onclick = (e) => OracleSheet.open({ title: 'How we guessed', html: why(), from: e.currentTarget });
+    // v6 WP3: one sheet — how we guessed, then a row per kind (each opens its evidence; Back returns here)
+    document.getElementById('why-fp').onclick = (e) => OracleSheet.open({ title: 'Why these?', from: e.currentTarget,
+      html: `<h3>How we guessed</h3>${why()}<h3>Each kind</h3>` + UI.whyRows('fp', C.FOOTPRINT.map(c => c.name)),
+      onOpen: (body) => UI.bindWhyRows(body, (i) => ({ title: C.FOOTPRINT[i].name, html: detail(C.FOOTPRINT[i]) })) });
   });
 })();

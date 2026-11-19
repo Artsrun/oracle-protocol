@@ -18,6 +18,8 @@
     </div>`;
     document.getElementById('btn-begin').onclick = () => OracleChapters.go('offer');
     const c = document.getElementById('start-art');
-    OracleArt.render(c.getContext('2d'), OracleLayers.compose(EXAMPLE, 0.8), c.width, c.height, { ...OracleExport.renderOpts(OracleExport.lookNow()), overlay: null });
+    // v6 WP7: backing store at CSS size × min(DPR, 3); redrawn on resize (app-shell)
+    c.__paint = () => OracleArt.render(c.getContext('2d'), OracleLayers.compose(EXAMPLE, 0.8), c.width, c.height, { ...OracleExport.renderOpts(OracleExport.lookNow()), overlay: null });
+    U.sizeCanvas(c); c.__paint();
   });
 })();

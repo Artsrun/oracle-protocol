@@ -661,3 +661,93 @@ first viewport `*-fold.png` and full page), side-by-side sheets `/workspace/orac
 Not done / not verified: WP7 (needs the owner's go-ahead). Real phones, Safari, Firefox and Brave are still untested
 (headless Chromium only). Native share is still only exercised with a stubbed `navigator.share`. The v1.2 sensor
 screens (`#sensors`, `#protocol`) were only renamed; their 10–11 px uppercase labels remain (out of scope).
+
+## v6 mobile pass (branch `oracle-v6`, 2026-11-18, Asia/Yerevan) — PR into prod, not merged
+
+Plan: `docs/PLAN-v6.md` (approved with defaults D1–D10). Harness: `qa/mobile.mjs` — 13 screen states × 9 sizes
+(320×568, 360×640, 390×844, 430×932, 667×375, 844×390, 932×430, 768×1024, 1280×800), Night and Day, plus behaviours
+(safe-area insets via CDP, simulated keyboard, Back/history, swipe, 200 % text, offline, throttled load). It prints every
+PLAN-v6 target as MET/MISSED. Run: `cd qa && COLOR_SCHEME=dark OUT=/tmp/m node mobile.mjs` (`STRICT=1` fails on a miss).
+
+### WP0. Baseline (`prod` @ 35d33d5, before any v6 change)
+- Existing suites green: unit 64/64, determinism 64/64, e2e 128/128 Night and 128/128 Day, contrast 0 failing (lowest 4.5),
+  device-probe 11/11.
+- `qa/mobile.mjs`: **9/45 targets met** (Night and Day identical). Main misses: landscape art 2 px tall; Footprint 1.92–1.99 vp
+  in landscape; 360×640 Footprint 1.17 vp and Readout 1.27 vp; Trade 14 / Footprint 19 controls; Options 15–26 controls and
+  208–301 words on open; safe area 8 px top / 16 px bottom; inputs 13 px; type does not scale at 200 %; Reveal preview
+  backing 0.36× at 430; Back with the sheet open leaves the screen; no swipe; no manifest/offline; Begin visible 6.1 s on
+  Slow 4G + 4× CPU.
+- Word counts now skip visually hidden text (the audit counted the hidden figcaption: Device ask 42 → 38 visible words) and
+  Options counts the sheet only (the audit's 146 included the page behind it).
+
+### WP1–WP11 results (final harness, same machine; before = `prod` @ 35d33d5, after = `oracle-v6` @ 7055c9e)
+The WP0 baseline above (9/45) used the first harness. The final `qa/mobile.mjs` (46 targets; it also counts the permission
+cards and words outside the readout rows) was rerun on a `git archive` of prod for honest before/after numbers:
+**prod 13/46 → oracle-v6 46/46, Night and Day.** All VERIFIED in Chrome 156 mobile emulation unless labelled SIMULATED.
+
+| WP | Measure | Before (prod) | After (v6) | Target |
+|---|---|---|---|---|
+| 1 | Smallest art canvas, 667×375 / 844×390 / 932×430 | 2 / 2 / 192 px | 200 / 295 / 326 px | ≥ 160 px |
+| 1 | Trade / Feed viewports at 844×390 | 1.52 / 1.48 | 1.0 / 1.0 | ≤ 1.0 |
+| 1 | Footprint viewports at 667×375 / 844×390 | 1.99 / 1.92 | 1.0 / 1.0 | ≤ 1.25 |
+| 2 | 360×640 journey screens (worst) | Readout 1.27, Footprint 1.17 | all 1.0 | ≤ 1.0 |
+| 2 | 320×568 worst screen | Readout 1.75 | Readout 1.08 | ≤ 1.1 |
+| 3 | Controls Trade / Footprint | 14 / 19 | 9 / 11 | ≤ 9 / ≤ 11 |
+| 4 | Device ask words; permission cards | 38; 35 / 31 / 32 | 33; 24 / 24 / 25 | ≤ 40; ≤ 30 |
+| 5 | Options on open, controls / words (choices-only; device mode) | 15 / 208; 26 / 301 | 10 / 24; 12 / 52 | ≤ 12 / ≤ 60 |
+| 6 | Back from top / primary from bottom, 47/34 insets (SIMULATED via CDP) | 8 / 16 px | 55 / 50 px | ≥ 55 / ≥ 42 |
+| 6 | Sheet bottom padding with 34 px inset | 24 px | 58 px | ≥ 42 |
+| 6 | Smallest input font | 13 px | 16 px | ≥ 16 |
+| 6 | Seed field with keyboard (SIMULATED 508 px viewport) | bottom at 583 → hidden | 298–342 → visible | visible |
+| 6 | H1 at 200 % root font size | 26 → 26 px | 26 → 52 px, no overflow | scales |
+| 7 | Lowest on-screen backing ratio (cap 3×) | 0.36 (Reveal 430×932) | 0.97 (Artwork 430×932) | ≥ 0.95 |
+| 7 | Question preview at 390×844 | 140 px (17 % vh) | 220 px (26 % vh) | ≥ 25 % vh |
+| 8 | Back with a sheet open | leaves to Start | closes the sheet, stays | closes |
+| 8 | Back from Device readout | Trade | Device ask, focus on H1 | ask |
+| 8 | Orphan entries after 20 random sheet sequences | 15 | 0 | 0 |
+| 9 | Swipe next / prev on Loop and Reveal cards | no / (browser Back) | yes / yes; vertical and edge ignored | works |
+| 10 | Save image line where `canShare({files})` | — | "Share → Save Image" line; fallback unchanged (e2e 2 checks) | e2e |
+| 11 | Begin visible, Slow 4G + 4× CPU (SIMULATED) | 6065 ms | 1533 ms | ≤ 2.5 s |
+| 11 | Offline reload after one visit; manifest, touch icon, favicon | none | works; all present | works |
+| all | Requests leaving localhost; horizontal overflow (13 screens × 9 sizes) | 0; 0 | 0; 0 | 0 |
+
+Not targeted, still over one screen (honest numbers, Night): Device readout 1.33 vp at 667×375 and 1.17 at 844×390
+(the six rows plus Next do not fit 375 px of height; Next is reached by a short scroll); Extras 1.26 / 1.15 / 1.07 in
+landscape and 1.05 at 320×568 (a reading page); Footprint 1.06 and Readout 1.08 at 320×568 (inside the 1.1 target).
+
+**Suites at 7055c9e:** unit 69/69 (incl. privacy property tests and the new `tests/sw.test.cjs`), determinism 64/64 byte-identical (ORACLE-7K3F-Q9ZD and old links unchanged), e2e `v5.mjs` 130/130 Night and 130/130 Day (incl. axe-core WCAG 2.1 A/AA 0 violations on every screen, privacy/Forget everything, 0 requests leaving localhost), contrast 0 failing in 84 view×look checks (lowest 4.5), device-probe 11/11, `mobile.mjs` 46/46 Night and 46/46 Day (Begin visible 1535 / 1531 ms). Logs: `/workspace/oracle-qa/v6/wp/final/`.
+
+**Service worker origin check** (`qa/sw-origin.mjs`, first visit + offline reload + Artwork link): PASS — 131 requests (52 from the service worker), 51 cache entries, all same-origin, all GET; offline reload and Artwork render work.
+
+**Fix found in WP12:** with a sheet open, navigating to a new URL (the contrast suite's `goto(#revelation)`, or a hash link)
+closed the sheet but did not route — the WP8 Back handler treated it as Back. `core/sheet.js` now routes when the URL
+differs from the one under the sheet (7055c9e). Back with a sheet open is unchanged (WP8 targets still met).
+
+Harness notes: an edge swipe in Chrome emulation is treated as history Back, so "edge swipe ignored" also accepts
+"the browser left the page" (the app itself ignored it). Word counts skip visually hidden text; Options counts the sheet only.
+
+Comparisons (before | after, Night): `/workspace/oracle-qa/v6/compare/` — 1 landscape Artwork 844×390, 2 short phone
+Footprint 360×640, 3 art preview Trade 390×844, 4 Options 390×844, 5 landscape Trade 844×390. Full shots:
+`/workspace/oracle-qa/v6/{before,after}/{dark,light}/shots/`.
+
+### Real-device checklist (owner; about 10 minutes per device; not run yet)
+Open https://artsrun.github.io/oracle-protocol/ after the merge (or a local copy of the branch before it). Mark each
+✓ / ✗ / note. Brave first, with Shields on (default), then the rest.
+
+| # | Check | Brave Android | Brave iOS | Safari iPhone | Chrome Android | Firefox (optional) |
+|---|---|---|---|---|---|---|
+| 1 | Portrait and landscape: art visible on every screen, Next reachable without scrolling (except Device readout in landscape) | | | | | |
+| 2 | Notch, home bar, rounded corners: nothing under them, portrait and landscape | | | | | |
+| 3 | Options → More → seed field: page does not zoom; field stays visible with the keyboard up | | | | | |
+| 4 | Open a sheet (Why these? or Options), press Back / swipe back: the sheet closes, the screen stays | | | | | |
+| 5 | Device step: readout → Back returns to the ask | | | | | |
+| 6 | Swipe left/right through the Loop and Reveal cards; vertical scroll still works | | | | | |
+| 7 | Save image: where the file lands (Downloads / Files / Photos); Share: share sheet opens with the PNG; on iOS Share → Save Image reaches Photos | | | | | |
+| 8 | Device rows show OK / UNAVAILABLE / RANDOMISED sensibly (Brave: RANDOMISED expected); tilt, location and mic prompts appear only after their buttons | | | | | |
+| 9 | Forget everything clears the readings and Options | | | | | |
+| 10 | Offline: visit once, turn on airplane mode, reload — the site opens and an artwork renders | | | | | |
+| 11 | No install banner or prompt appears at any point | | | | | |
+| 12 | Any error, glitch or text that does not fit | | | | | |
+
+Brave note: Shields' fingerprinting protection randomises canvas/audio readings, so the Device readout should say
+RANDOMISED for those rows; the artwork from choices only must still match the same link on another browser.

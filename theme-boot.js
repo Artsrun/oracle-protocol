@@ -5,6 +5,8 @@
  * No network, no fingerprinting: the only stored value is the visitor's own mode choice. */
 (function () {
   var d = document.documentElement;
+  // v6 WP11: index.html carries a static Start screen so Begin shows before the scripts run; a deep link hides it.
+  if (location.hash.length > 1) d.classList.add('boot-deep');
   var PALETTES = ['observatory', 'sodium', 'spectral'];
   var TYPES = ['instrument', 'signal', 'almanac'];
   var MODES = ['auto', 'dark', 'light'];

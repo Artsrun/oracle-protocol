@@ -8,7 +8,7 @@
   let sub = 'ask', busy = false, result = null; // result: the last card's answer, shown once, never stored
   const CARDS = ['tilt', 'loc', 'mic'];
   const CARD = {
-    tilt: { title: 'Let the artwork follow your phone?', lead: 'It moves as you hold your phone, only while you\u2019re on this screen. Not saved.' },
+    tilt: { title: 'Let the artwork follow your phone?', lead: 'The art follows your phone, only on this screen. Not saved.' },
     loc: { title: 'Use your rough location?', lead: 'We keep only your hemisphere and a 30\u00b0 band, never the exact spot.' },
     mic: { title: 'Listen to the room for 2 seconds?', lead: 'Only how loud it is. Sound is never recorded or saved.' }
   };
@@ -43,9 +43,8 @@
   const STATE_TEXT = { ok: 'Read', unavailable: 'Not shared by this browser', randomised: 'Randomised by your browser', denied: 'Not allowed' };
   const badge = (st) => `<span class="dev-state dev-${st}">${STATE_TEXT[st] || st}</span>`;
   const passive = () => (D.snapshot().passive || null);
-  const short = (s, n) => { s = String(s); return s.length > n ? s.slice(0, n - 1) + '\u2026' : s; };
   const PRE = { battery: 'battery ' };
-  const summary = (g, R) => g.items.map(id => R[id]).filter(Boolean).map(e => e.state === 'ok' ? (PRE[e.id] || '') + short(e.value, 34) : e.state === 'randomised' ? 'randomised' : null).filter(Boolean).join(' \u00b7 ') || 'Not shared by this browser';
+  const summary = (g, R) => g.items.map(id => R[id]).filter(Boolean).map(e => e.state === 'ok' ? (PRE[e.id] || '') + e.value : e.state === 'randomised' ? 'randomised' : null).filter(Boolean).join(' \u00b7 ') || 'Not shared by this browser';
   const countRead = (R) => Object.values(R || {}).filter(e => e.state === 'ok').length;
 
   // In-tab ring from this device: buckets + digest for the current seed (per-artwork salt unless Remember is on).
@@ -97,12 +96,11 @@
     const rows = GROUPS.map(g => `<div class="dev-row"><dt>${g.title}</dt><dd><span>${esc(summary(g, R))}</span>
       <button type="button" class="info" data-dev-info="${g.id}" aria-haspopup="dialog" aria-label="Details: ${g.title}">i</button></dd></div>`).join('');
     return `${browserNote(R)}<dl class="dev-list" aria-label="What this browser shares">${rows}</dl>
-      <p class="small" id="dev-count">${countRead(R)} readings. None left this tab.</p>
-      <p class="small"><button type="button" class="btn-link" id="dev-ident" aria-haspopup="dialog">How identifying is this?</button> <button type="button" class="btn-link" id="dev-forget">Forget everything</button></p>`;
+      <p class="small dev-links"><button type="button" class="btn-link" id="dev-ident" aria-haspopup="dialog">How identifying is this?</button> <button type="button" class="btn-link" id="dev-forget">Forget everything</button></p>`;
   }
 
   function cardBody(c) {
-    if (!result) return `<p class="small">Optional. Skip it and nothing is asked.</p>`;
+    if (!result) return '';
     const r = result, ok = r.state === 'ok';
     let t = !ok ? NO[r.state] || NO.unavailable
       : c === 'tilt' ? (OracleChapters.reduceMotion() ? 'Allowed. Motion is reduced on this device, so use the slider instead.' : 'Allowed. Tilt your phone: the preview follows. Nothing is kept.')
@@ -125,7 +123,7 @@
     } catch (e) { result = { state: 'unavailable' }; }
     busy = false; if (state.stage === 'device' && sub === c) paint(app, true);
   }
-  function leaveCard(app, c) { if (c === 'tilt') D.stopTilt(); result = null; const n = nextOf(c); if (n) { sub = n; paint(app, true); } else { D.stopAll(); OracleChapters.go('machine'); } }
+  function leaveCard(app, c) { if (c === 'tilt') D.stopTilt(); result = null; const n = nextOf(c); if (n) { sub = n; pushSub(); paint(app, true); } else { D.stopAll(); OracleChapters.go('machine'); } }
 
   function paint(app, focus) {
     const R = passive();
@@ -135,19 +133,19 @@
     app.innerHTML = U.frame({
       id: 'device',
       title: ask ? 'What does your device say?' : 'Any website could read this',
-      lead: ask ? 'Every website can read things about your device without asking. Want to see what yours says? Nothing leaves this tab.' : 'No prompt, no permission.',
+      lead: ask ? 'Websites can read your device without asking. See what yours says? Nothing leaves this tab.' : `<span id="dev-count">${countRead(passive())} readings</span>, no prompt. None left this tab.`,
       caption: ask ? 'Your artwork so far' : FP.describe(FP.context()),
       body: ask ? askBody() : readoutBody(R),
       cta: ask ? `${UI.button(busy ? 'Reading\u2026' : 'Show me', { primary: true, attrs: { id: 'dev-show', disabled: busy } })}${UI.button('Skip', { link: true, attrs: { id: 'dev-skip' } })}`
         : UI.button('Next', { primary: true, attrs: { id: 'dev-next' } })
     });
     const back = app.querySelector('[data-back]');
-    if (back && !ask) { back.removeAttribute('data-back'); back.onclick = (e) => { e.preventDefault(); sub = 'ask'; paint(app, true); }; }
+    if (back && !ask) { back.removeAttribute('data-back'); back.onclick = (e) => { e.preventDefault(); if (history.state && history.state.dev) { history.back(); return; } sub = 'ask'; paint(app, true); }; }
     if (ask) {
       app.querySelector('#dev-show').onclick = () => show(app);
       app.querySelector('#dev-skip').onclick = () => { D.stopAll(); OracleChapters.go('machine'); };
     } else {
-      app.querySelector('#dev-next').onclick = () => { result = null; sub = 'tilt'; paint(app, true); };
+      app.querySelector('#dev-next').onclick = () => { result = null; sub = 'tilt'; pushSub(); paint(app, true); };
       app.querySelectorAll('[data-dev-info]').forEach(b => b.onclick = () => { const g = GROUPS.find(x => x.id === b.dataset.devInfo); OracleSheet.open({ title: g.title, html: detail(g, passive()), from: b }); });
       app.querySelector('#dev-forget').onclick = () => forget(app);
       app.querySelector('#dev-ident').onclick = (e) => OracleSheet.open({ title: 'How identifying is this?', html: identifying(passive()), from: e.currentTarget });
@@ -164,7 +162,7 @@
         : `${UI.button(busy ? (c === 'mic' ? 'Listening\u2026' : 'Asking\u2026') : 'Allow', { primary: true, attrs: { id: 'perm-allow', disabled: busy } })}${UI.button('Not now', { link: true, attrs: { id: 'perm-skip' } })}`
     });
     const back = app.querySelector('[data-back]');
-    if (back) { back.removeAttribute('data-back'); back.onclick = (e) => { e.preventDefault(); if (c === 'tilt') D.stopTilt(); result = null; sub = prevOf(c); paint(app, true); }; }
+    if (back) { back.removeAttribute('data-back'); back.onclick = (e) => { e.preventDefault(); if (c === 'tilt') D.stopTilt(); result = null; if (history.state && history.state.dev) { history.back(); return; } sub = prevOf(c); paint(app, true); }; }
     const a = app.querySelector('#perm-allow'); if (a) a.onclick = () => allow(app, c);
     const k = app.querySelector('#perm-skip'); if (k) k.onclick = () => leaveCard(app, c);
     const n = app.querySelector('#perm-next'); if (n) n.onclick = () => leaveCard(app, c);
@@ -175,7 +173,7 @@
 
   async function show(app) {
     if (busy) return; busy = true; paint(app, false);
-    try { P.loadRemembered(); D.allowPassive(); await D.readPassive(); await refresh(); sub = 'readout'; }
+    try { P.loadRemembered(); D.allowPassive(); await D.readPassive(); await refresh(); sub = 'readout'; pushSub(); }
     catch (e) { sub = 'ask'; }
     busy = false; if (state.stage === 'device') paint(app, true);
   }
@@ -186,5 +184,8 @@
   }
 
   OracleChapters.register('device', (app) => { if (sub !== 'ask' && !passive()) sub = 'ask'; if (CARDS.includes(sub) && !busy) result = null; paint(app, false); if (passive()) refresh().then(() => { if (state.stage === 'device') U.drawPreview(); }); });
-  window.OracleDeviceStep = { refresh, GROUPS, NAME, reset: () => { sub = 'ask'; result = null; } };
+  // v6 WP8 (D4): each sub-step gets a history entry on the same URL, so the browser's Back walks them.
+  function pushSub() { if (state.stage === 'device') history.pushState({ dev: sub }, '', location.href); }
+  function fromHistory(dev) { if (sub === 'tilt' && dev !== 'tilt') D.stopTilt(); result = null; sub = ['readout', 'tilt', 'loc', 'mic'].includes(dev) ? dev : 'ask'; }
+  window.OracleDeviceStep = { refresh, GROUPS, NAME, fromHistory, reset: () => { sub = 'ask'; result = null; } };
 })();

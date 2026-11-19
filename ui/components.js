@@ -55,7 +55,32 @@
   /** Provenance badge. One meaning each: VERIFIED (sourced), INFERRED, SIMULATED, UNKNOWN. */
   const badge = (label) => `<span class="prov prov-${esc(String(label).toLowerCase())}">${esc(label)}</span>`;
 
-  const api = { esc, strip, checkList, radioCards, progress, dots, button, badge };
+  // v6 WP3: the rows inside a "Why these?" sheet — one full-width button per option; each pushes its evidence view.
+  function whyRows(name, titles) {
+    return `<ul class="why-rows">${titles.map((t, i) => `<li><button type="button" class="why-row" data-why="${esc(name)}:${i}"><span>${t}</span><span class="why-go" aria-hidden="true">\u203a</span></button></li>`).join('')}</ul>`;
+  }
+  function bindWhyRows(body, view) {
+    body.querySelectorAll('[data-why]').forEach(b => b.addEventListener('click', () => {
+      const o = view(+b.dataset.why.split(':')[1]);
+      root.OracleSheet.push({ ...o, onOpen: (bd) => bindWhyRows(bd, view) });
+    }));
+  }
+  // v6 WP9: horizontal swipe on a card area (touch only). 40 px threshold, mostly horizontal, and never from the
+  // outer 24 px of the screen, so it does not fight the iOS edge-swipe Back. Buttons and arrow keys stay.
+  function swipe(el, onNext, onPrev) {
+    let id = null, x0 = 0, y0 = 0;
+    el.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch') return;
+      id = (e.clientX < 24 || e.clientX > window.innerWidth - 24) ? null : e.pointerId; x0 = e.clientX; y0 = e.clientY;
+    });
+    el.addEventListener('pointerup', (e) => {
+      if (e.pointerId !== id) return; id = null;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      if (Math.abs(dx) >= 40 && Math.abs(dx) > 1.5 * Math.abs(dy)) (dx < 0 ? onNext : onPrev)();
+    });
+    el.addEventListener('pointercancel', () => { id = null; });
+  }
+  const api = { esc, strip, checkList, radioCards, progress, dots, button, badge, whyRows, bindWhyRows, swipe };
   root.OracleUI = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

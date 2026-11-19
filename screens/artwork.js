@@ -162,17 +162,25 @@
       [`${pl(1 + Math.round(F.feedback * 5 + n.n / 4), 'echo', 'echoes')} around the core: ${pl(n.n, 'round', 'rounds')}`, 'loop']
     ].concat(E().v === 3 ? [[FP().describe(FP().context()).replace(/\.$/, ''), 'device']] : []);
   }
+  // v6 WP5: one vertical, settings-style list. On open: Format, Title, three action rows and (engine 3) the share mode;
+  // everything else sits under one "More" row. `moreOpen` keeps "More" open across a re-render caused inside it.
   const optionsHtml = (p, id, fmt, hist) => `
-    <h3>Format</h3>
-    <div class="radio-cards compact">${Object.entries(A.FORMATS).map(([k, f]) => `<label class="radio-card${k === fmt ? ' on' : ''}"><input type="radio" name="rv-fmt" value="${k}"${k === fmt ? ' checked' : ''}><span class="rc-text"><span class="row-title">${f.label}</span><span class="row-sub">${f.w}\u00d7${f.h}</span></span></label>`).join('')}</div>
+    <fieldset class="opt-group"><legend><h3>Format</h3></legend>
+    <div class="radio-cards opt-radios">${Object.entries(A.FORMATS).map(([k, f]) => `<label class="radio-card${k === fmt ? ' on' : ''}"><input type="radio" name="rv-fmt" value="${k}"${k === fmt ? ' checked' : ''}><span class="rc-text"><span class="row-title">${f.label.replace(/\s*\d+\u00d7\d+$/, '')}</span><span class="row-sub">${f.w}\u00d7${f.h}</span></span></label>`).join('')}</div></fieldset>
     <label class="opt-check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}> Title on the image</label>
-    <div class="opt-row"><button type="button" class="btn-quiet" id="rv-link">Copy link</button><button type="button" class="btn-quiet" id="rv-copy">Copy caption</button><button type="button" class="btn-quiet" id="rv-clean">Clean view</button></div>
+    <ul class="opt-rows">
+      <li><button type="button" class="opt-rowbtn" id="rv-link">Copy link</button></li>
+      <li><button type="button" class="opt-rowbtn" id="rv-copy">Copy caption</button></li>
+      <li><button type="button" class="opt-rowbtn" id="rv-clean">Clean view</button></li>
+    </ul>
+    ${E().v === 3 ? shareHtml() : ''}
+    <details class="more-opts"${moreOpen ? ' open' : ''}><summary>More</summary><div class="more-body">
     <h3>Seed</h3>
     <div class="seed-line" id="seed-line">${esc(p.s)} <span class="small">composition ${esc(id)}</span></div>
     <p class="small" id="rv-look">Look: ${esc(lookLabel(lookNow()))} \u00b7 ${state.v2.look ? 'from the link' : 'follows site theme'}
       ${state.v2.look ? '<button type="button" class="btn-link" id="rv-unpin">Use site theme</button>' : ''}</p>
-    <div class="opt-row"><button type="button" class="btn-quiet" id="rv-new">New seed</button></div>
-    ${E().v === 3 ? shareHtml() : ''}
+    <div><button type="button" class="opt-rowbtn" id="rv-new">New seed</button></div>
+    ${E().v === 3 ? deviceMoreHtml() : ''}
     ${E().v >= 2 ? `<h3>What you made it from</h3><ul class="made-from">${madeFrom(p).map(([t, ch]) => `<li><span>${esc(t)}</span> <button type="button" class="btn-link" data-goto="${ch}">Edit</button></li>`).join('')}</ul>` : `<h3>About this artwork</h3><p>${esc(E().interpret(p))}</p><p class="small">Made with the earlier engine; it renders exactly as when it was shared.</p>`}
     <label for="rv-caption"><h3>Caption</h3></label>
     <textarea id="rv-caption" class="caption" rows="5" readonly>${esc(capOf(p, fmt))}</textarea>
@@ -181,19 +189,24 @@
     <h3 id="rv-hist-label">Recent (this browser only)</h3>
     ${hist.length ? `<ul class="history" aria-labelledby="rv-hist-label">${hist.map((h, i) => `<li><span>${esc(h.s)} \u00b7 ${esc(h.id)}</span><button type="button" class="btn-link" data-hist="${i}">Open</button></li>`).join('')}</ul>
     <button type="button" class="btn-quiet" id="rv-clear">Clear history</button>` : '<p class="small">Nothing yet.</p>'}
-    <p class="small">${E().v === 3 && devOut().mode === 'pattern' ? 'The link and the file hold the seed, your answers as numbers and an 8-character device pattern with a 3-character code. No readings, no server.' : 'The link and the file hold only the seed and your answers as numbers. No personal data, no server.'}</p>`;
+    <p class="small">${E().v === 3 && devOut().mode === 'pattern' ? 'The link and the file hold the seed, your answers as numbers and an 8-character device pattern with a 3-character code. No readings, no server.' : 'The link and the file hold only the seed and your answers as numbers. No personal data, no server.'}</p>
+    </div></details>`;
   // v5: share mode (Choices only by default), Remember this device (off by default), Forget everything.
   function shareHtml() {
     const c = FP().context(), mode = OraclePrivacy.share();
-    if (c.mode !== 'full') return `<h3>Device ring</h3><p class="small">${c.mode === 'pattern' ? 'Drawn from the device pattern in the link you opened.' : 'Plain ring: no device readings used. Add them on the Device step.'}</p>
-      <div class="opt-row"><button type="button" class="btn-link" data-goto="device">Device step</button><button type="button" class="btn-link" id="rv-forget">Forget everything</button></div>`;
+    if (c.mode !== 'full') return `<h3>Device ring</h3><p class="small">${c.mode === 'pattern' ? 'Drawn from the device pattern in the link you opened.' : 'Plain ring: no device readings used.'}</p>
+      <ul class="opt-rows"><li><button type="button" class="opt-rowbtn" data-goto="device">Add the Device step</button></li></ul>`;
     const r = (v, t, sub) => `<label class="radio-card${mode === v ? ' on' : ''}"><input type="radio" name="rv-share-mode" value="${v}"${mode === v ? ' checked' : ''}><span class="rc-text"><span class="row-title">${t}</span><span class="row-sub">${sub}</span></span></label>`;
-    return `<fieldset class="radio-cards compact"><legend><h3>Shared image</h3></legend>
+    return `<fieldset class="radio-cards opt-group"><legend><h3>Shared image</h3></legend>
       ${r('choices', 'Choices only', 'Nothing about this device leaves the tab.')}
-      ${r('pattern', 'Choices + device pattern', 'Can\u2019t be turned back into your readings. Shows your rough time zone, core-count band and GPU family.')}</fieldset>
-      <label class="opt-check"><input type="checkbox" id="rv-remember" ${OraclePrivacy.remember() ? 'checked' : ''}> Remember this device</label>
-      <p class="small">Draws the same pattern next visit. Anyone using this browser profile could redraw it.</p>
-      <div class="opt-row"><button type="button" class="btn-link" id="rv-forget">Forget everything</button></div>`;
+      ${r('pattern', 'Choices + device pattern', 'Adds your rough time zone, core-count band and GPU family, never the readings.')}</fieldset>`;
+  }
+  // v6 WP5: Remember and Forget everything moved under "More" (behaviour unchanged).
+  function deviceMoreHtml() {
+    const c = FP().context();
+    return `${c.mode === 'full' ? `<label class="opt-check"><input type="checkbox" id="rv-remember" ${OraclePrivacy.remember() ? 'checked' : ''}> Remember this device</label>
+      <p class="small">Draws the same pattern next visit. Anyone using this browser profile could redraw it.</p>` : ''}
+      <div><button type="button" class="opt-rowbtn" id="rv-forget">Forget everything</button></div>`;
   }
 
   OracleChapters.register('revelation', (app) => {
@@ -229,7 +242,11 @@
       status('Rendering ' + A.FORMATS[fmt].label + '\u2026');
       const { blob, w, h } = await exportBlob(p, fmt);
       download(blob, fileName(p, fmt));
-      status(`Saved ${fileName(p, fmt)} (${w}\u00d7${h}, ${(blob.size / 1024).toFixed(0)} KB).`);
+      // v6 WP10 (D8): where this browser can share image files (iOS Safari, Android Chrome), a download lands in
+      // Files/Downloads, so say how to reach Photos. Feature detection only — no user-agent read.
+      let tip = '';
+      try { tip = navigator.canShare && navigator.canShare({ files: [new File([blob], fileName(p, fmt), { type: 'image/png' })] }) ? ' To put it in Photos, use Share \u2192 Save Image.' : ''; } catch (e) { tip = ''; }
+      status(`Saved ${fileName(p, fmt)} (${w}\u00d7${h}, ${(blob.size / 1024).toFixed(0)} KB).${tip}`);
     };
     document.getElementById('rv-share').onclick = async () => {
       const caption = capOf(p, fmt);
@@ -255,6 +272,8 @@
       OracleSheet.open({ title: 'Options', html: optionsHtml(p, id, fmt, hist), from: document.getElementById('rv-options'), onOpen: (body) => {
         const st = (t) => { status(t); const s2 = body.querySelector('#rv-opt-status'); if (s2) s2.textContent = t; };
         body.insertAdjacentHTML('afterbegin', '<p class="small" id="rv-opt-status" role="status" aria-live="polite"></p>');
+        const more = body.querySelector('.more-opts');
+        if (more) more.addEventListener('toggle', () => { moreOpen = more.open; });
         body.querySelectorAll('[name=rv-fmt]').forEach(r => r.onchange = () => { state.v2.format = r.value; rerender(true); });
         body.querySelector('#rv-title').onchange = (e) => { state.v2.title = e.target.checked; rerender(true); };
         body.querySelector('#rv-new').onclick = () => { state.v2.seed = A.newSeed(); state.v2.engine = (OracleEngine.DEVICE || OracleEngine.LAYERED).v; state.v2.fromUrl = false; if (window.OracleDeviceStep) OracleDeviceStep.refresh().then(() => rerender(true)); else rerender(true); };
@@ -277,7 +296,7 @@
         if (fg) fg.onclick = () => { OracleChapters.forgetEverything(); skipRemember = true; rerender(true); st('Forgotten. Browser permissions you granted stay until you reset them in site settings.'); };
       } });
     }
-    document.getElementById('rv-options').onclick = openOptions;
+    document.getElementById('rv-options').onclick = () => { moreOpen = false; openOptions(); };
   });
 
   // Clean artwork view: only the work, plus minimal controls.

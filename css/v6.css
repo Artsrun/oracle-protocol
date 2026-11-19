@@ -1,0 +1,132 @@
+/* ORACLE PROTOCOL v6 — mobile layout pass (docs/PLAN-v6.md). Loaded after css/v4.css; vanilla CSS, no build step.
+ * Rules kept: nothing fixed over content, one primary per screen, 44 px targets, animations play once. */
+
+/* ── WP1 — the art never collapses: floors on the portrait formulas ─────────────── */
+@media (max-width:899px){
+  .start-art{width:min(62vw,300px,max(120px,calc((100svh - 470px) * .8)))}
+  .art-grid .art-stage{max-width:min(100%,max(160px,calc((100svh - 440px) * .8)))}
+  .reveal-grid .art-stage{max-width:min(100%,max(160px,calc((100svh - 420px) * .8)))}
+}
+
+/* ── WP1 — landscape phones: art | heading | controls, side by side ─────────────── */
+@media (orientation:landscape) and (max-height:500px){
+  body.v4 .screen{width:100%;max-width:none;min-height:100svh;--s-pt:8px;--s-px:20px;--s-pb:12px}
+  .screen:has(.art-stage){display:grid;grid-template-columns:auto minmax(0,.85fr) minmax(0,1.15fr);grid-template-rows:auto 1fr;column-gap:20px;align-content:start}
+  .screen:has(.art-stage) > .screen-grid{display:contents}
+  .screen:has(.art-stage) .art-stage{grid-column:1;grid-row:1 / span 2;align-self:start;justify-self:start;margin:0;width:min(28vw,calc((100svh - 20px) * .8));max-width:none}
+  .screen:has(.art-stage) .art-stage canvas{width:100%;height:auto;max-height:none;margin:0}
+  .screen:has(.art-stage) > .screen-top{grid-column:2;grid-row:1;margin-bottom:4px}
+  .screen:has(.art-stage) .screen-head{grid-column:2;grid-row:2;align-self:start}
+  .screen:has(.art-stage) .screen-main{grid-column:3;grid-row:1 / span 2;align-self:start;margin-top:0;gap:8px;max-width:none}
+  .screen:has(.art-stage) .screen-cta{margin-top:4px;padding-top:0}
+  .v4s h1{font-size:1.375rem;line-height:1.2}
+  .v4s .lead{margin-top:4px}
+  /* compact rows, still 44 px targets */
+  .check-row label,.radio-card{min-height:var(--tap);padding-top:6px;padding-bottom:6px}
+  .radio-cards,.check-list{gap:6px}
+  .story-card{min-height:0;padding:12px 14px}
+  /* the Artwork and Reveal art get the larger column */
+  .screen:has(.art-stage).s-revelation .art-stage,.screen:has(.art-stage).s-reveal .art-stage{width:min(40vw,calc((100svh - 20px) * .8))}
+  /* Start: art beside the text */
+  .start-grid{flex-direction:row;gap:32px;text-align:left;justify-content:center;align-items:center;margin:auto 0}
+  .start-art{width:min(36vw,calc((100svh - 80px) * .8))}
+  .start-text{align-items:flex-start}
+}
+@media (orientation:landscape) and (max-height:500px){
+  /* Footprint: eight short rows in two columns */
+  .s-extraction .check-rows{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:16px}
+  .screen:has(.art-stage).s-device{grid-template-columns:auto minmax(0,.7fr) minmax(0,1.3fr)}
+}
+@media (orientation:landscape) and (max-height:500px) and (max-width:700px){
+  .screen:has(.art-stage) .art-stage{width:max(160px,24vw)}
+  .screen:has(.art-stage).s-revelation .art-stage,.screen:has(.art-stage).s-reveal .art-stage{width:min(36vw,calc((100svh - 20px) * .8))}
+  .screen:has(.art-stage){column-gap:16px;--s-px:16px;grid-template-columns:auto minmax(0,.75fr) minmax(0,1.25fr)}
+}
+
+/* ── WP2 — short phones (portrait, under 700 px tall): compact rows, smaller gaps ── */
+@media (max-height:700px) and (orientation:portrait) and (max-width:899px){
+  .screen{--s-pt:4px;--s-pb:12px}
+  .screen-top{margin-bottom:4px}
+  .v4s h1{font-size:1.5rem;line-height:1.15}
+  .v4s .lead{margin-top:4px}
+  .screen-grid{grid-template-columns:minmax(0,1fr) 96px}
+  .screen-main{margin-top:10px;gap:8px}
+  .check-row label{min-height:var(--tap);padding-top:4px;padding-bottom:4px}
+  .radio-card{min-height:48px;padding-top:6px;padding-bottom:6px}
+  .radio-cards{gap:6px}
+  .story-card{min-height:150px;padding:14px}
+}
+/* Device readout rows: the label runs into its value (one paragraph per row) and values wrap (no "…") —
+   short phones and landscape. The ⓘ keeps its own reserved column on the right. */
+@media (max-height:700px) and (max-width:899px), (orientation:landscape) and (max-height:500px){
+  .dev-row{display:block;position:relative;min-height:var(--tap);padding:3px 52px 3px 0;box-sizing:border-box;line-height:1.35}
+  .dev-row dt{display:inline;width:auto;margin-right:.35em;color:var(--v-ink-2);font-size:var(--t-s)}
+  .dev-row dd,.dev-row dd>span{display:inline;font-size:var(--t-s)}
+  .dev-row dd .info{position:absolute;right:0;top:50%;margin-top:calc(var(--tap) / -2)}
+}
+@media (max-height:600px) and (orientation:portrait) and (max-width:899px){
+  .v4s h1{font-size:1.375rem}
+  .screen-grid{grid-template-columns:minmax(0,1fr) 80px;column-gap:12px}
+}
+@media (max-height:600px) and (orientation:portrait) and (max-width:899px){
+  .dev-links{display:flex;flex-wrap:wrap;column-gap:4px}
+  .dev-links .btn-link{font-size:var(--t-s);padding-left:0;padding-right:6px}
+}
+
+/* ── WP3 — one "Why these?" per question; the sheet lists the options as full-width rows ── */
+.why-rows{list-style:none;margin:0;padding:0;border-top:1px solid var(--v-line)}
+.why-row{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:0 4px;background:none;border:0;border-bottom:1px solid var(--v-line);color:var(--v-ink);font:inherit;font-size:var(--t-b);text-align:left;cursor:pointer}
+.why-row:hover{background:var(--v-surface)}
+.why-row:focus-visible{outline:2px solid var(--v-accent);outline-offset:-2px}
+.why-go{color:var(--v-ink-2);font-size:1.25rem;line-height:1}
+#why-offer,#why-fp{flex:none}
+
+/* ── WP5 — Options: one vertical settings-style list; the rest under "More" ───────── */
+.opt-group{border:0;margin:0;padding:0;min-width:0}
+.opt-group legend{padding:0;margin-bottom:6px}
+.opt-radios{gap:6px}
+.opt-radios .radio-card{min-height:48px;padding:4px 14px}
+.opt-radios .rc-text{flex:1;flex-direction:row;justify-content:space-between;align-items:baseline;gap:12px}
+.opt-radios .row-sub{font-family:var(--font-mono)}
+.opt-rows{list-style:none;margin:0;padding:0;border-top:1px solid var(--v-line)}
+.opt-rows li{border-bottom:1px solid var(--v-line)}
+.opt-rowbtn{display:flex;width:100%;align-items:center;min-height:48px;padding:0 4px;background:none;border:0;color:var(--v-ink);font:inherit;font-size:var(--t-b);text-align:left;cursor:pointer}
+.more-body .opt-rowbtn{border-bottom:1px solid var(--v-line)}
+.opt-rowbtn:hover{background:var(--v-surface)}
+.opt-rowbtn:focus-visible{outline:2px solid var(--v-accent);outline-offset:-2px}
+.more-opts{border-top:1px solid var(--v-line);border-bottom:1px solid var(--v-line)}
+.more-opts > summary{display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:0 4px;cursor:pointer;font-size:var(--t-b);list-style:none}
+.more-opts > summary::-webkit-details-marker{display:none}
+.more-opts > summary::after{content:'\203A';color:var(--v-ink-2);font-size:1.25rem;transition:none}
+.more-opts[open] > summary::after{transform:rotate(90deg)}
+.more-opts > summary:focus-visible{outline:2px solid var(--v-accent);outline-offset:-2px}
+.more-body{display:flex;flex-direction:column;gap:12px;padding:4px 0 16px}
+
+/* ── WP5 — footer: one vertical list, below the fold on Start and Artwork ─────────── */
+body.v4[data-stage=approach] .screen,body.v4[data-stage=revelation] .screen,body.v4[data-stage=extras] .screen{min-height:100svh}
+body.v4 .sitefoot{display:flex;flex-direction:column;align-items:stretch;gap:0;padding:8px 16px calc(var(--safe-b) + 16px)}
+body.v4 .sitefoot .foot-btn{display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:48px;padding:0 4px;border:0;border-bottom:1px solid var(--v-line);border-radius:0;background:none;font:inherit;font-size:var(--t-b);color:var(--v-ink);cursor:pointer;text-align:left}
+body.v4 .sitefoot .theme-switch{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:0 4px;border-bottom:1px solid var(--v-line)}
+body.v4 .sitefoot .foot-note{order:9;padding:12px 4px 0}
+@media (min-width:900px){ body.v4 .sitefoot{max-width:520px;margin:0 auto} }
+
+/* ── WP6 — type in rem (the browser's font-size setting applies), safe areas, 16 px fields ── */
+:root{--t-s:.8125rem;--t-b:1rem;--t-l:1.1875rem;--t-h:clamp(1.625rem,1.6vw + 1.125rem,2.375rem);
+  --safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px)}
+@media (min-width:900px){ .screen{--s-pt:20px;--s-px:32px;--s-pb:28px} }
+/* one padding rule: the per-layout values above + the device's safe-area insets (notch, home bar, landscape sides) */
+body.v4 .screen{padding:calc(var(--s-pt,8px) + var(--safe-t)) max(var(--s-px,16px),calc(var(--safe-r) + 8px)) calc(var(--s-pb,16px) + var(--safe-b)) max(var(--s-px,16px),calc(var(--safe-l) + 8px))}
+body.v4 .sitefoot{padding-left:max(16px,calc(var(--safe-l) + 8px));padding-right:max(16px,calc(var(--safe-r) + 8px))}
+.sheet-panel{transition:none !important;padding-left:var(--safe-l);padding-right:var(--safe-r);bottom:var(--kb,0px);max-height:calc(86svh - var(--kb,0px))}
+.sheet-body{padding-bottom:calc(24px + var(--safe-b))}
+.sheet-top{padding-top:max(0px,calc(var(--safe-t) - 40px))}
+@media (min-width:900px){ .sheet-panel{max-height:none;padding-top:var(--safe-t)} }
+/* fields at 16 px: readable, and iOS Safari does not zoom the page when they get focus */
+.opt-row input[type=text],.sheet .caption,body.v4 .sitefoot .theme-switch select,#tilt-slider{font-size:var(--t-b)}
+
+/* ── WP9 — cards take horizontal swipes; vertical scrolling stays with the browser ── */
+.cards{touch-action:pan-y}
+
+/* ── WP11 — static Start (index.html) until the scripts run; hidden on deep links ── */
+html.boot-deep #app > [data-static]{visibility:hidden}
+.v4s a.btn-primary{text-decoration:none;box-sizing:border-box}
