@@ -235,6 +235,18 @@ for (const [view, viewport] of [['mobile', { width: 390, height: 844 }], ['deskt
   await page.click('label.radio-card:has([value=story])'); await settle(page, 600);
   const story = await page.evaluate(() => ({ fmt: state.v2.format, open: document.getElementById('sheet').open, hash: location.hash }));
   check('WP7 changing the format keeps the sheet open and updates the link', story.fmt === 'story' && story.open && /fmt=story/.test(story.hash), story);
+  // v7 WP4: "Save the build (GIF)" — nothing loads before the tap; the row shows frame progress, saves a ≤1 MB GIF89a
+  // that plays once and carries the link, and the sheet stays open.
+  const gif0 = await page.evaluate(() => ({ loaded: OracleVendor.loaded('gifenc'), rows: [...document.querySelectorAll('#sheet .opt-rows .opt-rowbtn')].map(b => b.textContent) }));
+  await page.evaluate(() => { window.__gifProg = []; const b = document.getElementById('rv-gif'); new MutationObserver(() => window.__gifProg.push(b.textContent)).observe(b, { childList: true, characterData: true, subtree: true }); });
+  const [gdl] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('#rv-gif')]); await settle(page, 300);
+  const gf = QA + '/wp4-' + gdl.suggestedFilename(); await gdl.saveAs(gf); const gb = fs.readFileSync(gf);
+  const gif1 = await page.evaluate(() => ({ prog: window.__gifProg, label: document.getElementById('rv-gif').textContent, busy: document.getElementById('rv-gif').getAttribute('aria-disabled'), st: document.getElementById('rv-opt-status').textContent, open: document.getElementById('sheet').open }));
+  check('v7 WP4 Options: "Save the build (GIF)" row; gifenc not loaded before the tap', !gif0.loaded && gif0.rows.includes('Save the build (GIF)'), gif0);
+  check('v7 WP4 Save the build: progress shown per frame, ≤1 MB GIF89a that plays once and carries the link; sheet stays open',
+    /^oracle-[a-z0-9]{4}-[a-z0-9]{4}-build-540x675\.gif$/.test(gdl.suggestedFilename()) && gb.length <= 1048576 && gb.subarray(0, 6).toString() === 'GIF89a' && !gb.includes('NETSCAPE2.0') && gb.includes('oracle:s=' + p1.s)
+    && gif1.prog.some(t => /frame 1 of 7/.test(t)) && gif1.prog.some(t => /frame 7 of 7/.test(t)) && gif1.label === 'Save the build (GIF)' && gif1.busy === null && /^Saved .*plays once/.test(gif1.st) && gif1.open,
+    { file: gdl.suggestedFilename(), size: gb.length, ...gif1, prog: gif1.prog.slice(0, 3) });
   // v6 WP5 (deliberate): New seed, Open a seed and Recent sit under "More"; it stays open across the re-render.
   await page.click('#sheet .more-opts summary'); await settle(page, 200);
   await page.click('#rv-new'); await settle(page, 500);

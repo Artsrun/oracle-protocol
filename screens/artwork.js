@@ -184,7 +184,8 @@
       [`${pl(1 + Math.round(F.feedback * 5 + n.n / 4), 'echo', 'echoes')} around the core: ${pl(n.n, 'round', 'rounds')}`, 'loop']
     ].concat(E().v === 3 ? [[FP().describe(FP().context()).replace(/\.$/, ''), 'device']] : []);
   }
-  // v6 WP5: one vertical, settings-style list. On open: Format, Title, three action rows and (engine 3) the share mode;
+  // v6 WP5: one vertical, settings-style list. On open: Format, Title, the action rows and (engine 3) the share mode;
+  // v7 WP4: "Save the build (GIF)" joins the open rows; Copy caption moved under More beside the caption (≤12 controls on open).
   // everything else sits under one "More" row. `moreOpen` keeps "More" open across a re-render caused inside it.
   const optionsHtml = (p, id, fmt, hist) => `
     <fieldset class="opt-group"><legend><h3>Format</h3></legend>
@@ -192,8 +193,8 @@
     <label class="opt-check"><input type="checkbox" id="rv-title" ${state.v2.title ? 'checked' : ''}> Title on the image</label>
     <ul class="opt-rows">
       <li><button type="button" class="opt-rowbtn" id="rv-link">Copy link</button></li>
-      <li><button type="button" class="opt-rowbtn" id="rv-copy">Copy caption</button></li>
       <li><button type="button" class="opt-rowbtn" id="rv-clean">Clean view</button></li>
+      <li><button type="button" class="opt-rowbtn" id="rv-gif">Save the build (GIF)</button></li>
     </ul>
     ${E().v === 3 ? shareHtml() : ''}
     <details class="more-opts"${moreOpen ? ' open' : ''}><summary>More</summary><div class="more-body">
@@ -206,6 +207,7 @@
     ${E().v >= 2 ? `<h3>What you made it from</h3><ul class="made-from">${madeFrom(p).map(([t, ch]) => `<li><span>${esc(t)}</span> <button type="button" class="btn-link" data-goto="${ch}">Edit</button></li>`).join('')}</ul>` : `<h3>About this artwork</h3><p>${esc(E().interpret(p))}</p><p class="small">Made with the earlier engine; it renders exactly as when it was shared.</p>`}
     <label for="rv-caption"><h3>Caption</h3></label>
     <textarea id="rv-caption" class="caption" rows="5" readonly>${esc(capOf(p, fmt))}</textarea>
+    <div><button type="button" class="opt-rowbtn" id="rv-copy">Copy caption</button></div>
     <label for="rv-restore"><h3>Open a seed or link</h3></label>
     <div class="opt-row"><input id="rv-restore" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="ORACLE-XXXX-XXXX or a link"><button type="button" class="btn-quiet" id="rv-restore-btn">Open</button></div>
     <h3 id="rv-hist-label">Recent (this browser only)</h3>
@@ -302,6 +304,24 @@
         body.querySelector('#rv-copy').onclick = async () => st((await copy(capOf(p, fmt))) ? 'Caption copied.' : 'Copy blocked \u2014 select the caption text.');
         body.querySelector('#rv-link').onclick = async () => st((await copy(shareLink(p, fmt))) ? 'Link copied.' : 'Copy blocked.');
         body.querySelector('#rv-clean').onclick = () => { OracleSheet.close(); OracleChapters.go('art', { hash: '#art?' + enc(p) + '&fmt=' + fmt + lookQuery(lookNow()) }); };
+        // v7 WP4 (F1): the build as a GIF. Built only on this tap, from the link data; the button shows progress
+        // (the live region announces start and end only), and a second tap while busy does nothing.
+        const gifBtn = body.querySelector('#rv-gif');
+        gifBtn.onclick = async () => {
+          if (gifBtn.getAttribute('aria-disabled') === 'true') return;
+          const label = gifBtn.textContent;
+          gifBtn.setAttribute('aria-disabled', 'true');
+          st('Building the GIF\u2026');
+          try {
+            const g = await exportGif(p, (d, n) => { gifBtn.textContent = `Building\u2026 frame ${d} of ${n}`; });
+            download(g.blob, g.name);
+            let tip = '';
+            try { tip = navigator.canShare && navigator.canShare({ files: [new File([g.blob], g.name, { type: 'image/gif' })] }) ? ' To put it in Photos, open it from Files and use Share \u2192 Save Image.' : ''; } catch (e) { tip = ''; }
+            st(`Saved ${g.name} (${g.frames} frames, ${(g.blob.size / 1024).toFixed(0)} KB, plays once).${tip}`);
+          } catch (e) {
+            st('Could not build the GIF here. Save image still works.');
+          } finally { gifBtn.textContent = label; gifBtn.removeAttribute('aria-disabled'); }
+        };
         const unpin = body.querySelector('#rv-unpin');
         if (unpin) unpin.onclick = () => { state.v2.look = null; rerender(true); };
         const doRestore = (q) => { if (!q) { st('Not a seed or Oracle link.'); return; } apply(q); status('Opened ' + q.s + '.'); (window.OracleDeviceStep ? OracleDeviceStep.refresh() : Promise.resolve()).then(() => rerender(false)); };
