@@ -1,0 +1,5 @@
+/* v8 — icons + captions, calm layout. WP1: the icon style (Lucide symbols from core/icons.js take their stroke here). */
+.i{width:24px;height:24px;flex:none;display:inline-block;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.i.i-sm{width:18px;height:18px}
+.i.i-lg{width:28px;height:28px}
+@media (forced-colors:active){.i{stroke:CanvasText}}

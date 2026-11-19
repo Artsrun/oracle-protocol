@@ -4,7 +4,8 @@
 const test = require('node:test'), assert = require('node:assert');
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
 const ROOT = path.join(__dirname, '..');
-const PINS = {
+const LUCIDE = require('./lucide-pins.cjs');
+const PINS = { ...LUCIDE,
   'vendor/gifenc-1.0.3/gifenc.esm.js': [9098, '217761244379253ba5815510d3048a4fb1f4c4dbe9fb51a5cfbfe26f34eec093'],
   'vendor/gifenc-1.0.3/LICENSE.md': [1083, '47bc590c39d8ccccfc544875a9faebf44bafa828ef20315b396b5d0629f0cfd6'],
   'vendor/zzfx-1.4.0/ZzFX.js': [10301, '43f321101a935892c112a291e2e943b4da33159b43fcd4a21f3eae710f4a27ff'],
@@ -31,7 +32,7 @@ test('vendor: README and THIRD_PARTY_NOTICES record every hash and licence', () 
   const readme = fs.readFileSync(path.join(ROOT, 'vendor/README.md'), 'utf8');
   const notices = fs.readFileSync(path.join(ROOT, 'THIRD_PARTY_NOTICES.md'), 'utf8');
   for (const [, sha] of Object.values(PINS)) assert.ok(readme.includes(sha), 'README lacks ' + sha);
-  for (const f of ['vendor/gifenc-1.0.3/LICENSE.md', 'vendor/zzfx-1.4.0/LICENSE']) assert.ok(notices.includes(fs.readFileSync(path.join(ROOT, f), 'utf8').trim()), 'notices lack ' + f);
+  for (const f of ['vendor/gifenc-1.0.3/LICENSE.md', 'vendor/zzfx-1.4.0/LICENSE', 'vendor/lucide-static-1.76.0/LICENSE']) assert.ok(notices.includes(fs.readFileSync(path.join(ROOT, f), 'utf8').trim()), 'notices lack ' + f);
 });
 test('vendor: no network, eval, worker or dynamic-import API in a vendored script', () => {
   for (const f of Object.keys(PINS).filter((f) => f.endsWith('.js'))) {

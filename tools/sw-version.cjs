@@ -13,7 +13,7 @@ function read() {
 function compute(list) {
   const h = crypto.createHash('sha256');
   for (const a of list.filter((a) => a !== './').sort()) { h.update(a + '\0'); h.update(fs.readFileSync(path.join(ROOT, a))); h.update('\0'); }
-  return 'v7-' + h.digest('hex').slice(0, 12);
+  return 'v8-' + h.digest('hex').slice(0, 12);
 }
 module.exports = { read, compute, ROOT };
 if (require.main === module) {

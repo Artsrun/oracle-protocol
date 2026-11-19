@@ -21,3 +21,75 @@ Notes
 Updating (a work package of its own): `npm pack <name>@<version>`, check the integrity against
 `npm view <name>@<version> dist.integrity`, copy the files, update this table and `tests/vendor.test.cjs`, rerun
 `node tools/sw-version.cjs` and the full QA.
+
+## Lucide icons (v8 WP1)
+
+| Library | Version | Tarball | npm integrity | Files | Licence |
+|---|---|---|---|---|---|
+| lucide-static | 1.76.0 (repo github.com/lucide-icons/lucide) | https://registry.npmjs.org/lucide-static/-/lucide-static-1.76.0.tgz | sha512-8izOkC4xBdjtiIF641S1a21rEZP2DXiAcaRFYMXxwxnaFmgUUqLgelmRMxrNenjuW2pUJZIXEpOMuUcVyadF5Q== (shasum c242cbad7b8f34f290abf3aaf83a8ebd4805e965, checked) | 60 icons from package `icons/` + `LICENSE` | ISC (some icons MIT via Feather; both texts in LICENSE) |
+
+The icons are not loaded as files: `tools/make-sprite.cjs` turns them into the inline sprite in `core/icons.js` (no request, no CSP change). `tests/icons.test.cjs` fails if the sprite does not match these files.
+
+| File | Bytes | SHA-256 |
+|---|---|---|
+| lucide-static-1.76.0/LICENSE | 3208 | b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57 |
+| lucide-static-1.76.0/arrow-down-wide-narrow.svg | 424 | e023fad8c2457ebf2430630736be2eb1b6e6a677e0f05e1643084721c77ad633 |
+| lucide-static-1.76.0/arrow-left.svg | 343 | ac94beda302c64d0506c18608e6dc62f670639a5eb1a1bac06da3c4ccaa32fce |
+| lucide-static-1.76.0/arrow-right.svg | 343 | 1869af6bbcfce9193d951d8cd4308673a140624f4d44943d7c80b0abd53f6a3a |
+| lucide-static-1.76.0/book-open.svg | 467 | 41706a3180d01824e6b834a4829146f8d2b2d342c1c7d63b60907b58d6a03da0 |
+| lucide-static-1.76.0/bot.svg | 454 | f287f3fa526b21a05962ae6859a1006c7bd0f08e75797864ad35a73357ddefd0 |
+| lucide-static-1.76.0/check.svg | 315 | b4c52eac69018dffa07321c57a0d7857d6e76c9c1ccc851350bbc09e6790e7de |
+| lucide-static-1.76.0/chevron-down.svg | 319 | 2fe6bf9c85691036fb6463026cd0ceb0df0f4e6d57b90badacf009a4d029c105 |
+| lucide-static-1.76.0/chevron-right.svg | 321 | a4e2552008bea9a6a5cd9b3a9de8d9db39d9b923ff083ba3077114f08bcf0d26 |
+| lucide-static-1.76.0/circle-help.svg | 402 | e6113143231f67e8b8aeeb2b0712f470d0361b725d27e6cd3392ef00472011ee |
+| lucide-static-1.76.0/clock.svg | 347 | 8a6694e254942c8f349ad603dd6272698ed87f3efe29c73e204caa8ef4ea1728 |
+| lucide-static-1.76.0/compass.svg | 429 | 9ad239b843c3bedf9db2e2657991e983bc1eb60e5b0dbece7ad612f30551ca76 |
+| lucide-static-1.76.0/cpu.svg | 664 | a6437d9d5d245deb1b5f4351c071de90195e9ab59b1e0c2f7e64e3268f10675e |
+| lucide-static-1.76.0/download.svg | 397 | 5ff8d885c50e92bc81150e2c953eeb2e55307475e8db69a817558ea985e02d8c |
+| lucide-static-1.76.0/eye.svg | 434 | ac02229358c6b6df3e311b093ce0c32c8277957ca2f7d12538a8a758bbff9731 |
+| lucide-static-1.76.0/film.svg | 507 | 38d412ebdb6e609b90e6b8dc2ae64e7899bed249f60df905e903a72f81b991af |
+| lucide-static-1.76.0/fingerprint.svg | 690 | f80a14c9e6667f8ed8c45c2d679eec11483825f273ef6d5122035caa4ddf7874 |
+| lucide-static-1.76.0/flame.svg | 390 | 0e04889d31c9608f7a9a5cec25c2c668e0b386657e09e0e56faa1e20dac856f7 |
+| lucide-static-1.76.0/globe.svg | 407 | 7f8b42da752bf0525462bdac3a48ea51d0298b03077e3ccff1172e0795831835 |
+| lucide-static-1.76.0/heart.svg | 449 | bbd2e753a818877d96adc24a94c8240ffebcb44a4c0c357a35715ddb4b8dbd74 |
+| lucide-static-1.76.0/id-card.svg | 456 | 05dc80f12e05e0e81e230ff1715d38485f645c90786b012c485653d7597bb792 |
+| lucide-static-1.76.0/image.svg | 434 | a76d752a3bf99c20bab65453260308799cd90faf32f35c170b19222ace13885e |
+| lucide-static-1.76.0/info.svg | 369 | e718a8c91a197551cf9c06c06e956f49e9f6e1f967414e18bad44f8591bcadb6 |
+| lucide-static-1.76.0/layers.svg | 587 | e5f5dae86694bcca585995abbfafdfe780648efe891943f69a800882a927990d |
+| lucide-static-1.76.0/layout-grid.svg | 498 | 2069d2ad940cddc196b70231728bbcdd7c48a77f26acbc93103d3061fcac925d |
+| lucide-static-1.76.0/link.svg | 434 | 42577020345f96dfe42f4f8537a0a8a975bb227497d16b29face147cfe171197 |
+| lucide-static-1.76.0/lock.svg | 384 | bb33207071e22c9d18ccb7ca1ae0604902476c5d117499a72c776589f039c3a3 |
+| lucide-static-1.76.0/map-pin.svg | 437 | 8b41d98312866f3e4285fbb78743d154f1c2d0133607c17a2b7209ba8950d9e9 |
+| lucide-static-1.76.0/message-circle.svg | 432 | 2046e52c48af0113533b66edfd57f8a9031e64fae2474b75cae0b2d5a5258555 |
+| lucide-static-1.76.0/messages-square.svg | 543 | 81ec6433ee93b70567523cdfc93851509115afd83efb5ce19ecedbb0f0cc57fc |
+| lucide-static-1.76.0/mic.svg | 400 | abe2ab35bd04aa9dd98957085287f54c6c1a264d60aa3f1d6daf3f8317cc45df |
+| lucide-static-1.76.0/microchip.svg | 551 | fb3411b402e2349ba9a9daceeb142a42be5181787d53e723e7abc210dca19989 |
+| lucide-static-1.76.0/monitor-smartphone.svg | 478 | 26bd46f5a721db50398ae2c6542c91878d186a6444c48166b452150fd2558e77 |
+| lucide-static-1.76.0/monitor.svg | 424 | be1d8c5843fcf0a731e38473eb48b614f50c89df30db8fde4087d6a8fefe921f |
+| lucide-static-1.76.0/mountain.svg | 327 | 5f85b9ca6398a2fbb2b3cfe92827f0d0026e6b68dc74d827d690cf2ca8a3061b |
+| lucide-static-1.76.0/mouse-pointer-click.svg | 553 | 681644f3dd2d350b0c6431a5c01882214fefcc0adcffd81fa63de7a70c56770e |
+| lucide-static-1.76.0/play.svg | 381 | 3c6e12803dc38115d38fe07ec7d74e7d27d4a3f73c9330c19b99b5ff3c6e2d4f |
+| lucide-static-1.76.0/rectangle-vertical.svg | 350 | f7e083038a6aa385025b5d4edde023f138fe374a72a85a8417f14099b282f21a |
+| lucide-static-1.76.0/rotate-3d.svg | 451 | 85057b69fb46b994a6ca319d3ec278881c65148cfb95c51a560a63ba491b30c1 |
+| lucide-static-1.76.0/rotate-ccw.svg | 378 | 138af932ec444762a265545bea377d1882c7d4d31ae76cd356180b3e62969644 |
+| lucide-static-1.76.0/scan.svg | 441 | 3ba1dd5375fd579669f2c89e075f04ad8c5b543b77e812f3d4a7736ea5c72469 |
+| lucide-static-1.76.0/search.svg | 352 | d2c492f6c3e5bfe43d0ec7f22031d10dee141531907ef923fd63f89f3f631a05 |
+| lucide-static-1.76.0/share-2.svg | 496 | abed29f703dbe77969e9fd03cd893b2d6a220719cf48527a85efb3c1d1c0eaae |
+| lucide-static-1.76.0/shopping-bag.svg | 505 | 169b21c0e73e55796c670794d3fb184bd2bd474daee60cf9fb360f84f355f3ce |
+| lucide-static-1.76.0/skip-forward.svg | 416 | 0dfd2fcf98f9030d4bc5f4d2ac382e9e44d65421d51fa54a8087a99378403bd6 |
+| lucide-static-1.76.0/sliders-horizontal.svg | 511 | 227f58fd45bc90e5fd9a8a4c8b14fad14089e48f966895b8356efe43bcfed46a |
+| lucide-static-1.76.0/smartphone.svg | 375 | eb3b4e275b540c333c889b5bf0808afe76ae471e60bf0071d23d3a0346f3817a |
+| lucide-static-1.76.0/sparkles.svg | 646 | d917ccb358ee7ae809b3647025231e216d9940cb0f9f61246e1b7a8f3f0b4cfb |
+| lucide-static-1.76.0/speaker.svg | 425 | 4498a6f635b631c57024a81346bc40fe90c32dfeb3a32f06f147a5a5fe5c0eff |
+| lucide-static-1.76.0/square.svg | 338 | c59b10bcff68f8c815f3879917fb2ea8917553759436fe6c06921112209b961f |
+| lucide-static-1.76.0/sun-moon.svg | 531 | b8382a3c6af62f41b3544d304196cd40c9bfad01ca1254ed5c61c0d29d7555ec |
+| lucide-static-1.76.0/sun.svg | 559 | e2877a548779ff45be8d74063b88c88119f0ea69c19fd6357baf44ccb9ee2509 |
+| lucide-static-1.76.0/trash-2.svg | 467 | 7400405a8fa87223a1d6bc38e6f02b34c0e0e7420ae131008778b9191ff85412 |
+| lucide-static-1.76.0/tv.svg | 363 | 7cc28292b758d19b83a187ca827d9e3be03bb666dbe01f3160b5945a50f5971d |
+| lucide-static-1.76.0/type.svg | 385 | 304264ceee15b232d22dbc81d39de9ee03dbd385b301dc69ead0c76b1e8c4e83 |
+| lucide-static-1.76.0/user.svg | 374 | 8e5be1b6ff6a963628f0dff72d3c215b35260819e8b5842a49e6ea5ce315cced |
+| lucide-static-1.76.0/users.svg | 459 | 0bb5660bd932f758647166cda095445e457c64499213cbae514abaeb2e739b00 |
+| lucide-static-1.76.0/vibrate.svg | 411 | 21dc23f3e2d89ef5d40c25a833e214a983137d1ae6e80c83d9fbd6ca642f89dd |
+| lucide-static-1.76.0/volume-2.svg | 555 | 58e81c3ded07e896bc16ef9384e44f70456543ac2333cc280d3d63f6a1489cd4 |
+| lucide-static-1.76.0/wifi.svg | 432 | 64edf5c57f7496e29559b9517ecf3427b69e1a2b9ebbf023ee6cf29ce41d8754 |
+| lucide-static-1.76.0/x.svg | 332 | 7bfd0cf7c80be3f053277f0ba94946d9cef28dc4d4bda2f1b13b134bcda6c0b6 |
